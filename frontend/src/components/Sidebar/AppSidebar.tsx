@@ -1,4 +1,4 @@
-import { LayoutDashboard, Shield, Users } from "lucide-react"
+import { Briefcase, LayoutDashboard, Shield, Users } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -14,6 +14,7 @@ import { User } from "./User"
 
 const baseItems: Item[] = [
   { icon: LayoutDashboard, title: "Signals", path: "/" },
+  { icon: Briefcase, title: "Projects", path: "/projects" },
 ]
 
 export function AppSidebar() {

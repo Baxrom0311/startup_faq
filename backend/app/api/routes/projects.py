@@ -66,12 +66,15 @@ def read_projects(
     mine: bool = False,
     owner: bool = False,
     status: str | None = None,
+    problem_id: uuid.UUID | None = None,
 ) -> Any:
     filters = []
     if mine:
         filters.append(Project.lead_id == current_user.id)
     if status:
         filters.append(Project.status == status)
+    if problem_id:
+        filters.append(Project.problem_id == problem_id)
 
     if owner:
         filters.append(Problem.author_id == current_user.id)
