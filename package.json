@@ -1,0 +1,15 @@
+{
+  "name": "platforma",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "npm --workspace frontend run dev",
+    "build": "npm --workspace frontend run build",
+    "generate-client": "bash ./scripts/generate-client.sh",
+    "lint": "npm --workspace frontend run lint",
+    "test": "npm --workspace frontend run test",
+    "test:ui": "npm --workspace frontend run test:ui"
+  }
+}
