@@ -67,7 +67,7 @@ function Admin() {
       .then((response) => setUsers(response.data))
       .catch(() => setUsers([]))
     loadReview().catch(() => {
-      toast.error("Error")
+      toast.error(t("error_generic"))
       setProblems([])
     })
   }, [loadReview])
@@ -89,7 +89,7 @@ function Admin() {
       toast.success(t("problem_action_done"))
       await loadReview()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error")
+      toast.error(error instanceof Error ? error.message : t("error_generic"))
     }
   }
 

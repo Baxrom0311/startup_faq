@@ -121,7 +121,7 @@ export function SubmitProblemDialog({
       return
     }
     if (!AUDIO_TYPES.has(file.type) || file.size > MAX_AUDIO_SIZE) {
-      toast.error("Audio")
+      toast.error(t("error_audio_invalid"))
       return
     }
     setAudioFile(file)
@@ -167,7 +167,7 @@ export function SubmitProblemDialog({
       toast.success(t("submit_success"))
       await onCreated?.()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error")
+      toast.error(error instanceof Error ? error.message : t("error_generic"))
     } finally {
       setSubmitting(false)
     }

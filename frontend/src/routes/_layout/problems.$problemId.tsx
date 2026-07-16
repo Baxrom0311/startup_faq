@@ -165,7 +165,7 @@ function ProblemDetail() {
       toast.success(t("problem_action_done"))
       await loadProblem()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error")
+      toast.error(error instanceof Error ? error.message : t("error_generic"))
     }
   }
 
@@ -255,7 +255,7 @@ function ProblemDetail() {
             )}
             {media.length > 0 && (
               <div className="grid gap-3">
-                <h3 className="text-sm font-medium">Media</h3>
+                <h3 className="text-sm font-medium">{t("problem_media")}</h3>
                 {photos.length > 0 && (
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {photos.map((item) => (
@@ -461,6 +461,7 @@ function ProblemDetail() {
 }
 
 function AIPanel({ analysis }: { analysis: AIAnalysis }) {
+  const { t } = useTranslation()
   const structured = analysis.summary_json.structured
   const duplicateOf =
     typeof analysis.summary_json.duplicate_of === "string"
@@ -483,26 +484,26 @@ function AIPanel({ analysis }: { analysis: AIAnalysis }) {
   return (
     <Card className="bg-background shadow-none">
       <CardHeader>
-        <CardTitle className="text-base">AI</CardTitle>
+        <CardTitle className="text-base">{t("ai_panel_title")}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3 text-sm">
-        <Info label="Model" value={analysis.model} />
-        {promptVersion && <Info label="Prompt" value={promptVersion} />}
+        <Info label={t("ai_label_model")} value={analysis.model} />
+        {promptVersion && <Info label={t("ai_label_prompt")} value={promptVersion} />}
         {typeof record.confidence === "number" && (
           <Info
-            label="Trust"
+            label={t("ai_label_trust")}
             value={`${Math.round(record.confidence * 100)}%`}
           />
         )}
         {typeof record.urgency === "string" && (
-          <Info label="Urgency" value={record.urgency} />
+          <Info label={t("ai_label_urgency")} value={record.urgency} />
         )}
         {typeof record.impact_scope === "string" && (
-          <Info label="Scope" value={record.impact_scope} />
+          <Info label={t("ai_label_scope")} value={record.impact_scope} />
         )}
-        {duplicateOf && <Info label="Duplicate" value={duplicateOf} />}
+        {duplicateOf && <Info label={t("ai_label_duplicate")} value={duplicateOf} />}
         {typeof record.moderation_reason === "string" && (
-          <Info label="Reason" value={record.moderation_reason} />
+          <Info label={t("ai_label_reason")} value={record.moderation_reason} />
         )}
         {activeFlags.length > 0 && (
           <div className="flex flex-wrap gap-1">

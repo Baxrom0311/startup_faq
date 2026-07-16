@@ -170,6 +170,32 @@ const uz = {
   error_comment_add: "Izoh qo'shib bo'lmadi",
   error_request: "So'rov yuborib bo'lmadi",
   error_mark_read: "Bildirishnomalar o'qilmadi",
+  error_upload: "Fayl yuklab bo'lmadi",
+  error_generic: "Xatolik yuz berdi",
+  error_audio_invalid: "Yaroqsiz audio fayl yoki hajmi katta",
+
+  // Settings — delete account
+  settings_delete_account: "Hisobni o'chirish",
+  settings_delete_confirm: "O'chirish",
+  settings_delete_cancel: "Bekor qilish",
+  settings_delete_success: "Hisob o'chirildi",
+
+  // Problem detail — media & AI panel
+  problem_media: "Media",
+  ai_panel_title: "AI",
+  ai_label_model: "Model",
+  ai_label_prompt: "Prompt",
+  ai_label_trust: "Ishonch",
+  ai_label_urgency: "Shoshilinchlik",
+  ai_label_scope: "Qamrov",
+  ai_label_duplicate: "Dublikat",
+  ai_label_reason: "Sabab",
+
+  // ErrorComponent
+  error_page_title: "Xato",
+  error_page_subtitle: "Voy!",
+  error_page_desc: "Nimadir noto'g'ri ketdi. Qaytadan urinib ko'ring.",
+  error_page_home: "Bosh sahifa",
 
   // Load more & Region filter
   load_more: "Yana yuklash",
@@ -372,6 +398,32 @@ const ru: typeof uz = {
   error_comment_add: "Не удалось добавить комментарий",
   error_request: "Не удалось отправить запрос",
   error_mark_read: "Не удалось отметить уведомления прочитанными",
+  error_upload: "Не удалось загрузить файл",
+  error_generic: "Произошла ошибка",
+  error_audio_invalid: "Неверный формат или размер аудио файла",
+
+  // Settings — delete account
+  settings_delete_account: "Удалить аккаунт",
+  settings_delete_confirm: "Удалить",
+  settings_delete_cancel: "Отмена",
+  settings_delete_success: "Аккаунт удалён",
+
+  // Problem detail — media & AI panel
+  problem_media: "Медиа",
+  ai_panel_title: "AI",
+  ai_label_model: "Модель",
+  ai_label_prompt: "Промпт",
+  ai_label_trust: "Доверие",
+  ai_label_urgency: "Срочность",
+  ai_label_scope: "Охват",
+  ai_label_duplicate: "Дубликат",
+  ai_label_reason: "Причина",
+
+  // ErrorComponent
+  error_page_title: "Ошибка",
+  error_page_subtitle: "Упс!",
+  error_page_desc: "Что-то пошло не так. Попробуйте ещё раз.",
+  error_page_home: "На главную",
 
   // Load more & Region filter
   load_more: "Загрузить еще",
@@ -575,6 +627,32 @@ const en: typeof uz = {
   error_comment_add: "Failed to add comment",
   error_request: "Failed to send request",
   error_mark_read: "Failed to mark notifications as read",
+  error_upload: "Failed to upload file",
+  error_generic: "Something went wrong",
+  error_audio_invalid: "Invalid audio format or file too large",
+
+  // Settings — delete account
+  settings_delete_account: "Delete account",
+  settings_delete_confirm: "Delete",
+  settings_delete_cancel: "Cancel",
+  settings_delete_success: "Account deleted",
+
+  // Problem detail — media & AI panel
+  problem_media: "Media",
+  ai_panel_title: "AI",
+  ai_label_model: "Model",
+  ai_label_prompt: "Prompt",
+  ai_label_trust: "Confidence",
+  ai_label_urgency: "Urgency",
+  ai_label_scope: "Scope",
+  ai_label_duplicate: "Duplicate",
+  ai_label_reason: "Reason",
+
+  // ErrorComponent
+  error_page_title: "Error",
+  error_page_subtitle: "Oops!",
+  error_page_desc: "Something went wrong. Please try again.",
+  error_page_home: "Go Home",
 
   // Load more & Region filter
   load_more: "Load more",

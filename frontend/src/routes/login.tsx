@@ -74,7 +74,7 @@ function Login() {
       window.location.href = data.deep_link
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Autentifikatsiya xatosi",
+        error instanceof Error ? error.message : t("error_generic"),
       )
     } finally {
       setLoading(false)
@@ -96,7 +96,7 @@ function Login() {
       if (retryCount.current > MAX_POLL_RETRIES) {
         window.clearInterval(interval)
         setStatus("timed_out")
-        toast.error("Vaqt tugadi")
+        toast.error(t("login_status_timed_out"))
         return
       }
 
@@ -116,10 +116,10 @@ function Login() {
           navigate({ to: "/" })
         }
         if (data.status === "expired") {
-          toast.error("Sessiya tugadi")
+          toast.error(t("login_status_expired"))
         }
         if (data.status === "phone_mismatch") {
-          toast.error("Telefon raqami mos kelmadi")
+          toast.error(t("login_status_phone_mismatch"))
         }
       } catch {
         // Short connection drops should not break the login flow

@@ -297,7 +297,7 @@ export async function uploadProblemMedia(
     body: file,
   })
   if (!uploadResponse.ok) {
-    throw new Error("Fayl yuklab bo'lmadi")
+    throw new Error(i18n.t("error_upload"))
   }
   return presign.object_key
 }
