@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -272,11 +273,14 @@ class WhisperLocalSTTProvider:
                 object_key=object_key,
                 destination_path=media_file.name,
             )
-            segments, _ = model.transcribe(
-                media_file.name,
-                language=settings.STT_LANGUAGE or None,
-            )
-            return " ".join(segment.text.strip() for segment in segments).strip()
+            def run_transcribe():
+                segments, _ = model.transcribe(
+                    media_file.name,
+                    language=settings.STT_LANGUAGE or None,
+                )
+                return " ".join(segment.text.strip() for segment in segments).strip()
+
+            return await asyncio.to_thread(run_transcribe)
 
 
 class ApiSTTProvider:
