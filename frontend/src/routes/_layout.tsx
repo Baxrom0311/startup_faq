@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
 import { AlertCircle, Search } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import AppSidebar from "@/components/Sidebar/AppSidebar"
 import { Badge } from "@/components/ui/badge"
@@ -12,15 +13,19 @@ import {
 import { isLoggedIn } from "@/hooks/useAuth"
 
 function LayoutError({ error, reset }: { error: Error; reset: () => void }) {
+  const { t } = useTranslation()
   return (
     <div className="flex min-h-80 flex-col items-center justify-center gap-4 p-8 text-center">
-      <AlertCircle className="text-muted-foreground size-10" strokeWidth={1.5} />
+      <AlertCircle
+        className="text-muted-foreground size-10"
+        strokeWidth={1.5}
+      />
       <div className="grid gap-1">
-        <p className="text-sm font-medium">Xatolik yuz berdi</p>
+        <p className="text-sm font-medium">{t("layout_error")}</p>
         <p className="text-muted-foreground text-xs">{error.message}</p>
       </div>
       <Button variant="outline" size="sm" onClick={reset}>
-        Qayta urinish
+        {t("layout_retry")}
       </Button>
     </div>
   )
@@ -41,6 +46,7 @@ export const Route = createFileRoute("/_layout")({
 })
 
 function Layout() {
+  const { t } = useTranslation()
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -49,7 +55,7 @@ function Layout() {
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
           <div className="bg-muted/60 text-muted-foreground hidden h-9 min-w-0 flex-1 items-center gap-2 rounded-md border px-3 text-sm md:flex">
             <Search className="size-4 shrink-0" />
-            <span className="truncate">Search</span>
+            <span className="truncate">{t("layout_search")}</span>
           </div>
           <Badge variant="secondary" className="ml-auto hidden sm:inline-flex">
             Beta

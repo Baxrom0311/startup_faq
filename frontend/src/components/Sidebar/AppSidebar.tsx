@@ -17,7 +17,7 @@ import { type Item, Main } from "./Main"
 import { User } from "./User"
 
 export function AppSidebar() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user: currentUser } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -26,6 +26,13 @@ export function AppSidebar() {
       .then((r) => setUnreadCount(r.unread_count))
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    const lang = currentUser?.language
+    if (lang && i18n.language?.slice(0, 2) !== lang) {
+      i18n.changeLanguage(lang)
+    }
+  }, [currentUser?.language, i18n])
 
   const baseItems: Item[] = [
     {

@@ -350,6 +350,7 @@ export type UserPublic = {
     telegram_username?: (string | null);
     roles?: Array<(string)>;
     region_id?: (number | null);
+    language?: string;
     bio?: (string | null);
     reputation?: number;
     tg_linked_at?: (string | null);
@@ -387,6 +388,7 @@ export type UserUpdate = {
 export type UserUpdateMe = {
     full_name?: (string | null);
     email?: (string | null);
+    language?: (string | null);
 };
 
 export type ValidationError = {

@@ -35,7 +35,8 @@ const uz = {
   submit_send: "Yuborish",
   submit_success: "Muammoyingiz nashr qilindi!",
   submit_duplicate_title: "Muammo allaqachon mavjud",
-  submit_duplicate_desc: "Bu muammo allaqachon tizimda mavjud. Ovozingiz unga qo'shildi.",
+  submit_duplicate_desc:
+    "Bu muammo allaqachon tizimda mavjud. Ovozingiz unga qo'shildi.",
   submit_duplicate_close: "Yopish",
   submit_duplicate_view: "Ko'rish",
 
@@ -145,14 +146,75 @@ const uz = {
   login_status_phone_mismatch: "Telefon raqami mos kelmadi.",
   login_status_timed_out: "Vaqt tugadi. Qaytadan urinib ko'ring.",
 
+  // Layout
+  layout_error: "Xatolik yuz berdi",
+  layout_retry: "Qayta urinish",
+  layout_search: "Qidirish",
+
   // Common
   empty_state: "Hali hech narsa yo'q",
   empty_problems: "Hozircha muammolar yo'q",
   unnamed_problem: "Nomsiz muammo",
+  audio_only: "Audio",
   view: "Ko'rish",
   votes: "ovoz",
   cancel: "Bekor qilish",
   error_vote: "Ovoz berib bo'lmadi",
+  error_load_project: "Loyiha yuklanmadi",
+  error_load_problem: "Muammo yuklanmadi",
+  error_action: "Amal bajarib bo'lmadi",
+  error_milestone_add: "Milestone qo'shib bo'lmadi",
+  error_milestone_toggle: "Milestone holati o'zgartirib bo'lmadi",
+  error_update_add: "Yangilik qo'shib bo'lmadi",
+  error_complete: "Loyihani yakunlab bo'lmadi",
+  error_comment_add: "Izoh qo'shib bo'lmadi",
+  error_request: "So'rov yuborib bo'lmadi",
+  error_mark_read: "Bildirishnomalar o'qilmadi",
+
+  // Load more & Region filter
+  load_more: "Yana yuklash",
+  loading: "Yuklanmoqda...",
+  dashboard_all_regions: "Barcha hududlar",
+
+  // Dashboard sidebar
+  dashboard_inbox: "Inbox",
+  dashboard_pipeline: "Oqim",
+  dashboard_pipeline_inbox: "Kiruvchi",
+  dashboard_pipeline_active: "Faol",
+
+  // Admin
+  admin_merge_placeholder: "Qidirish yoki ID kiriting...",
+  admin_merge: "Birlashtirish",
+  admin_score: "ball",
+
+  // Sectors UZ
+  sector_agro: "Agro-texnologiya",
+  sector_food: "Oziq-ovqat sanoati",
+  sector_textile: "Tekstil va kiyim",
+  sector_construction: "Qurilish va ko'chmas mulk",
+  sector_industry: "Ishlab chiqarish",
+  sector_mining: "Tog'-kon sanoati",
+  sector_pharma: "Kimyo va farmatsevtika",
+  sector_energy: "Energetika",
+  sector_finance: "Moliya va bank",
+  sector_insurance: "Sug'urta",
+  sector_trade: "Savdo va e-commerce",
+  sector_logistics: "Transport va logistika",
+  sector_tourism: "Turizm va mehmonxona",
+  sector_media: "Media va ko'ngilochar",
+  sector_marketing: "Marketing va reklama",
+  sector_education: "Ta'lim",
+  sector_health: "Sog'liqni saqlash",
+  sector_sport: "Sport va sog'lom turmush",
+  sector_ecology: "Ekologiya va atrof-muhit",
+  sector_water: "Suv ta'minoti",
+  sector_it: "IT va dasturiy ta'minot",
+  sector_telecom: "Telekommunikatsiya",
+  sector_ai: "Sun'iy intellekt",
+  sector_cybersec: "Kibxavfsizlik",
+  sector_gov: "Davlat xizmatlari",
+  sector_legal: "Huquq va yuridik xizmat",
+  sector_hr: "HR va bandlik",
 }
 
 const ru: typeof uz = {
@@ -287,13 +349,74 @@ const ru: typeof uz = {
   login_status_phone_mismatch: "Номер телефона не совпадает.",
   login_status_timed_out: "Время вышло. Попробуйте снова.",
 
+  // Layout
+  layout_error: "Произошла ошибка",
+  layout_retry: "Повторить",
+  layout_search: "Поиск",
+
   empty_state: "Пока ничего нет",
   empty_problems: "Проблем нет",
   unnamed_problem: "Без названия",
+  audio_only: "Аудио",
   view: "Открыть",
   votes: "голосов",
   cancel: "Отмена",
   error_vote: "Не удалось проголосовать",
+  error_load_project: "Не удалось загрузить проект",
+  error_load_problem: "Не удалось загрузить проблему",
+  error_action: "Не удалось выполнить действие",
+  error_milestone_add: "Не удалось добавить этап",
+  error_milestone_toggle: "Не удалось изменить статус этапа",
+  error_update_add: "Не удалось добавить обновление",
+  error_complete: "Не удалось завершить проект",
+  error_comment_add: "Не удалось добавить комментарий",
+  error_request: "Не удалось отправить запрос",
+  error_mark_read: "Не удалось отметить уведомления прочитанными",
+
+  // Load more & Region filter
+  load_more: "Загрузить еще",
+  loading: "Загрузка...",
+  dashboard_all_regions: "Все регионы",
+
+  // Dashboard sidebar
+  dashboard_inbox: "Входящие",
+  dashboard_pipeline: "Поток",
+  dashboard_pipeline_inbox: "Входящие",
+  dashboard_pipeline_active: "Активные",
+
+  // Admin
+  admin_merge_placeholder: "Поиск или введите ID...",
+  admin_merge: "Объединить",
+  admin_score: "балл",
+
+  // Sectors RU
+  sector_agro: "Агротехнологии",
+  sector_food: "Пищевая промышленность",
+  sector_textile: "Текстиль и одежда",
+  sector_construction: "Строительство и недвижимость",
+  sector_industry: "Производство",
+  sector_mining: "Горнодобывающая промышленность",
+  sector_pharma: "Химия и фармацевтика",
+  sector_energy: "Энергетика",
+  sector_finance: "Финансы и банки",
+  sector_insurance: "Страхование",
+  sector_trade: "Торговля и e-commerce",
+  sector_logistics: "Транспорт и логистика",
+  sector_tourism: "Туризм и отели",
+  sector_media: "Медиа и развлечения",
+  sector_marketing: "Маркетинг и реклама",
+  sector_education: "Образование",
+  sector_health: "Здравоохранение",
+  sector_sport: "Спорт и здоровый образ жизни",
+  sector_ecology: "Экология и окруж. среда",
+  sector_water: "Водоснабжение",
+  sector_it: "IT и разработка ПО",
+  sector_telecom: "Телекоммуникации",
+  sector_ai: "Искусственный интеллект",
+  sector_cybersec: "Кибербезопасность",
+  sector_gov: "Государственные услуги",
+  sector_legal: "Право и юруслуги",
+  sector_hr: "HR и занятость",
 }
 
 const en: typeof uz = {
@@ -326,7 +449,8 @@ const en: typeof uz = {
   submit_send: "Send",
   submit_success: "Problem published!",
   submit_duplicate_title: "Problem already exists",
-  submit_duplicate_desc: "This problem is already in the system. Your vote has been added.",
+  submit_duplicate_desc:
+    "This problem is already in the system. Your vote has been added.",
   submit_duplicate_close: "Close",
   submit_duplicate_view: "View",
 
@@ -428,20 +552,85 @@ const en: typeof uz = {
   login_status_phone_mismatch: "Phone number does not match.",
   login_status_timed_out: "Timed out. Try again.",
 
+  // Layout
+  layout_error: "Something went wrong",
+  layout_retry: "Try again",
+  layout_search: "Search",
+
   empty_state: "Nothing here yet",
   empty_problems: "No problems yet",
   unnamed_problem: "Unnamed problem",
+  audio_only: "Audio",
   view: "View",
   votes: "votes",
   cancel: "Cancel",
   error_vote: "Failed to vote",
+  error_load_project: "Failed to load project",
+  error_load_problem: "Failed to load problem",
+  error_action: "Action failed",
+  error_milestone_add: "Failed to add milestone",
+  error_milestone_toggle: "Failed to update milestone status",
+  error_update_add: "Failed to add update",
+  error_complete: "Failed to complete project",
+  error_comment_add: "Failed to add comment",
+  error_request: "Failed to send request",
+  error_mark_read: "Failed to mark notifications as read",
+
+  // Load more & Region filter
+  load_more: "Load more",
+  loading: "Loading...",
+  dashboard_all_regions: "All regions",
+
+  // Dashboard sidebar
+  dashboard_inbox: "Inbox",
+  dashboard_pipeline: "Flow",
+  dashboard_pipeline_inbox: "Inbox",
+  dashboard_pipeline_active: "Active",
+
+  // Admin
+  admin_merge_placeholder: "Search or paste ID...",
+  admin_merge: "Merge",
+  admin_score: "score",
+
+  // Sectors EN
+  sector_agro: "Agrotech",
+  sector_food: "Food Industry",
+  sector_textile: "Textile & Apparel",
+  sector_construction: "Construction & Real Estate",
+  sector_industry: "Manufacturing",
+  sector_mining: "Mining Industry",
+  sector_pharma: "Chemicals & Pharma",
+  sector_energy: "Energy",
+  sector_finance: "Finance & Banking",
+  sector_insurance: "Insurance",
+  sector_trade: "Trade & E-commerce",
+  sector_logistics: "Transport & Logistics",
+  sector_tourism: "Tourism & Hospitality",
+  sector_media: "Media & Entertainment",
+  sector_marketing: "Marketing & Advertising",
+  sector_education: "Education",
+  sector_health: "Healthcare",
+  sector_sport: "Sport & Wellness",
+  sector_ecology: "Ecology & Environment",
+  sector_water: "Water Supply",
+  sector_it: "IT & Software",
+  sector_telecom: "Telecommunications",
+  sector_ai: "Artificial Intelligence",
+  sector_cybersec: "Cybersecurity",
+  sector_gov: "Government Services",
+  sector_legal: "Law & Legal Services",
+  sector_hr: "HR & Recruitment",
 }
 
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: { uz: { translation: uz }, ru: { translation: ru }, en: { translation: en } },
+    resources: {
+      uz: { translation: uz },
+      ru: { translation: ru },
+      en: { translation: en },
+    },
     fallbackLng: "uz",
     supportedLngs: ["uz", "ru", "en"],
     detection: {

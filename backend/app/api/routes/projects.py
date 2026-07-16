@@ -134,6 +134,7 @@ def read_projects(
     owner: bool = False,
     status: str | None = None,
     problem_id: uuid.UUID | None = None,
+    q: str | None = None,
 ) -> Any:
     filters = []
     if mine:
@@ -142,6 +143,12 @@ def read_projects(
         filters.append(Project.status == status)
     if problem_id:
         filters.append(Project.problem_id == problem_id)
+    if q:
+        pattern = f"%{q.strip()}%"
+        filters.append(
+            (Project.title.ilike(pattern))
+            | (Project.pitch.ilike(pattern))
+        )
 
     if owner:
         filters.append(Problem.author_id == current_user.id)

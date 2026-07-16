@@ -98,7 +98,9 @@ function Admin() {
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
       <main className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin_title")}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t("admin_title")}
+        </h1>
 
         <Card className="bg-background shadow-none">
           <CardHeader className="border-b">
@@ -123,18 +125,20 @@ function Admin() {
                         params={{ problemId: problem.id }}
                         className="block truncate text-sm font-medium hover:underline"
                       >
-                        {problem.title || problem.raw_text || t("unnamed_problem")}
+                        {problem.title ||
+                          problem.raw_text ||
+                          t("unnamed_problem")}
                       </Link>
                       <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
                         <span>{shortDate(problem.created_at)}</span>
                         {problem.severity_score != null && (
-                          <span>score: {problem.severity_score}</span>
+                          <span>{t("admin_score")}: {problem.severity_score}</span>
                         )}
                       </div>
                       <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
                         {structuredSummary(problem) ||
                           problem.raw_text ||
-                          "Audio"}
+                          t("audio_only")}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -201,7 +205,9 @@ function Admin() {
                         <Badge variant="outline">{t("settings_admin")}</Badge>
                       )}
                       <Badge variant={user.is_active ? "secondary" : "outline"}>
-                        {user.is_active ? t("settings_active") : t("settings_inactive")}
+                        {user.is_active
+                          ? t("settings_active")
+                          : t("settings_inactive")}
                       </Badge>
                     </div>
                   </div>
@@ -222,6 +228,7 @@ function MergeTargetPicker({
   aiSuggestedId?: string | null
   onMerge: (targetId: string) => void
 }) {
+  const { t } = useTranslation()
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<Problem[]>([])
   const [selectedId, setSelectedId] = useState("")
@@ -284,7 +291,7 @@ function MergeTargetPicker({
             onClick={() => onMerge(aiSuggestedId)}
           >
             <GitMerge className="size-3" />
-            Merge
+            {t("admin_merge")}
           </Button>
         </div>
       )}
@@ -307,7 +314,7 @@ function MergeTargetPicker({
             onFocus={() => {
               if (results.length > 0) setOpen(true)
             }}
-            placeholder="Search or paste ID..."
+            placeholder={t("admin_merge_placeholder")}
           />
           <Button
             variant="outline"
@@ -329,7 +336,7 @@ function MergeTargetPicker({
                 onClick={() => handleSelect(p)}
               >
                 <span className="truncate text-sm font-medium">
-                  {p.title || p.raw_text || "Problem"}
+                  {p.title || p.raw_text || t("unnamed_problem")}
                 </span>
                 <span className="text-muted-foreground font-mono text-xs">
                   {p.id.slice(0, 8)}
@@ -342,4 +349,3 @@ function MergeTargetPicker({
     </div>
   )
 }
-

@@ -193,7 +193,9 @@ export function SubmitProblemDialog({
             </p>
             <div className="rounded-md border bg-muted/40 p-4">
               <p className="truncate text-sm font-medium">
-                {duplicateProblem.title || duplicateProblem.raw_text || t("unnamed_problem")}
+                {duplicateProblem.title ||
+                  duplicateProblem.raw_text ||
+                  t("unnamed_problem")}
               </p>
               <p className="text-muted-foreground mt-1 text-xs">
                 {duplicateProblem.vote_count} {t("votes")}
@@ -205,7 +207,10 @@ export function SubmitProblemDialog({
               {t("submit_duplicate_close")}
             </Button>
             <Button asChild onClick={() => onOpenChange(false)}>
-              <Link to="/problems/$problemId" params={{ problemId: duplicateProblem.id }}>
+              <Link
+                to="/problems/$problemId"
+                params={{ problemId: duplicateProblem.id }}
+              >
                 {t("submit_duplicate_view")}
                 <ArrowRight />
               </Link>
@@ -237,7 +242,9 @@ export function SubmitProblemDialog({
         <div className="grid grid-cols-2 gap-3">
           {sectors.length > 0 && (
             <div className="grid gap-2">
-              <label className="text-sm font-medium">{t("submit_sector_label")}</label>
+              <label className="text-sm font-medium">
+                {t("submit_sector_label")}
+              </label>
               <Select value={sectorId} onValueChange={setSectorId}>
                 <SelectTrigger>
                   <SelectValue placeholder={t("submit_sector_placeholder")} />
@@ -245,7 +252,8 @@ export function SubmitProblemDialog({
                 <SelectContent>
                   {sectors.map((sector) => (
                     <SelectItem key={sector.id} value={String(sector.id)}>
-                      {sector.icon} {sector.name_uz}
+                      {sector.icon}{" "}
+                      {t(`sector_${sector.slug}` as any, sector.name_uz)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -254,7 +262,9 @@ export function SubmitProblemDialog({
           )}
           {regions.length > 0 && (
             <div className="grid gap-2">
-              <label className="text-sm font-medium">{t("submit_region_label")}</label>
+              <label className="text-sm font-medium">
+                {t("submit_region_label")}
+              </label>
               <Select value={regionId} onValueChange={setRegionId}>
                 <SelectTrigger>
                   <SelectValue placeholder={t("submit_region_placeholder")} />

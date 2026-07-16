@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Briefcase, Inbox } from "lucide-react"
+import { Briefcase, Inbox, Search } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -10,6 +10,7 @@ import {
 } from "@/components/Product/StatusBadge"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { apiJson, type Project, type ProjectsResponse } from "@/lib/product-api"
 
 export const Route = createFileRoute("/_layout/projects")({
@@ -23,11 +24,15 @@ function Projects() {
   const { t } = useTranslation()
   const [incoming, setIncoming] = useState<Project[] | null>(null)
   const [mine, setMine] = useState<Project[] | null>(null)
+  const [query, setQuery] = useState("")
 
   useEffect(() => {
+    const qParam = query.trim() ? `&q=${encodeURIComponent(query.trim())}` : ""
     Promise.all([
-      apiJson<ProjectsResponse>("/projects?owner=true&status=proposed"),
-      apiJson<ProjectsResponse>("/projects?mine=true"),
+      apiJson<ProjectsResponse>(
+        `/projects?owner=true&status=proposed${qParam}`,
+      ),
+      apiJson<ProjectsResponse>(`/projects?mine=true${qParam}`),
     ])
       .then(([incomingData, mineData]) => {
         setIncoming(incomingData.data)
@@ -37,20 +42,39 @@ function Projects() {
         setIncoming([])
         setMine([])
       })
-  }, [])
+  }, [query])
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <ProjectColumn
-        title={t("projects_inbox")}
-        icon={<Inbox className="size-4" />}
-        projects={incoming}
-      />
-      <ProjectColumn
-        title={t("projects_mine")}
-        icon={<Briefcase className="size-4" />}
-        projects={mine}
-      />
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 border-b pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t("nav_projects")}
+          </h1>
+        </div>
+        <div className="relative lg:w-[360px]">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <Input
+            className="bg-background pl-9"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t("dashboard_search")}
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ProjectColumn
+          title={t("projects_inbox")}
+          icon={<Inbox className="size-4" />}
+          projects={incoming}
+        />
+        <ProjectColumn
+          title={t("projects_mine")}
+          icon={<Briefcase className="size-4" />}
+          projects={mine}
+        />
+      </div>
     </div>
   )
 }

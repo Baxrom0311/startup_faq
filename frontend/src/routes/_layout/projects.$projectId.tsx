@@ -87,7 +87,7 @@ function ProjectDetail() {
 
   useEffect(() => {
     loadProject().catch((err: unknown) =>
-      toast.error(err instanceof Error ? err.message : "Loyiha yuklanmadi"),
+      toast.error(err instanceof Error ? err.message : t("error_load_project")),
     )
   }, [loadProject])
 
@@ -105,7 +105,7 @@ function ProjectDetail() {
       toast.success(t("project_done_toast"))
       await loadProject()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Amal bajarib bo'lmadi")
+      toast.error(err instanceof Error ? err.message : t("error_action"))
     }
   }
 
@@ -119,7 +119,9 @@ function ProjectDetail() {
       setMilestoneTitle("")
       await loadProject()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Milestone qo'shib bo'lmadi")
+      toast.error(
+        err instanceof Error ? err.message : t("error_milestone_add"),
+      )
     }
   }
 
@@ -134,7 +136,11 @@ function ProjectDetail() {
       )
       await loadProject()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Milestone holati o'zgartirib bo'lmadi")
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : t("error_milestone_toggle"),
+      )
     }
   }
 
@@ -151,7 +157,9 @@ function ProjectDetail() {
       setUpdatePhotos([])
       await loadProject()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Yangilik qo'shib bo'lmadi")
+      toast.error(
+        err instanceof Error ? err.message : t("error_update_add"),
+      )
     } finally {
       setIsSendingUpdate(false)
     }
@@ -166,7 +174,9 @@ function ProjectDetail() {
       toast.success(t("project_complete_toast"))
       await loadProject()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Loyihani yakunlab bo'lmadi")
+      toast.error(
+        err instanceof Error ? err.message : t("error_complete"),
+      )
     }
   }
 
@@ -217,7 +227,9 @@ function ProjectDetail() {
                 params={{ problemId: problem.id }}
                 className="rounded-md border bg-muted/30 p-4 hover:bg-muted/50"
               >
-                <span className="block text-sm font-medium">{t("project_problem_label")}</span>
+                <span className="block text-sm font-medium">
+                  {t("project_problem_label")}
+                </span>
                 <span className="text-muted-foreground mt-1 block truncate text-sm">
                   {problem.title || problem.raw_text || t("unnamed_problem")}
                 </span>
@@ -264,7 +276,9 @@ function ProjectDetail() {
 
         <Card className="bg-background shadow-none">
           <CardHeader>
-            <CardTitle className="text-base">{t("project_updates_title")}</CardTitle>
+            <CardTitle className="text-base">
+              {t("project_updates_title")}
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             {canManage && (
@@ -348,7 +362,9 @@ function ProjectDetail() {
       <aside className="flex flex-col gap-4">
         <Card className="bg-background shadow-none">
           <CardHeader>
-            <CardTitle className="text-base">{t("project_plan_title")}</CardTitle>
+            <CardTitle className="text-base">
+              {t("project_plan_title")}
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             {canManage && (
@@ -403,7 +419,9 @@ function ProjectDetail() {
         {canSolve && (
           <Card className="bg-background shadow-none">
             <CardHeader>
-              <CardTitle className="text-base">{t("project_complete_title")}</CardTitle>
+              <CardTitle className="text-base">
+                {t("project_complete_title")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
               <Input
@@ -426,7 +444,9 @@ function ProjectDetail() {
         {reviews.length > 0 && (
           <Card className="bg-background shadow-none">
             <CardHeader>
-              <CardTitle className="text-base">{t("project_reviews_title")}</CardTitle>
+              <CardTitle className="text-base">
+                {t("project_reviews_title")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
               {reviews.map((review) => (

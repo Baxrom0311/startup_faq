@@ -73,8 +73,12 @@ function ProblemDetail() {
   const [claiming, setClaiming] = useState(false)
 
   useEffect(() => {
-    fetchSectors().then(setSectors).catch(() => undefined)
-    fetchRegions().then(setRegions).catch(() => undefined)
+    fetchSectors()
+      .then(setSectors)
+      .catch(() => undefined)
+    fetchRegions()
+      .then(setRegions)
+      .catch(() => undefined)
   }, [])
 
   const loadProblem = useCallback(async () => {
@@ -103,7 +107,7 @@ function ProblemDetail() {
 
   useEffect(() => {
     loadProblem().catch((err: unknown) =>
-      toast.error(err instanceof Error ? err.message : "Muammo yuklanmadi"),
+      toast.error(err instanceof Error ? err.message : t("error_load_problem")),
     )
   }, [loadProblem])
 
@@ -128,7 +132,7 @@ function ProblemDetail() {
       setCommentText("")
       await loadProblem()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Izoh qo'shib bo'lmadi")
+      toast.error(err instanceof Error ? err.message : t("error_comment_add"))
     }
   }
 
@@ -145,7 +149,9 @@ function ProblemDetail() {
       toast.success(t("problem_proposal_sent"))
       await loadProblem()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "So'rov yuborib bo'lmadi")
+      toast.error(
+        err instanceof Error ? err.message : t("error_request"),
+      )
     } finally {
       setClaiming(false)
     }
@@ -183,12 +189,14 @@ function ProblemDetail() {
     problem.status !== "archived" &&
     problem.status !== "solved" &&
     problem.status !== "ai_processing"
-  const sector = problem.sector_id != null
-    ? sectors.find((s) => s.id === problem.sector_id) ?? null
-    : null
-  const region = problem.region_id != null
-    ? regions.find((r) => r.id === problem.region_id) ?? null
-    : null
+  const sector =
+    problem.sector_id != null
+      ? (sectors.find((s) => s.id === problem.sector_id) ?? null)
+      : null
+  const region =
+    problem.region_id != null
+      ? (regions.find((r) => r.id === problem.region_id) ?? null)
+      : null
   const audio = media.filter((item) => item.kind === "audio")
   const photos = media.filter((item) => item.kind === "photo")
 
@@ -222,7 +230,8 @@ function ProblemDetail() {
               <StatusBadge status={problem.status} />
               {sector && (
                 <span className="rounded-full border px-2.5 py-0.5 text-xs font-medium">
-                  {sector.icon} {sector.name_uz}
+                  {sector.icon}{" "}
+                  {t(`sector_${sector.slug}` as any, sector.name_uz)}
                 </span>
               )}
               {region && (
@@ -344,7 +353,9 @@ function ProblemDetail() {
         {(canPublish || canArchive || canSolve || canReanalyze) && (
           <Card className="bg-background shadow-none">
             <CardHeader>
-              <CardTitle className="text-base">{t("problem_actions")}</CardTitle>
+              <CardTitle className="text-base">
+                {t("problem_actions")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
               {canPublish && (
@@ -418,7 +429,9 @@ function ProblemDetail() {
 
         <Card className="bg-background shadow-none">
           <CardHeader>
-            <CardTitle className="text-base">{t("problem_projects_title")}</CardTitle>
+            <CardTitle className="text-base">
+              {t("problem_projects_title")}
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
             {projects.length === 0 ? (

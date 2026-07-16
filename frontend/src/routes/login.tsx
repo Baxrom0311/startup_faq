@@ -59,7 +59,10 @@ function Login() {
         let message: string
         try {
           const body = await response.json()
-          message = typeof body?.detail === "string" ? body.detail : `HTTP ${response.status}`
+          message =
+            typeof body?.detail === "string"
+              ? body.detail
+              : `HTTP ${response.status}`
         } catch {
           message = `HTTP ${response.status}`
         }
@@ -70,14 +73,21 @@ function Login() {
       setStatus("pending")
       window.location.href = data.deep_link
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Autentifikatsiya xatosi")
+      toast.error(
+        error instanceof Error ? error.message : "Autentifikatsiya xatosi",
+      )
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    const terminalStatuses = new Set(["verified", "expired", "phone_mismatch", "timed_out"])
+    const terminalStatuses = new Set([
+      "verified",
+      "expired",
+      "phone_mismatch",
+      "timed_out",
+    ])
     if (!session || terminalStatuses.has(status)) return
 
     const interval = window.setInterval(async () => {
@@ -157,7 +167,9 @@ function Login() {
             <LoadingButton
               type="button"
               loading={loading}
-              disabled={phone.trim().length < 9 || (!!session && status === "pending")}
+              disabled={
+                phone.trim().length < 9 || (!!session && status === "pending")
+              }
               onClick={startTelegramAuth}
             >
               <Send />

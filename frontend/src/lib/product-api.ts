@@ -204,9 +204,12 @@ async function _tryRefreshToken(): Promise<boolean> {
       body: JSON.stringify({ refresh_token: refreshToken }),
     })
     if (!res.ok) return false
-    const data = (await res.json()) as { access_token?: string }
+    const data = (await res.json()) as { access_token?: string; refresh_token?: string }
     if (data.access_token) {
       localStorage.setItem("access_token", data.access_token)
+      if (data.refresh_token) {
+        localStorage.setItem("refresh_token", data.refresh_token)
+      }
       return true
     }
     return false
@@ -249,7 +252,7 @@ export async function apiJson<T>(
       localStorage.removeItem("access_token")
       localStorage.removeItem("refresh_token")
       window.location.href = "/login"
-      throw new Error("Sessiya tugadi. Qaytadan kiring.")
+      throw new Error(i18n.t("login_status_expired"))
     }
   }
 
@@ -347,7 +350,10 @@ export function notificationLink(
       : null
 
   if (notification.type === "problem.merged" && targetProblemId) {
-    return { to: "/problems/$problemId", params: { problemId: targetProblemId } }
+    return {
+      to: "/problems/$problemId",
+      params: { problemId: targetProblemId },
+    }
   }
   if (
     notification.type === "problem.published" ||
@@ -367,26 +373,30 @@ export function notificationLink(
 export function statusLabel(status: string) {
   const t = _t()
   const labels: Record<string, string> = {
-    draft:        t("status_draft"),
-    ai_processing:t("status_ai_processing"),
+    draft: t("status_draft"),
+    ai_processing: t("status_ai_processing"),
     needs_review: t("status_needs_review"),
-    published:    t("status_published"),
-    claimed:      t("status_claimed"),
-    piloting:     t("status_piloting"),
-    solved:       t("status_solved"),
-    archived:     t("status_archived"),
-    proposed:     t("status_proposed"),
-    approved:     t("status_approved"),
-    in_progress:  t("status_in_progress"),
-    completed:    t("status_completed"),
-    rejected:     t("status_rejected"),
-    todo:         t("status_todo"),
-    done:         t("status_done"),
+    published: t("status_published"),
+    claimed: t("status_claimed"),
+    piloting: t("status_piloting"),
+    solved: t("status_solved"),
+    archived: t("status_archived"),
+    proposed: t("status_proposed"),
+    approved: t("status_approved"),
+    in_progress: t("status_in_progress"),
+    completed: t("status_completed"),
+    rejected: t("status_rejected"),
+    todo: t("status_todo"),
+    done: t("status_done"),
   }
   return labels[status] || status
 }
 
-const LOCALE_MAP: Record<string, string> = { uz: "uz-UZ", ru: "ru-RU", en: "en-US" }
+const LOCALE_MAP: Record<string, string> = {
+  uz: "uz-UZ",
+  ru: "ru-RU",
+  en: "en-US",
+}
 
 export function shortDate(value: string) {
   const lang = i18n.language?.slice(0, 2) ?? "uz"

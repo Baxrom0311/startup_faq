@@ -13,7 +13,11 @@ import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
-import { CardSkeleton, EmptyState, StatusBadge } from "@/components/Product/StatusBadge"
+import {
+  CardSkeleton,
+  EmptyState,
+  StatusBadge,
+} from "@/components/Product/StatusBadge"
 import { SubmitProblemDialog } from "@/components/Product/SubmitProblemDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -23,6 +27,7 @@ import {
   type AnalyticsOverview,
   apiJson,
   apiMutation,
+  fetchRegions,
   fetchSectors,
   type NotificationItem,
   type NotificationsResponse,
@@ -32,6 +37,7 @@ import {
   type ProblemsResponse,
   type Project,
   type ProjectsResponse,
+  type Region,
   type Sector,
   shortDate,
   statusLabel,
@@ -55,51 +61,73 @@ function Dashboard() {
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [sectors, setSectors] = useState<Sector[]>([])
   const [activeSector, setActiveSector] = useState<number | null>(null)
+  const [regions, setRegions] = useState<Region[]>([])
+  const [activeRegion, setActiveRegion] = useState<number | null>(null)
   const [mineOnly, setMineOnly] = useState(false)
   const [submitOpen, setSubmitOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [initialLoading, setInitialLoading] = useState(true)
+  const [skip, setSkip] = useState(0)
+  const [totalCount, setTotalCount] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   useEffect(() => {
     fetchSectors()
       .then(setSectors)
       .catch(() => undefined)
+    fetchRegions()
+      .then(setRegions)
+      .catch(() => undefined)
   }, [])
 
-  const loadDashboard = useCallback(async () => {
-    const searchParam = query.trim()
-      ? `&q=${encodeURIComponent(query.trim())}`
-      : ""
-    const sectorParam = activeSector != null ? `&sector_id=${activeSector}` : ""
-    const mineParam = mineOnly ? "&mine=true" : ""
-    const statusParam = mineOnly ? "published" : "published"
-    const [
-      problemsData,
-      incomingData,
-      myProjectsData,
-      analyticsData,
-      notificationsData,
-    ] = await Promise.all([
-      apiJson<ProblemsResponse>(`/problems/?status=${statusParam}${searchParam}${sectorParam}${mineParam}`),
-      apiJson<ProjectsResponse>("/projects?owner=true&status=proposed"),
-      apiJson<ProjectsResponse>("/projects?mine=true"),
-      apiJson<AnalyticsOverview>("/analytics/overview"),
-      apiJson<NotificationsResponse>("/notifications?limit=6"),
-    ])
-    setProblems(problemsData.data)
-    setIncomingProjects(incomingData.data)
-    setMyProjects(
-      myProjectsData.data.filter((project) =>
-        ["approved", "in_progress", "piloting"].includes(project.status),
-      ),
-    )
-    setAnalytics(analyticsData)
-    setNotifications(notificationsData.data)
-    setUnreadNotifications(notificationsData.unread_count)
-  }, [query, activeSector, mineOnly])
+  const loadDashboard = useCallback(
+    async (currentSkip = 0) => {
+      const searchParam = query.trim()
+        ? `&q=${encodeURIComponent(query.trim())}`
+        : ""
+      const sectorParam =
+        activeSector != null ? `&sector_id=${activeSector}` : ""
+      const regionParam =
+        activeRegion != null ? `&region_id=${activeRegion}` : ""
+      const mineParam = mineOnly ? "&mine=true" : ""
+      const statusParam = mineOnly ? "all" : "published"
+      const [
+        problemsData,
+        incomingData,
+        myProjectsData,
+        analyticsData,
+        notificationsData,
+      ] = await Promise.all([
+        apiJson<ProblemsResponse>(
+          `/problems/?status=${statusParam}${searchParam}${sectorParam}${regionParam}${mineParam}&skip=${currentSkip}&limit=20`,
+        ),
+        apiJson<ProjectsResponse>("/projects?owner=true&status=proposed"),
+        apiJson<ProjectsResponse>("/projects?mine=true"),
+        apiJson<AnalyticsOverview>("/analytics/overview"),
+        apiJson<NotificationsResponse>("/notifications?limit=6"),
+      ])
+      if (currentSkip === 0) {
+        setProblems(problemsData.data)
+      } else {
+        setProblems((prev) => [...prev, ...problemsData.data])
+      }
+      setTotalCount(problemsData.count)
+      setIncomingProjects(incomingData.data)
+      setMyProjects(
+        myProjectsData.data.filter((project) =>
+          ["approved", "in_progress", "piloting"].includes(project.status),
+        ),
+      )
+      setAnalytics(analyticsData)
+      setNotifications(notificationsData.data)
+      setUnreadNotifications(notificationsData.unread_count)
+    },
+    [query, activeSector, activeRegion, mineOnly],
+  )
 
   useEffect(() => {
-    loadDashboard()
+    setSkip(0)
+    loadDashboard(0)
       .catch(() => undefined)
       .finally(() => setInitialLoading(false))
   }, [loadDashboard])
@@ -110,9 +138,25 @@ function Dashboard() {
     if (unreadNotifications === 0) return
     try {
       await apiMutation("/notifications/read", { notification_ids: [] })
-      await loadDashboard()
+      await loadDashboard(0)
+      setSkip(0)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Bildirishnomalarni o'qilgan sifatida belgilab bo'lmadi")
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : t("error_mark_read"),
+      )
+    }
+  }
+
+  const handleLoadMore = async () => {
+    const nextSkip = skip + 20
+    setSkip(nextSkip)
+    setLoadingMore(true)
+    try {
+      await loadDashboard(nextSkip)
+    } finally {
+      setLoadingMore(false)
     }
   }
 
@@ -123,7 +167,9 @@ function Dashboard() {
           <div className="mb-3 flex items-center gap-2">
             <Badge variant="secondary">Beta</Badge>
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight">{t("dashboard_title")}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t("dashboard_title")}
+          </h1>
         </div>
         <div className="grid gap-2 sm:grid-cols-[minmax(240px,1fr)_auto] lg:w-[540px]">
           <div className="relative">
@@ -151,15 +197,25 @@ function Dashboard() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <main className="flex flex-col gap-3">
           <div className="grid gap-3 sm:grid-cols-3">
-            <MetricCard label={t("metric_open")} value={analytics?.published_problems ?? problems.length} />
-            <MetricCard label={t("metric_piloting")} value={analytics?.piloting_problems ?? 0} />
-            <MetricCard label={t("metric_solved")} value={analytics?.solved_problems ?? 0} />
+            <MetricCard
+              label={t("metric_open")}
+              value={analytics?.published_problems ?? problems.length}
+            />
+            <MetricCard
+              label={t("metric_piloting")}
+              value={analytics?.piloting_problems ?? 0}
+            />
+            <MetricCard
+              label={t("metric_solved")}
+              value={analytics?.solved_problems ?? 0}
+            />
           </div>
 
           {sectors.length > 0 && (
             <div className="-mx-1 overflow-x-auto px-1 pb-1">
               <div className="flex gap-2" style={{ width: "max-content" }}>
                 <button
+                  type="button"
                   onClick={() => setActiveSector(null)}
                   className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                     activeSector === null
@@ -171,9 +227,12 @@ function Dashboard() {
                 </button>
                 {sectors.map((sector) => (
                   <button
+                    type="button"
                     key={sector.id}
                     onClick={() =>
-                      setActiveSector(activeSector === sector.id ? null : sector.id)
+                      setActiveSector(
+                        activeSector === sector.id ? null : sector.id,
+                      )
                     }
                     className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                       activeSector === sector.id
@@ -181,7 +240,44 @@ function Dashboard() {
                         : "bg-background hover:bg-muted/50"
                     }`}
                   >
-                    {sector.icon} {sector.name_uz}
+                    {sector.icon}{" "}
+                    {t(`sector_${sector.slug}` as any, sector.name_uz)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {regions.length > 0 && (
+            <div className="-mx-1 overflow-x-auto px-1 pb-1">
+              <div className="flex gap-2" style={{ width: "max-content" }}>
+                <button
+                  type="button"
+                  onClick={() => setActiveRegion(null)}
+                  className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    activeRegion === null
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background hover:bg-muted/50"
+                  }`}
+                >
+                  📍 {t("dashboard_all_regions")}
+                </button>
+                {regions.map((region) => (
+                  <button
+                    type="button"
+                    key={region.id}
+                    onClick={() =>
+                      setActiveRegion(
+                        activeRegion === region.id ? null : region.id,
+                      )
+                    }
+                    className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                      activeRegion === region.id
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background hover:bg-muted/50"
+                    }`}
+                  >
+                    📍 {region.name}
                   </button>
                 ))}
               </div>
@@ -193,10 +289,11 @@ function Dashboard() {
               <div className="flex items-center gap-2">
                 <h2 className="font-medium">{t("dashboard_feed_title")}</h2>
                 {!initialLoading && (
-                  <Badge variant="outline">{problems.length}</Badge>
+                  <Badge variant="outline">{totalCount}</Badge>
                 )}
               </div>
               <button
+                type="button"
                 onClick={() => setMineOnly((v) => !v)}
                 className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                   mineOnly
@@ -214,15 +311,28 @@ function Dashboard() {
                 <EmptyState message={t("empty_problems")} />
               </div>
             ) : (
-              <div className="divide-y">
-                {problems.map((problem) => (
-                  <ProblemFeedRow
-                    key={problem.id}
-                    problem={problem}
-                    sectorMap={sectorMap}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="divide-y">
+                  {problems.map((problem) => (
+                    <ProblemFeedRow
+                      key={problem.id}
+                      problem={problem}
+                      sectorMap={sectorMap}
+                    />
+                  ))}
+                </div>
+                {problems.length < totalCount && (
+                  <div className="flex justify-center border-t p-4">
+                    <Button
+                      variant="outline"
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                    >
+                      {loadingMore ? t("loading") : t("load_more")}
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </section>
         </main>
@@ -264,7 +374,8 @@ function ProblemFeedRow({
   sectorMap: Map<number, Sector>
 }) {
   const { t } = useTranslation()
-  const sector = problem.sector_id != null ? sectorMap.get(problem.sector_id) : null
+  const sector =
+    problem.sector_id != null ? sectorMap.get(problem.sector_id) : null
   return (
     <Link
       to="/problems/$problemId"
@@ -280,7 +391,7 @@ function ProblemFeedRow({
           <StatusBadge status={problem.status} />
           {sector && (
             <span className="text-muted-foreground text-xs">
-              {sector.icon} {sector.name_uz}
+              {sector.icon} {t(`sector_${sector.slug}` as any, sector.name_uz)}
             </span>
           )}
         </div>
@@ -307,7 +418,7 @@ function ProblemFeedRow({
           {problem.project_count}
         </span>
         <span className="rounded-md border px-3 py-1 text-xs font-medium text-foreground">
-          View
+          {t("view")}
         </span>
       </div>
     </Link>
@@ -323,12 +434,13 @@ function InboxCard({
   unreadCount: number
   onMarkAllRead: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <Card className="bg-background shadow-none">
       <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
         <CardTitle className="flex min-w-0 items-center gap-2 text-sm font-medium">
           <Bell className="size-4 shrink-0" />
-          <span className="truncate">Inbox</span>
+          <span className="truncate">{t("dashboard_inbox")}</span>
           {unreadCount > 0 && <Badge variant="secondary">{unreadCount}</Badge>}
         </CardTitle>
         <Button
@@ -392,17 +504,18 @@ function PipelineCard({
   incoming: Project[]
   activeProjects: Project[]
 }) {
+  const { t } = useTranslation()
   return (
     <Card className="bg-background shadow-none">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <CircleDot className="size-4" />
-          Flow
+          {t("dashboard_pipeline")}
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3">
-        <PipelineCount label="Inbox" value={incoming.length} />
-        <PipelineCount label="Active" value={activeProjects.length} />
+        <PipelineCount label={t("dashboard_pipeline_inbox")} value={incoming.length} />
+        <PipelineCount label={t("dashboard_pipeline_active")} value={activeProjects.length} />
         <div className="grid gap-2 pt-2">
           {incoming.slice(0, 3).map((project) => (
             <Link

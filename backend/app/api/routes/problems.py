@@ -251,12 +251,20 @@ def read_problems(
     mine: bool = False,
     q: str | None = None,
 ) -> Any:
-    if status not in _PUBLIC_STATUSES and not current_user.is_superuser and not mine:
-        raise HTTPException(
-            status_code=403,
-            detail="Not enough permissions to filter by this status",
-        )
-    filters = [Problem.status == status]
+    filters = []
+    if status != "all":
+        if status not in _PUBLIC_STATUSES and not current_user.is_superuser and not mine:
+            raise HTTPException(
+                status_code=403,
+                detail="Not enough permissions to filter by this status",
+            )
+        filters.append(Problem.status == status)
+    else:
+        if not mine and not current_user.is_superuser:
+            raise HTTPException(
+                status_code=403,
+                detail="Not enough permissions to query all statuses",
+            )
     if sector_id is not None:
         filters.append(Problem.sector_id == sector_id)
     if region_id is not None:
