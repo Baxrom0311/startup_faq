@@ -162,7 +162,7 @@ export function SubmitProblemDialog({
         return
       }
       onOpenChange(false)
-      toast.success("Sent")
+      toast.success("Muammoyingiz nashr qilindi!")
       await onCreated?.()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error")
@@ -223,7 +223,7 @@ export function SubmitProblemDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New</DialogTitle>
+          <DialogTitle>Muammo yuborish</DialogTitle>
         </DialogHeader>
         <div className="grid gap-2">
           <label className="text-sm font-medium" htmlFor="raw-text">
@@ -360,7 +360,7 @@ export function SubmitProblemDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            Bekor qilish
           </Button>
           <LoadingButton
             type="button"
@@ -372,7 +372,7 @@ export function SubmitProblemDialog({
             }
             onClick={submitProblem}
           >
-            Send
+            Yuborish
           </LoadingButton>
         </DialogFooter>
       </DialogContent>

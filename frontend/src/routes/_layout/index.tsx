@@ -53,6 +53,7 @@ function Dashboard() {
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [sectors, setSectors] = useState<Sector[]>([])
   const [activeSector, setActiveSector] = useState<number | null>(null)
+  const [mineOnly, setMineOnly] = useState(false)
   const [submitOpen, setSubmitOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [initialLoading, setInitialLoading] = useState(true)
@@ -68,6 +69,8 @@ function Dashboard() {
       ? `&q=${encodeURIComponent(query.trim())}`
       : ""
     const sectorParam = activeSector != null ? `&sector_id=${activeSector}` : ""
+    const mineParam = mineOnly ? "&mine=true" : ""
+    const statusParam = mineOnly ? "published" : "published"
     const [
       problemsData,
       incomingData,
@@ -75,7 +78,7 @@ function Dashboard() {
       analyticsData,
       notificationsData,
     ] = await Promise.all([
-      apiJson<ProblemsResponse>(`/problems/?status=published${searchParam}${sectorParam}`),
+      apiJson<ProblemsResponse>(`/problems/?status=${statusParam}${searchParam}${sectorParam}${mineParam}`),
       apiJson<ProjectsResponse>("/projects?owner=true&status=proposed"),
       apiJson<ProjectsResponse>("/projects?mine=true"),
       apiJson<AnalyticsOverview>("/analytics/overview"),
@@ -91,7 +94,7 @@ function Dashboard() {
     setAnalytics(analyticsData)
     setNotifications(notificationsData.data)
     setUnreadNotifications(notificationsData.unread_count)
-  }, [query, activeSector])
+  }, [query, activeSector, mineOnly])
 
   useEffect(() => {
     loadDashboard()
@@ -127,7 +130,7 @@ function Dashboard() {
               className="bg-background pl-9"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search"
+              placeholder="Qidirish..."
             />
           </div>
           <Button onClick={() => setSubmitOpen(true)}>
@@ -161,41 +164,55 @@ function Dashboard() {
           </div>
 
           {sectors.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setActiveSector(null)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  activeSector === null
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "hover:bg-muted/50"
-                }`}
-              >
-                Hammasi
-              </button>
-              {sectors.map((sector) => (
+            <div className="-mx-1 overflow-x-auto px-1 pb-1">
+              <div className="flex gap-2" style={{ width: "max-content" }}>
                 <button
-                  key={sector.id}
-                  onClick={() =>
-                    setActiveSector(activeSector === sector.id ? null : sector.id)
-                  }
-                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                    activeSector === sector.id
+                  onClick={() => setActiveSector(null)}
+                  className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    activeSector === null
                       ? "bg-primary text-primary-foreground border-primary"
-                      : "hover:bg-muted/50"
+                      : "bg-background hover:bg-muted/50"
                   }`}
                 >
-                  {sector.icon} {sector.name_uz}
+                  Hammasi
                 </button>
-              ))}
+                {sectors.map((sector) => (
+                  <button
+                    key={sector.id}
+                    onClick={() =>
+                      setActiveSector(activeSector === sector.id ? null : sector.id)
+                    }
+                    className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                      activeSector === sector.id
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background hover:bg-muted/50"
+                    }`}
+                  >
+                    {sector.icon} {sector.name_uz}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
           <section className="overflow-hidden rounded-lg border bg-background shadow-none">
-            <div className="flex items-center justify-between border-b px-4 py-3">
-              <h2 className="font-medium">Feed</h2>
-              {!initialLoading && (
-                <Badge variant="outline">{problems.length}</Badge>
-              )}
+            <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+              <div className="flex items-center gap-2">
+                <h2 className="font-medium">Muammolar</h2>
+                {!initialLoading && (
+                  <Badge variant="outline">{problems.length}</Badge>
+                )}
+              </div>
+              <button
+                onClick={() => setMineOnly((v) => !v)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  mineOnly
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "hover:bg-muted/50"
+                }`}
+              >
+                Menikilar
+              </button>
             </div>
             {initialLoading ? (
               <CardSkeleton rows={4} />

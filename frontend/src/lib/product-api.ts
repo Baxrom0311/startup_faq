@@ -359,17 +359,19 @@ export function notificationLink(
 
 export function statusLabel(status: string) {
   const labels: Record<string, string> = {
-    ai_processing: "AI",
-    needs_review: "Review",
-    published: "Open",
-    proposed: "New",
-    approved: "Approved",
-    claimed: "Claimed",
-    in_progress: "Active",
-    piloting: "Pilot",
-    completed: "Done",
-    solved: "Solved",
-    rejected: "Rejected",
+    draft:        "Qoralama",
+    ai_processing:"Tekshirilmoqda",
+    needs_review: "Ko'rib chiqilmoqda",
+    published:    "Ochiq",
+    claimed:      "Olingan",
+    piloting:     "Pilot",
+    solved:       "Hal qilindi",
+    archived:     "Arxiv",
+    proposed:     "Taklif",
+    approved:     "Tasdiqlandi",
+    in_progress:  "Jarayonda",
+    completed:    "Tugallandi",
+    rejected:     "Rad etildi",
   }
   return labels[status] || status
 }

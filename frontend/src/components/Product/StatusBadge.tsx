@@ -1,11 +1,26 @@
 import { Inbox } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
 import { statusLabel } from "@/lib/product-api"
 
+const STATUS_COLORS: Record<string, string> = {
+  published:    "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800",
+  claimed:      "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950 dark:text-violet-400 dark:border-violet-800",
+  piloting:     "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800",
+  solved:       "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950 dark:text-sky-400 dark:border-sky-800",
+  needs_review: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-800",
+  archived:     "bg-muted text-muted-foreground border-transparent",
+  ai_processing:"bg-muted text-muted-foreground border-transparent",
+  draft:        "bg-muted text-muted-foreground border-transparent",
+}
+
 export function StatusBadge({ status }: { status: string }) {
-  return <Badge variant="secondary">{statusLabel(status)}</Badge>
+  const color = STATUS_COLORS[status] ?? "bg-muted text-muted-foreground border-transparent"
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${color}`}>
+      {statusLabel(status)}
+    </span>
+  )
 }
 
 export function EmptyState({ message = "Hali hech narsa yo'q" }: { message?: string }) {

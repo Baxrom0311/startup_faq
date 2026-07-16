@@ -106,16 +106,11 @@ function ProblemDetail() {
   }, [loadProblem])
 
   const vote = async () => {
+    if (!problem) return
     try {
-      await fetch(
-        `${import.meta.env.VITE_API_URL}/api/v1/problems/${problemId}/vote`,
-        {
-          method: problem?.has_voted ? "DELETE" : "PUT",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
-          },
-        },
-      )
+      await apiJson(`/problems/${problemId}/vote`, {
+        method: problem.has_voted ? "DELETE" : "PUT",
+      })
       await loadProblem()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Ovoz berib bo'lmadi")
@@ -145,7 +140,7 @@ function ProblemDetail() {
       })
       setProjectTitle("")
       setProjectPitch("")
-      toast.success("Sent")
+      toast.success("Taklifingiz yuborildi!")
       await loadProblem()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "So'rov yuborib bo'lmadi")
@@ -311,17 +306,17 @@ function ProblemDetail() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <MessageSquare className="size-4" />
-              Talk
+              Muhokama
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             <Textarea
               value={commentText}
               onChange={(event) => setCommentText(event.target.value)}
-              placeholder="Comment..."
+              placeholder="Izoh yozing..."
             />
             <div className="flex justify-end">
-              <Button onClick={addComment}>Send</Button>
+              <Button onClick={addComment}>Yuborish</Button>
             </div>
             <div className="divide-y rounded-md border">
               {comments.length === 0 ? (
@@ -347,13 +342,13 @@ function ProblemDetail() {
         {(canPublish || canArchive || canSolve || canReanalyze) && (
           <Card className="bg-background shadow-none">
             <CardHeader>
-              <CardTitle className="text-base">Action</CardTitle>
+              <CardTitle className="text-base">Amallar</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
               {canPublish && (
                 <Button onClick={() => runProblemAction("publish")}>
                   <Check />
-                  Publish
+                  Nashr qilish
                 </Button>
               )}
               {canSolve && (
@@ -362,7 +357,7 @@ function ProblemDetail() {
                   onClick={() => runProblemAction("solve")}
                 >
                   <CheckCircle2 />
-                  Solve
+                  Hal qilindi
                 </Button>
               )}
               {canReanalyze && (
@@ -371,7 +366,7 @@ function ProblemDetail() {
                   onClick={() => runProblemAction("reanalyze")}
                 >
                   <RefreshCcw />
-                  AI
+                  AI tahlil
                 </Button>
               )}
               {canArchive && (
@@ -380,7 +375,7 @@ function ProblemDetail() {
                   onClick={() => runProblemAction("archive")}
                 >
                   <Archive />
-                  Archive
+                  Arxivlash
                 </Button>
               )}
             </CardContent>
@@ -394,26 +389,26 @@ function ProblemDetail() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Rocket className="size-4" />
-                Claim
+                Yechim taklif qilish
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
               <Input
                 value={projectTitle}
                 onChange={(event) => setProjectTitle(event.target.value)}
-                placeholder="Title"
+                placeholder="Loyiha nomi"
               />
               <Textarea
                 value={projectPitch}
                 onChange={(event) => setProjectPitch(event.target.value)}
-                placeholder="Pitch"
+                placeholder="Qisqacha tavsif..."
               />
               <LoadingButton
                 loading={claiming}
                 disabled={!projectTitle.trim()}
                 onClick={claim}
               >
-                Send
+                Yuborish
               </LoadingButton>
             </CardContent>
           </Card>
