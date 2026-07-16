@@ -28,6 +28,7 @@ class UserBase(SQLModel):
         sa_column=Column(JSON, nullable=False),
     )
     region_id: int | None = None
+    language: str = Field(default="uz", max_length=5)
     bio: str | None = Field(default=None, max_length=1000)
     reputation: int = 0
     tg_linked_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
@@ -53,6 +54,7 @@ class UserUpdate(UserBase):
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
+    language: str | None = Field(default=None, max_length=5)
 
 
 class UpdatePassword(SQLModel):
@@ -100,10 +102,27 @@ class AuthSession(SQLModel, table=True):
     expires_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
 
 
+class RefreshToken(SQLModel, table=True):
+    __tablename__ = "refresh_tokens"
+
+    jti: uuid.UUID = Field(primary_key=True, default_factory=uuid.uuid4)
+    user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
+    family: uuid.UUID = Field(index=True)
+    revoked: bool = Field(default=False)
+    expires_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    auth_session_token: str | None = Field(default=None, foreign_key="auth_session.token", index=True)
+
+
 class Sector(SQLModel, table=True):
     id: int = Field(primary_key=True)
     slug: str = Field(unique=True, index=True, max_length=80)
     name_uz: str = Field(max_length=255)
+    name_ru: str | None = Field(default=None, max_length=255)
+    name_en: str | None = Field(default=None, max_length=255)
     icon: str | None = Field(default=None, max_length=80)
 
 
