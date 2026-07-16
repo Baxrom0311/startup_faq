@@ -13,10 +13,19 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
   apiMutation,
+  fetchSectors,
   type Problem,
+  type Sector,
   uploadProblemAudio,
   uploadProblemPhoto,
 } from "@/lib/product-api"
@@ -48,10 +57,18 @@ export function SubmitProblemDialog({
   onCreated,
 }: SubmitProblemDialogProps) {
   const [rawText, setRawText] = useState("")
+  const [sectorId, setSectorId] = useState<string>("")
+  const [sectors, setSectors] = useState<Sector[]>([])
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [photoFiles, setPhotoFiles] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [duplicateProblem, setDuplicateProblem] = useState<Problem | null>(null)
+
+  useEffect(() => {
+    fetchSectors()
+      .then(setSectors)
+      .catch(() => undefined)
+  }, [])
 
   const audioPreviewUrl = useMemo(
     () => (audioFile ? URL.createObjectURL(audioFile) : null),
@@ -80,10 +97,11 @@ export function SubmitProblemDialog({
     }
   }, [photoPreviewUrls])
 
-  // Reset duplicate state when dialog closes/reopens
+  // Reset state when dialog closes/reopens
   useEffect(() => {
     if (!open) {
       setDuplicateProblem(null)
+      setSectorId("")
     }
   }, [open])
 
@@ -123,6 +141,7 @@ export function SubmitProblemDialog({
         raw_text: rawText.trim() || null,
         raw_audio_key: rawAudioKey,
         photo_keys: photoKeys,
+        sector_id: sectorId ? Number(sectorId) : null,
       })
 
       setRawText("")
@@ -199,15 +218,33 @@ export function SubmitProblemDialog({
         </DialogHeader>
         <div className="grid gap-2">
           <label className="text-sm font-medium" htmlFor="raw-text">
-            Text
+            Muammo matni
           </label>
           <Textarea
             id="raw-text"
             value={rawText}
             onChange={(event) => setRawText(event.target.value)}
-            placeholder="Write..."
+            placeholder="Muammoingizni tasvirlab bering..."
+            rows={4}
           />
         </div>
+        {sectors.length > 0 && (
+          <div className="grid gap-2">
+            <label className="text-sm font-medium">Soha</label>
+            <Select value={sectorId} onValueChange={setSectorId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sohani tanlang (ixtiyoriy)" />
+              </SelectTrigger>
+              <SelectContent>
+                {sectors.map((sector) => (
+                  <SelectItem key={sector.id} value={String(sector.id)}>
+                    {sector.icon} {sector.name_uz}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="grid gap-2">
           <label className="text-sm font-medium" htmlFor="audio-file">
             Audio

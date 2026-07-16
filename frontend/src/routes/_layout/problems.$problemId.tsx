@@ -34,11 +34,13 @@ import {
   apiMutation,
   type Comment,
   type CommentsResponse,
+  fetchSectors,
   type Problem,
   type ProblemMedia,
   type ProblemMediaResponse,
   type Project,
   type ProjectsResponse,
+  type Sector,
   shortDate,
   statusLabel,
   structuredSummary,
@@ -59,10 +61,17 @@ function ProblemDetail() {
   const [projects, setProjects] = useState<Project[]>([])
   const [media, setMedia] = useState<ProblemMedia[]>([])
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null)
+  const [sectors, setSectors] = useState<Sector[]>([])
   const [commentText, setCommentText] = useState("")
   const [projectTitle, setProjectTitle] = useState("")
   const [projectPitch, setProjectPitch] = useState("")
   const [claiming, setClaiming] = useState(false)
+
+  useEffect(() => {
+    fetchSectors()
+      .then(setSectors)
+      .catch(() => undefined)
+  }, [])
 
   const loadProblem = useCallback(async () => {
     const [problemData, commentsData, projectsData, mediaData] =
@@ -166,13 +175,18 @@ function ProblemDetail() {
     (user.is_superuser || user.id === problem.author_id) &&
     problem.status !== "solved" &&
     problem.status !== "archived"
-  const canPublish = !!user?.is_superuser && problem.status === "needs_review"
+  const canPublish =
+    !!user?.is_superuser &&
+    ["draft", "needs_review", "ai_processing"].includes(problem.status)
   const canArchive = !!user?.is_superuser && problem.status !== "archived"
   const canReanalyze =
     !!user?.is_superuser &&
     problem.status !== "archived" &&
     problem.status !== "solved" &&
     problem.status !== "ai_processing"
+  const sector = problem.sector_id != null
+    ? sectors.find((s) => s.id === problem.sector_id) ?? null
+    : null
   const audio = media.filter((item) => item.kind === "audio")
   const photos = media.filter((item) => item.kind === "photo")
 
@@ -202,8 +216,13 @@ function ProblemDetail() {
 
         <Card className="bg-background shadow-none">
           <CardHeader className="border-b">
-            <div className="mb-3 flex items-center gap-2">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
               <StatusBadge status={problem.status} />
+              {sector && (
+                <span className="rounded-full border px-2.5 py-0.5 text-xs font-medium">
+                  {sector.icon} {sector.name_uz}
+                </span>
+              )}
               <span className="text-muted-foreground text-xs">
                 {shortDate(problem.created_at)}
               </span>

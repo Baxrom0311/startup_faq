@@ -22,6 +22,7 @@ import {
   type AnalyticsOverview,
   apiJson,
   apiMutation,
+  fetchSectors,
   type NotificationItem,
   type NotificationsResponse,
   notificationLabel,
@@ -30,6 +31,7 @@ import {
   type ProblemsResponse,
   type Project,
   type ProjectsResponse,
+  type Sector,
   shortDate,
   statusLabel,
   structuredSummary,
@@ -44,39 +46,42 @@ export const Route = createFileRoute("/_layout/")({
 
 function Dashboard() {
   const [problems, setProblems] = useState<Problem[]>([])
-  const [myProcessingProblems, setMyProcessingProblems] = useState<Problem[]>(
-    [],
-  )
   const [incomingProjects, setIncomingProjects] = useState<Project[]>([])
   const [myProjects, setMyProjects] = useState<Project[]>([])
   const [analytics, setAnalytics] = useState<AnalyticsOverview | null>(null)
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [sectors, setSectors] = useState<Sector[]>([])
+  const [activeSector, setActiveSector] = useState<number | null>(null)
   const [submitOpen, setSubmitOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [initialLoading, setInitialLoading] = useState(true)
+
+  useEffect(() => {
+    fetchSectors()
+      .then(setSectors)
+      .catch(() => undefined)
+  }, [])
 
   const loadDashboard = useCallback(async () => {
     const searchParam = query.trim()
       ? `&q=${encodeURIComponent(query.trim())}`
       : ""
+    const sectorParam = activeSector != null ? `&sector_id=${activeSector}` : ""
     const [
       problemsData,
-      processingData,
       incomingData,
       myProjectsData,
       analyticsData,
       notificationsData,
     ] = await Promise.all([
-      apiJson<ProblemsResponse>(`/problems/?status=published${searchParam}`),
-      apiJson<ProblemsResponse>("/problems/?status=ai_processing&mine=true"),
+      apiJson<ProblemsResponse>(`/problems/?status=published${searchParam}${sectorParam}`),
       apiJson<ProjectsResponse>("/projects?owner=true&status=proposed"),
       apiJson<ProjectsResponse>("/projects?mine=true"),
       apiJson<AnalyticsOverview>("/analytics/overview"),
       apiJson<NotificationsResponse>("/notifications?limit=6"),
     ])
     setProblems(problemsData.data)
-    setMyProcessingProblems(processingData.data)
     setIncomingProjects(incomingData.data)
     setMyProjects(
       myProjectsData.data.filter((project) =>
@@ -86,13 +91,15 @@ function Dashboard() {
     setAnalytics(analyticsData)
     setNotifications(notificationsData.data)
     setUnreadNotifications(notificationsData.unread_count)
-  }, [query])
+  }, [query, activeSector])
 
   useEffect(() => {
     loadDashboard()
       .catch(() => undefined)
       .finally(() => setInitialLoading(false))
   }, [loadDashboard])
+
+  const sectorMap = new Map(sectors.map((s) => [s.id, s]))
 
   const markAllNotificationsRead = async () => {
     if (unreadNotifications === 0) return
@@ -140,18 +147,48 @@ function Dashboard() {
         <main className="flex flex-col gap-3">
           <div className="grid gap-3 sm:grid-cols-3">
             <MetricCard
-              label="Open"
+              label="Ochiq"
               value={analytics?.published_problems ?? problems.length}
             />
             <MetricCard
-              label="Review"
-              value={analytics?.needs_review_problems ?? 0}
+              label="Hal qilinayotgan"
+              value={analytics?.piloting_problems ?? 0}
             />
             <MetricCard
-              label="AI"
-              value={analytics?.ai_processing_problems ?? 0}
+              label="Hal qilindi"
+              value={analytics?.solved_problems ?? 0}
             />
           </div>
+
+          {sectors.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setActiveSector(null)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  activeSector === null
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "hover:bg-muted/50"
+                }`}
+              >
+                Hammasi
+              </button>
+              {sectors.map((sector) => (
+                <button
+                  key={sector.id}
+                  onClick={() =>
+                    setActiveSector(activeSector === sector.id ? null : sector.id)
+                  }
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    activeSector === sector.id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "hover:bg-muted/50"
+                  }`}
+                >
+                  {sector.icon} {sector.name_uz}
+                </button>
+              ))}
+            </div>
+          )}
 
           <section className="overflow-hidden rounded-lg border bg-background shadow-none">
             <div className="flex items-center justify-between border-b px-4 py-3">
@@ -169,7 +206,11 @@ function Dashboard() {
             ) : (
               <div className="divide-y">
                 {problems.map((problem) => (
-                  <ProblemFeedRow key={problem.id} problem={problem} />
+                  <ProblemFeedRow
+                    key={problem.id}
+                    problem={problem}
+                    sectorMap={sectorMap}
+                  />
                 ))}
               </div>
             )}
@@ -183,7 +224,6 @@ function Dashboard() {
             onMarkAllRead={markAllNotificationsRead}
           />
           <PipelineCard
-            processing={myProcessingProblems}
             incoming={incomingProjects}
             activeProjects={myProjects}
           />
@@ -206,7 +246,14 @@ function MetricCard({ label, value }: { label: string; value: number }) {
   )
 }
 
-function ProblemFeedRow({ problem }: { problem: Problem }) {
+function ProblemFeedRow({
+  problem,
+  sectorMap,
+}: {
+  problem: Problem
+  sectorMap: Map<number, Sector>
+}) {
+  const sector = problem.sector_id != null ? sectorMap.get(problem.sector_id) : null
   return (
     <Link
       to="/problems/$problemId"
@@ -218,14 +265,13 @@ function ProblemFeedRow({ problem }: { problem: Problem }) {
         <span className="font-medium">{problem.vote_count}</span>
       </div>
       <div className="min-w-0">
-        <div className="mb-2 flex items-center gap-2">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
           <StatusBadge status={problem.status} />
-          {problem.severity_score !== null &&
-            problem.severity_score !== undefined && (
-              <span className="text-muted-foreground text-xs">
-                {problem.severity_score}
-              </span>
-            )}
+          {sector && (
+            <span className="text-muted-foreground text-xs">
+              {sector.icon} {sector.name_uz}
+            </span>
+          )}
         </div>
         <h3 className="truncate font-medium group-hover:underline">
           {problem.title || problem.raw_text || "Nomsiz muammo"}
@@ -329,11 +375,9 @@ function InboxCard({
 }
 
 function PipelineCard({
-  processing,
   incoming,
   activeProjects,
 }: {
-  processing: Problem[]
   incoming: Project[]
   activeProjects: Project[]
 }) {
@@ -346,7 +390,6 @@ function PipelineCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3">
-        <PipelineCount label="AI" value={processing.length} />
         <PipelineCount label="Inbox" value={incoming.length} />
         <PipelineCount label="Active" value={activeProjects.length} />
         <div className="grid gap-2 pt-2">

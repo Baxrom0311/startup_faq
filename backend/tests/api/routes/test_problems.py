@@ -48,9 +48,9 @@ def test_create_problem(
         headers=normal_user_token_headers,
         json={"raw_text": "unique test problem " + random_lower_string()},
     )
-    assert r.status_code == 202
+    assert r.status_code == 201
     data = r.json()
-    assert data["status"] == "ai_processing"
+    assert data["status"] == "published"
     assert "id" in data
 
 
@@ -64,7 +64,7 @@ def test_create_problem_dedup_returns_existing(
         headers=normal_user_token_headers,
         json={"raw_text": text},
     )
-    assert r1.status_code == 202
+    assert r1.status_code == 201
     first_id = r1.json()["id"]
 
     r2 = client.post(
@@ -72,7 +72,7 @@ def test_create_problem_dedup_returns_existing(
         headers=normal_user_token_headers,
         json={"raw_text": text},
     )
-    assert r2.status_code == 202
+    assert r2.status_code == 201
     data2 = r2.json()
     assert data2["id"] == first_id
     assert data2["is_duplicate"] is True

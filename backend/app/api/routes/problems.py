@@ -18,8 +18,10 @@ from app.models import (
     ProblemPublic,
     ProblemsPublic,
     Project,
+    Sector,
     Vote,
 )
+from app.modules.ai.moderation import moderate_content
 from app.modules.ai.queue import enqueue_analyze_problem_best_effort
 from app.modules.ai.schemas import AIAnalysisPublic, AIAnalysisPublics
 from app.modules.media.schemas import ProblemMediaPublic, ProblemMediaPublics
@@ -106,14 +108,23 @@ def _attach_owned_media(
         session.add(media)
 
 
-@router.post("/", response_model=ProblemPublic, status_code=202)
-def create_problem(
+@router.post("/", response_model=ProblemPublic, status_code=201)
+async def create_problem(
     *,
     session: SessionDep,
     current_user: CurrentUser,
     problem_in: ProblemCreate,
-    background_tasks: BackgroundTasks,
 ) -> Any:
+    # Validate sector if provided
+    sector: Sector | None = None
+    if problem_in.sector_id is not None:
+        sector = session.get(Sector, problem_in.sector_id)
+        if not sector:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Sektor topilmadi.",
+            )
+
     media_keys = [key for key in [problem_in.raw_audio_key, *problem_in.photo_keys] if key]
     duplicate = find_duplicate_problem(
         session=session,
@@ -146,6 +157,16 @@ def create_problem(
         result.is_duplicate = True
         return result
 
+    # AI content moderation (synchronous — user gets instant feedback)
+    if problem_in.raw_text:
+        sector_name = sector.name_uz if sector else "Umumiy"
+        moderation = await moderate_content(text=problem_in.raw_text, sector_name=sector_name)
+        if not moderation.approved:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=moderation.reason or "Muammo matni qabul qilinmadi.",
+            )
+
     problem_data = problem_in.model_dump(exclude={"photo_keys"})
     problem = Problem.model_validate(
         problem_data,
@@ -159,9 +180,9 @@ def create_problem(
     transition_problem(
         session=session,
         problem=problem,
-        to_status="ai_processing",
+        to_status="published",
         actor_id=current_user.id,
-        reason="problem_submitted",
+        reason="ai_approved",
     )
     _attach_owned_media(
         session=session,
@@ -171,7 +192,6 @@ def create_problem(
     )
     session.commit()
     session.refresh(problem)
-    background_tasks.add_task(enqueue_analyze_problem_best_effort, problem.id)
     return _problem_public(session=session, current_user=current_user, problem=problem)
 
 

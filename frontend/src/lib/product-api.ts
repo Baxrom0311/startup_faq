@@ -1,4 +1,12 @@
+export type Sector = {
+  id: number
+  slug: string
+  name_uz: string
+  icon: string | null
+}
+
 export type Problem = {
+  sector_id?: number | null
   id: string
   author_id: string
   title?: string | null
@@ -364,6 +372,10 @@ export function shortDate(value: string) {
     month: "short",
     day: "numeric",
   })
+}
+
+export function fetchSectors(): Promise<Sector[]> {
+  return apiJson<Sector[]>("/sectors/")
 }
 
 export function structuredSummary(problem: Problem) {

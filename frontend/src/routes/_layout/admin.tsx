@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router"
-import { Archive, Bot, Check, GitMerge, RefreshCcw, Users } from "lucide-react"
+import { Archive, Bot, GitMerge, RefreshCcw, Users } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -42,7 +42,7 @@ function Admin() {
 
   const loadReview = useCallback(async () => {
     const response = await apiJson<ProblemsResponse>(
-      "/problems/?status=needs_review&limit=50",
+      "/problems/?status=published&limit=50",
     )
     setProblems(response.data)
     const analysisPairs = await Promise.all(
@@ -101,7 +101,8 @@ function Admin() {
         <Card className="bg-background shadow-none">
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2 text-base">
-              Review
+              <Bot className="size-4" />
+              Oxirgi muammolar
               <Badge variant="secondary">{problems.length}</Badge>
             </CardTitle>
           </CardHeader>
@@ -124,24 +125,17 @@ function Admin() {
                       </Link>
                       <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
                         <span>{shortDate(problem.created_at)}</span>
-                        <span>{problem.severity_score ?? 0}</span>
-                        <span>{analyses[problem.id]?.model || "AI"}</span>
+                        {problem.severity_score != null && (
+                          <span>score: {problem.severity_score}</span>
+                        )}
                       </div>
                       <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
                         {structuredSummary(problem) ||
                           problem.raw_text ||
                           "Audio"}
                       </p>
-                      <Flags analysis={analyses[problem.id]} />
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => runAction(problem.id, "publish")}
-                      >
-                        <Check />
-                        Publish
-                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
@@ -347,23 +341,3 @@ function MergeTargetPicker({
   )
 }
 
-function Flags({ analysis }: { analysis?: AIAnalysis | null }) {
-  const structured = analysis?.summary_json.structured
-  if (!structured || typeof structured !== "object") return null
-  const flags =
-    "flags" in structured && typeof structured.flags === "object"
-      ? (structured.flags as Record<string, unknown>)
-      : {}
-  const active = Object.entries(flags).filter(([, value]) => value === true)
-  if (active.length === 0) return null
-
-  return (
-    <div className="mt-2 flex flex-wrap gap-1">
-      {active.map(([flag]) => (
-        <Badge key={flag} variant="outline">
-          {flag}
-        </Badge>
-      ))}
-    </div>
-  )
-}

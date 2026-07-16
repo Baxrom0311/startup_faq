@@ -120,6 +120,7 @@ class ProblemBase(SQLModel):
 
 
 class ProblemCreate(ProblemBase):
+    sector_id: int | None = None
     photo_keys: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")

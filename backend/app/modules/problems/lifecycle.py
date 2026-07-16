@@ -7,7 +7,7 @@ from sqlmodel import Session
 from app.models import Problem, ProblemStatusLog
 
 ALLOWED_TRANSITIONS: dict[str, set[str]] = {
-    "draft": {"ai_processing", "archived"},
+    "draft": {"ai_processing", "published", "archived"},
     "ai_processing": {"published", "needs_review", "archived"},
     "needs_review": {"ai_processing", "published", "archived"},
     "published": {"ai_processing", "claimed", "archived"},
