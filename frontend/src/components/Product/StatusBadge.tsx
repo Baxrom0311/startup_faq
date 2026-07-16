@@ -1,4 +1,5 @@
 import { Inbox } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { Skeleton } from "@/components/ui/skeleton"
 import { statusLabel } from "@/lib/product-api"
@@ -23,11 +24,12 @@ export function StatusBadge({ status }: { status: string }) {
   )
 }
 
-export function EmptyState({ message = "Hali hech narsa yo'q" }: { message?: string }) {
+export function EmptyState({ message }: { message?: string }) {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col items-center gap-2 py-6 text-center">
       <Inbox className="text-muted-foreground size-8" strokeWidth={1.5} />
-      <p className="text-muted-foreground text-sm">{message}</p>
+      <p className="text-muted-foreground text-sm">{message ?? t("empty_state")}</p>
     </div>
   )
 }
