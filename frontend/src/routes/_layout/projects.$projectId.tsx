@@ -6,6 +6,7 @@ import {
   GitBranch,
   ImagePlus,
   Send,
+  Star,
   XCircle,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -416,13 +417,27 @@ function ProjectDetail() {
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
-              <Input
-                min="1"
-                max="5"
-                type="number"
-                value={reviewRating}
-                onChange={(event) => setReviewRating(event.target.value)}
-              />
+              <div className="flex items-center gap-1.5 py-1">
+                <span className="text-sm font-medium text-muted-foreground mr-1">
+                  {t("project_rating") || "Baho"}:
+                </span>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setReviewRating(String(star))}
+                    className="focus:outline-none cursor-pointer"
+                  >
+                    <Star
+                      className={`size-5 transition-colors ${
+                        star <= Number(reviewRating)
+                          ? "fill-amber-400 text-amber-400"
+                          : "text-muted-foreground hover:text-amber-300"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
               <Textarea
                 value={reviewText}
                 onChange={(event) => setReviewText(event.target.value)}
@@ -444,9 +459,18 @@ function ProjectDetail() {
               {reviews.map((review) => (
                 <div key={review.id} className="rounded-md border p-3">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm font-medium">
-                      {review.rating}/5
-                    </span>
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`size-3.5 ${
+                            star <= review.rating
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-muted-foreground/30"
+                          }`}
+                        />
+                      ))}
+                    </div>
                     <span className="text-muted-foreground text-xs">
                       {shortDate(review.created_at)}
                     </span>

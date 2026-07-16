@@ -79,6 +79,7 @@ const uz = {
   project_review_placeholder: "Sharh yozing...",
   project_mark_solved: "Hal qilindi deb belgilash",
   project_reviews_title: "Baholashlar",
+  project_rating: "Baho",
   project_done_toast: "Bajarildi!",
   project_complete_toast: "Loyiha yakunlandi!",
 
@@ -328,6 +329,7 @@ const ru: typeof uz = {
   project_review_placeholder: "Напишите отзыв...",
   project_mark_solved: "Отметить как решённое",
   project_reviews_title: "Отзывы",
+  project_rating: "Оценка",
   project_done_toast: "Готово!",
   project_complete_toast: "Проект завершён!",
 
@@ -571,6 +573,7 @@ const en: typeof uz = {
   project_review_placeholder: "Write a review...",
   project_mark_solved: "Mark as solved",
   project_reviews_title: "Reviews",
+  project_rating: "Rating",
   project_done_toast: "Done!",
   project_complete_toast: "Project completed!",
 
