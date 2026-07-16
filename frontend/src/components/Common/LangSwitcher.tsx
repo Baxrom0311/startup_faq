@@ -21,6 +21,7 @@ export function LangSwitcher() {
     <div className="flex items-center gap-1 px-2 py-1">
       {LANGS.map((lang) => (
         <button
+          type="button"
           key={lang.code}
           onClick={() => handleChange(lang.code)}
           className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${

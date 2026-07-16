@@ -242,9 +242,9 @@ export function SubmitProblemDialog({
         <div className="grid grid-cols-2 gap-3">
           {sectors.length > 0 && (
             <div className="grid gap-2">
-              <label className="text-sm font-medium">
+              <span className="text-sm font-medium">
                 {t("submit_sector_label")}
-              </label>
+              </span>
               <Select value={sectorId} onValueChange={setSectorId}>
                 <SelectTrigger>
                   <SelectValue placeholder={t("submit_sector_placeholder")} />
@@ -262,9 +262,9 @@ export function SubmitProblemDialog({
           )}
           {regions.length > 0 && (
             <div className="grid gap-2">
-              <label className="text-sm font-medium">
+              <span className="text-sm font-medium">
                 {t("submit_region_label")}
-              </label>
+              </span>
               <Select value={regionId} onValueChange={setRegionId}>
                 <SelectTrigger>
                   <SelectValue placeholder={t("submit_region_placeholder")} />

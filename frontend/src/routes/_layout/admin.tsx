@@ -70,7 +70,7 @@ function Admin() {
       toast.error(t("error_generic"))
       setProblems([])
     })
-  }, [loadReview])
+  }, [loadReview, t])
 
   const runAction = async (
     problemId: string,
@@ -132,7 +132,9 @@ function Admin() {
                       <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
                         <span>{shortDate(problem.created_at)}</span>
                         {problem.severity_score != null && (
-                          <span>{t("admin_score")}: {problem.severity_score}</span>
+                          <span>
+                            {t("admin_score")}: {problem.severity_score}
+                          </span>
                         )}
                       </div>
                       <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
@@ -233,7 +235,7 @@ function MergeTargetPicker({
   const [results, setResults] = useState<Problem[]>([])
   const [selectedId, setSelectedId] = useState("")
   const [open, setOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLFieldSetElement>(null)
 
   useEffect(() => {
     if (!query.trim()) {
@@ -295,7 +297,7 @@ function MergeTargetPicker({
           </Button>
         </div>
       )}
-      <div
+      <fieldset
         ref={containerRef}
         className="relative"
         onBlur={(e) => {
@@ -345,7 +347,7 @@ function MergeTargetPicker({
             ))}
           </div>
         )}
-      </div>
+      </fieldset>
     </div>
   )
 }
