@@ -1,3 +1,9 @@
+import i18n from "./i18n"
+
+function _t() {
+  return (key: string) => i18n.t(key)
+}
+
 export type Sector = {
   id: number
   slug: string
@@ -309,16 +315,17 @@ export function notificationLabel(notification: NotificationItem) {
   const problemTitle =
     typeof notification.payload.title === "string"
       ? notification.payload.title
-      : "Muammo"
+      : "—"
+  const t = _t()
   const labels: Record<string, string> = {
-    "project.proposed": `${projectTitle} proposed`,
-    "project.approved": `${projectTitle} approved`,
-    "project.rejected": `${projectTitle} rejected`,
-    "project.piloting_started": `${projectTitle} pilot`,
-    "project.completed": `${projectTitle} done`,
-    "problem.published": `"${problemTitle}" nashr qilindi`,
-    "problem.archived": `"${problemTitle}" arxivlandi`,
-    "problem.merged": `"${problemTitle}" birlashtirildi`,
+    "project.proposed": `${projectTitle} — ${t("notif_proposed")}`,
+    "project.approved": `${projectTitle} — ${t("notif_approved")}`,
+    "project.rejected": `${projectTitle} — ${t("notif_rejected")}`,
+    "project.piloting_started": `${projectTitle} — ${t("notif_piloting")}`,
+    "project.completed": `${projectTitle} — ${t("notif_completed")}`,
+    "problem.published": `"${problemTitle}" — ${t("notif_published")}`,
+    "problem.archived": `"${problemTitle}" — ${t("notif_archived")}`,
+    "problem.merged": `"${problemTitle}" — ${t("notif_merged")}`,
   }
   return labels[notification.type] || notification.type
 }
@@ -358,20 +365,23 @@ export function notificationLink(
 }
 
 export function statusLabel(status: string) {
+  const t = _t()
   const labels: Record<string, string> = {
-    draft:        "Qoralama",
-    ai_processing:"Tekshirilmoqda",
-    needs_review: "Ko'rib chiqilmoqda",
-    published:    "Ochiq",
-    claimed:      "Olingan",
-    piloting:     "Pilot",
-    solved:       "Hal qilindi",
-    archived:     "Arxiv",
-    proposed:     "Taklif",
-    approved:     "Tasdiqlandi",
-    in_progress:  "Jarayonda",
-    completed:    "Tugallandi",
-    rejected:     "Rad etildi",
+    draft:        t("status_draft"),
+    ai_processing:t("status_ai_processing"),
+    needs_review: t("status_needs_review"),
+    published:    t("status_published"),
+    claimed:      t("status_claimed"),
+    piloting:     t("status_piloting"),
+    solved:       t("status_solved"),
+    archived:     t("status_archived"),
+    proposed:     t("status_proposed"),
+    approved:     t("status_approved"),
+    in_progress:  t("status_in_progress"),
+    completed:    t("status_completed"),
+    rejected:     t("status_rejected"),
+    todo:         t("status_todo"),
+    done:         t("status_done"),
   }
   return labels[status] || status
 }
