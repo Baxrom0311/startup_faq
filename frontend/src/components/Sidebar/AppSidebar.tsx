@@ -1,7 +1,9 @@
 import { Briefcase, LayoutDashboard, Shield } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
+import { LangSwitcher } from "@/components/Common/LangSwitcher"
 import { Logo } from "@/components/Common/Logo"
 import {
   Sidebar,
@@ -15,6 +17,7 @@ import { type Item, Main } from "./Main"
 import { User } from "./User"
 
 export function AppSidebar() {
+  const { t } = useTranslation()
   const { user: currentUser } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -27,15 +30,15 @@ export function AppSidebar() {
   const baseItems: Item[] = [
     {
       icon: LayoutDashboard,
-      title: "Signals",
+      title: t("nav_signals"),
       path: "/",
       badge: unreadCount > 0 ? unreadCount : undefined,
     },
-    { icon: Briefcase, title: "Projects", path: "/projects" },
+    { icon: Briefcase, title: t("nav_projects"), path: "/projects" },
   ]
 
   const items = currentUser?.is_superuser
-    ? [...baseItems, { icon: Shield, title: "Admin", path: "/admin" }]
+    ? [...baseItems, { icon: Shield, title: t("nav_admin"), path: "/admin" }]
     : baseItems
 
   return (
@@ -47,6 +50,7 @@ export function AppSidebar() {
         <Main items={items} />
       </SidebarContent>
       <SidebarFooter>
+        <LangSwitcher />
         <SidebarAppearance />
         <User user={currentUser} />
       </SidebarFooter>

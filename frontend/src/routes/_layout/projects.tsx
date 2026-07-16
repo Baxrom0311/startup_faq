@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Briefcase, Inbox } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import {
   CardSkeleton,
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/_layout/projects")({
 })
 
 function Projects() {
+  const { t } = useTranslation()
   const [incoming, setIncoming] = useState<Project[] | null>(null)
   const [mine, setMine] = useState<Project[] | null>(null)
 
@@ -40,12 +42,12 @@ function Projects() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <ProjectColumn
-        title="Inbox"
+        title={t("projects_inbox")}
         icon={<Inbox className="size-4" />}
         projects={incoming}
       />
       <ProjectColumn
-        title="Mine"
+        title={t("projects_mine")}
         icon={<Briefcase className="size-4" />}
         projects={mine}
       />

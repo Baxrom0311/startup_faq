@@ -10,6 +10,7 @@ import {
   ThumbsUp,
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { CardSkeleton, EmptyState, StatusBadge } from "@/components/Product/StatusBadge"
@@ -45,6 +46,7 @@ export const Route = createFileRoute("/_layout/")({
 })
 
 function Dashboard() {
+  const { t } = useTranslation()
   const [problems, setProblems] = useState<Problem[]>([])
   const [incomingProjects, setIncomingProjects] = useState<Project[]>([])
   const [myProjects, setMyProjects] = useState<Project[]>([])
@@ -121,7 +123,7 @@ function Dashboard() {
           <div className="mb-3 flex items-center gap-2">
             <Badge variant="secondary">Beta</Badge>
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight">Signals</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t("dashboard_title")}</h1>
         </div>
         <div className="grid gap-2 sm:grid-cols-[minmax(240px,1fr)_auto] lg:w-[540px]">
           <div className="relative">
@@ -130,12 +132,12 @@ function Dashboard() {
               className="bg-background pl-9"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Qidirish..."
+              placeholder={t("dashboard_search")}
             />
           </div>
           <Button onClick={() => setSubmitOpen(true)}>
             <Plus />
-            New
+            {t("dashboard_new")}
           </Button>
         </div>
       </div>
@@ -149,18 +151,9 @@ function Dashboard() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <main className="flex flex-col gap-3">
           <div className="grid gap-3 sm:grid-cols-3">
-            <MetricCard
-              label="Ochiq"
-              value={analytics?.published_problems ?? problems.length}
-            />
-            <MetricCard
-              label="Hal qilinayotgan"
-              value={analytics?.piloting_problems ?? 0}
-            />
-            <MetricCard
-              label="Hal qilindi"
-              value={analytics?.solved_problems ?? 0}
-            />
+            <MetricCard label={t("metric_open")} value={analytics?.published_problems ?? problems.length} />
+            <MetricCard label={t("metric_piloting")} value={analytics?.piloting_problems ?? 0} />
+            <MetricCard label={t("metric_solved")} value={analytics?.solved_problems ?? 0} />
           </div>
 
           {sectors.length > 0 && (
@@ -174,7 +167,7 @@ function Dashboard() {
                       : "bg-background hover:bg-muted/50"
                   }`}
                 >
-                  Hammasi
+                  {t("dashboard_all_sectors")}
                 </button>
                 {sectors.map((sector) => (
                   <button
@@ -198,7 +191,7 @@ function Dashboard() {
           <section className="overflow-hidden rounded-lg border bg-background shadow-none">
             <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
               <div className="flex items-center gap-2">
-                <h2 className="font-medium">Muammolar</h2>
+                <h2 className="font-medium">{t("dashboard_feed_title")}</h2>
                 {!initialLoading && (
                   <Badge variant="outline">{problems.length}</Badge>
                 )}
@@ -211,14 +204,14 @@ function Dashboard() {
                     : "hover:bg-muted/50"
                 }`}
               >
-                Menikilar
+                {t("dashboard_mine")}
               </button>
             </div>
             {initialLoading ? (
               <CardSkeleton rows={4} />
             ) : problems.length === 0 ? (
               <div className="py-2">
-                <EmptyState message="Hozircha muammolar yo'q" />
+                <EmptyState message={t("empty_problems")} />
               </div>
             ) : (
               <div className="divide-y">

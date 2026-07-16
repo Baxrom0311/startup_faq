@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router"
 import { Archive, Bot, GitMerge, RefreshCcw, Users } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { type UserPublic, UsersService } from "@/client"
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/_layout/admin")({
 })
 
 function Admin() {
+  const { t } = useTranslation()
   const [users, setUsers] = useState<UserPublic[] | null>(null)
   const [problems, setProblems] = useState<Problem[] | null>(null)
   const [analyses, setAnalyses] = useState<Record<string, AIAnalysis | null>>(
@@ -96,13 +98,13 @@ function Admin() {
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
       <main className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Admin</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("admin_title")}</h1>
 
         <Card className="bg-background shadow-none">
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2 text-base">
               <Bot className="size-4" />
-              Oxirgi muammolar
+              {t("admin_feed_title")}
               <Badge variant="secondary">{problems.length}</Badge>
             </CardTitle>
           </CardHeader>
@@ -142,7 +144,7 @@ function Admin() {
                         onClick={() => runAction(problem.id, "reanalyze")}
                       >
                         <RefreshCcw />
-                        AI
+                        {t("admin_reanalyze")}
                       </Button>
                       <Button
                         size="sm"
@@ -150,7 +152,7 @@ function Admin() {
                         onClick={() => runAction(problem.id, "archive")}
                       >
                         <Archive />
-                        Archive
+                        {t("admin_archive")}
                       </Button>
                     </div>
                     <MergeTargetPicker
@@ -178,7 +180,7 @@ function Admin() {
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2 text-base">
               <Users className="size-4" />
-              Users
+              {t("admin_users_title")}
               <Badge variant="secondary">{users.length}</Badge>
             </CardTitle>
           </CardHeader>

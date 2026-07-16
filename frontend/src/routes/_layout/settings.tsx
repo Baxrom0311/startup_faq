@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 
 import DeleteConfirmation from "@/components/UserSettings/DeleteConfirmation"
 import { CardSkeleton } from "@/components/Product/StatusBadge"
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/_layout/settings")({
 })
 
 function Settings() {
+  const { t } = useTranslation()
   const { user } = useAuth()
 
   if (!user) {
@@ -21,7 +23,7 @@ function Settings() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Card className="bg-background shadow-none">
           <CardHeader className="border-b">
-            <CardTitle className="text-base">Profile</CardTitle>
+            <CardTitle className="text-base">{t("settings_profile")}</CardTitle>
           </CardHeader>
           <CardSkeleton rows={4} />
         </Card>
@@ -32,16 +34,16 @@ function Settings() {
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
       <main className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("settings_title")}</h1>
         <Card className="bg-background shadow-none">
           <CardHeader className="border-b">
-            <CardTitle className="text-base">Profile</CardTitle>
+            <CardTitle className="text-base">{t("settings_profile")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 p-4">
-            <Info label="Name" value={user.full_name || "Empty"} />
-            <Info label="Phone" value={user.phone || "Empty"} />
-            <Info label="Telegram" value={user.telegram_username || "Empty"} />
-            <Info label="Email" value={user.email} />
+            <Info label={t("settings_name")} value={user.full_name || "—"} />
+            <Info label={t("settings_phone")} value={user.phone || "—"} />
+            <Info label={t("settings_telegram")} value={user.telegram_username || "—"} />
+            <Info label={t("settings_email")} value={user.email} />
           </CardContent>
         </Card>
       </main>
@@ -50,13 +52,13 @@ function Settings() {
         <Card className="bg-background shadow-none">
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2 text-base">
-              Access
-              {user.is_superuser && <Badge variant="outline">Admin</Badge>}
+              {t("settings_access")}
+              {user.is_superuser && <Badge variant="outline">{t("settings_admin")}</Badge>}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 p-4">
-            <Info label="Status" value={user.is_active ? "Active" : "Off"} />
-            <Info label="Roles" value={user.roles?.join(", ") || "User"} />
+            <Info label={t("settings_status")} value={user.is_active ? t("settings_active") : t("settings_inactive")} />
+            <Info label={t("settings_roles")} value={user.roles?.join(", ") || t("settings_user")} />
             <div className="pt-2">
               <DeleteConfirmation />
             </div>

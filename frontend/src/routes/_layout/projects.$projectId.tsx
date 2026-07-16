@@ -9,6 +9,7 @@ import {
   XCircle,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import {
@@ -45,6 +46,7 @@ export const Route = createFileRoute("/_layout/projects/$projectId")({
 })
 
 function ProjectDetail() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const { projectId } = Route.useParams()
   const [project, setProject] = useState<Project | null>(null)
@@ -100,7 +102,7 @@ function ProjectDetail() {
   const mutateProject = async (path: string) => {
     try {
       await apiMutation(path)
-      toast.success("Bajarildi!")
+      toast.success(t("project_done_toast"))
       await loadProject()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Amal bajarib bo'lmadi")
@@ -161,7 +163,7 @@ function ProjectDetail() {
         rating: Number(reviewRating),
         text: reviewText.trim() || null,
       })
-      toast.success("Loyiha yakunlandi!")
+      toast.success(t("project_complete_toast"))
       await loadProject()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Loyihani yakunlab bo'lmadi")
@@ -187,7 +189,7 @@ function ProjectDetail() {
         <Button variant="ghost" className="w-fit" asChild>
           <Link to="/">
             <ArrowLeft />
-            Signals
+            {t("project_back")}
           </Link>
         </Button>
 
@@ -215,7 +217,7 @@ function ProjectDetail() {
                 params={{ problemId: problem.id }}
                 className="rounded-md border bg-muted/30 p-4 hover:bg-muted/50"
               >
-                <span className="block text-sm font-medium">Muammo</span>
+                <span className="block text-sm font-medium">{t("project_problem_label")}</span>
                 <span className="text-muted-foreground mt-1 block truncate text-sm">
                   {problem.title || problem.raw_text || "Nomsiz muammo"}
                 </span>
@@ -232,7 +234,7 @@ function ProjectDetail() {
                       }
                     >
                       <CheckCircle2 />
-                      Qabul qilish
+                      {t("project_approve")}
                     </Button>
                     <Button
                       variant="outline"
@@ -241,7 +243,7 @@ function ProjectDetail() {
                       }
                     >
                       <XCircle />
-                      Rad etish
+                      {t("project_reject")}
                     </Button>
                   </>
                 )}
@@ -252,7 +254,7 @@ function ProjectDetail() {
                     }
                   >
                     <GitBranch />
-                    Pilotni boshlash
+                    {t("project_start_pilot")}
                   </Button>
                 )}
               </div>
@@ -262,7 +264,7 @@ function ProjectDetail() {
 
         <Card className="bg-background shadow-none">
           <CardHeader>
-            <CardTitle className="text-base">Yangiliklar</CardTitle>
+            <CardTitle className="text-base">{t("project_updates_title")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             {canManage && (
@@ -270,7 +272,7 @@ function ProjectDetail() {
                 <Textarea
                   value={updateText}
                   onChange={(event) => setUpdateText(event.target.value)}
-                  placeholder="Yangilik yozing..."
+                  placeholder={t("project_update_placeholder")}
                 />
                 {updatePhotos.length > 0 && (
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -288,7 +290,7 @@ function ProjectDetail() {
                   <Button variant="outline" asChild>
                     <label>
                       <ImagePlus />
-                      Rasm
+                      {t("project_photo")}
                       <input
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
@@ -304,7 +306,7 @@ function ProjectDetail() {
                   </Button>
                   <Button onClick={addUpdate} disabled={isSendingUpdate}>
                     <Send />
-                    Yuborish
+                    {t("project_send")}
                   </Button>
                 </div>
               </>
@@ -346,7 +348,7 @@ function ProjectDetail() {
       <aside className="flex flex-col gap-4">
         <Card className="bg-background shadow-none">
           <CardHeader>
-            <CardTitle className="text-base">Rejalar</CardTitle>
+            <CardTitle className="text-base">{t("project_plan_title")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             {canManage && (
@@ -354,10 +356,10 @@ function ProjectDetail() {
                 <Input
                   value={milestoneTitle}
                   onChange={(event) => setMilestoneTitle(event.target.value)}
-                  placeholder="Bosqich nomi"
+                  placeholder={t("project_milestone_placeholder")}
                 />
                 <Button variant="outline" onClick={addMilestone}>
-                  Qo'shish
+                  {t("project_milestone_add")}
                 </Button>
               </div>
             )}
@@ -401,7 +403,7 @@ function ProjectDetail() {
         {canSolve && (
           <Card className="bg-background shadow-none">
             <CardHeader>
-              <CardTitle className="text-base">Yakunlash</CardTitle>
+              <CardTitle className="text-base">{t("project_complete_title")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
               <Input
@@ -414,9 +416,9 @@ function ProjectDetail() {
               <Textarea
                 value={reviewText}
                 onChange={(event) => setReviewText(event.target.value)}
-                placeholder="Sharh yozing..."
+                placeholder={t("project_review_placeholder")}
               />
-              <Button onClick={complete}>Hal qilindi deb belgilash</Button>
+              <Button onClick={complete}>{t("project_mark_solved")}</Button>
             </CardContent>
           </Card>
         )}
@@ -424,7 +426,7 @@ function ProjectDetail() {
         {reviews.length > 0 && (
           <Card className="bg-background shadow-none">
             <CardHeader>
-              <CardTitle className="text-base">Baholashlar</CardTitle>
+              <CardTitle className="text-base">{t("project_reviews_title")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
               {reviews.map((review) => (

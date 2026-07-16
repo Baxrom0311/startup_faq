@@ -12,6 +12,7 @@ import {
   Volume2,
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import {
@@ -56,6 +57,7 @@ export const Route = createFileRoute("/_layout/problems/$problemId")({
 })
 
 function ProblemDetail() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const { problemId } = Route.useParams()
   const [problem, setProblem] = useState<Problem | null>(null)
@@ -113,7 +115,7 @@ function ProblemDetail() {
       })
       await loadProblem()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Ovoz berib bo'lmadi")
+      toast.error(err instanceof Error ? err.message : t("error_vote"))
     }
   }
 
@@ -140,7 +142,7 @@ function ProblemDetail() {
       })
       setProjectTitle("")
       setProjectPitch("")
-      toast.success("Taklifingiz yuborildi!")
+      toast.success(t("problem_proposal_sent"))
       await loadProblem()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "So'rov yuborib bo'lmadi")
@@ -154,7 +156,7 @@ function ProblemDetail() {
   ) => {
     try {
       await actionProblem(problemId, action)
-      toast.success("Done")
+      toast.success(t("problem_action_done"))
       await loadProblem()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error")
@@ -196,19 +198,19 @@ function ProblemDetail() {
         <Button variant="ghost" className="w-fit" asChild>
           <Link to="/">
             <ArrowLeft />
-            Signals
+            {t("problem_back")}
           </Link>
         </Button>
 
         {problem.duplicate_of && (
           <div className="flex items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm dark:border-amber-800 dark:bg-amber-950">
-            <p className="font-medium">Bu muammo birlashtirilib arxivlandi</p>
+            <p className="font-medium">{t("problem_merged_note")}</p>
             <Link
               to="/problems/$problemId"
               params={{ problemId: problem.duplicate_of }}
               className="flex shrink-0 items-center gap-1 text-sm font-medium hover:underline"
             >
-              Asl muammo
+              {t("problem_merged_link")}
               <ArrowRight className="size-3.5" />
             </Link>
           </div>
@@ -306,17 +308,17 @@ function ProblemDetail() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <MessageSquare className="size-4" />
-              Muhokama
+              {t("problem_discuss")}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             <Textarea
               value={commentText}
               onChange={(event) => setCommentText(event.target.value)}
-              placeholder="Izoh yozing..."
+              placeholder={t("problem_comment_placeholder")}
             />
             <div className="flex justify-end">
-              <Button onClick={addComment}>Yuborish</Button>
+              <Button onClick={addComment}>{t("problem_send")}</Button>
             </div>
             <div className="divide-y rounded-md border">
               {comments.length === 0 ? (
@@ -342,13 +344,13 @@ function ProblemDetail() {
         {(canPublish || canArchive || canSolve || canReanalyze) && (
           <Card className="bg-background shadow-none">
             <CardHeader>
-              <CardTitle className="text-base">Amallar</CardTitle>
+              <CardTitle className="text-base">{t("problem_actions")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
               {canPublish && (
                 <Button onClick={() => runProblemAction("publish")}>
                   <Check />
-                  Nashr qilish
+                  {t("problem_publish")}
                 </Button>
               )}
               {canSolve && (
@@ -357,7 +359,7 @@ function ProblemDetail() {
                   onClick={() => runProblemAction("solve")}
                 >
                   <CheckCircle2 />
-                  Hal qilindi
+                  {t("problem_solve")}
                 </Button>
               )}
               {canReanalyze && (
@@ -366,7 +368,7 @@ function ProblemDetail() {
                   onClick={() => runProblemAction("reanalyze")}
                 >
                   <RefreshCcw />
-                  AI tahlil
+                  {t("problem_reanalyze")}
                 </Button>
               )}
               {canArchive && (
@@ -375,7 +377,7 @@ function ProblemDetail() {
                   onClick={() => runProblemAction("archive")}
                 >
                   <Archive />
-                  Arxivlash
+                  {t("problem_archive")}
                 </Button>
               )}
             </CardContent>
@@ -389,26 +391,26 @@ function ProblemDetail() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Rocket className="size-4" />
-                Yechim taklif qilish
+                {t("problem_claim_title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
               <Input
                 value={projectTitle}
                 onChange={(event) => setProjectTitle(event.target.value)}
-                placeholder="Loyiha nomi"
+                placeholder={t("problem_claim_name")}
               />
               <Textarea
                 value={projectPitch}
                 onChange={(event) => setProjectPitch(event.target.value)}
-                placeholder="Qisqacha tavsif..."
+                placeholder={t("problem_claim_pitch")}
               />
               <LoadingButton
                 loading={claiming}
                 disabled={!projectTitle.trim()}
                 onClick={claim}
               >
-                Yuborish
+                {t("problem_send_proposal")}
               </LoadingButton>
             </CardContent>
           </Card>
@@ -416,7 +418,7 @@ function ProblemDetail() {
 
         <Card className="bg-background shadow-none">
           <CardHeader>
-            <CardTitle className="text-base">Projects</CardTitle>
+            <CardTitle className="text-base">{t("problem_projects_title")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
             {projects.length === 0 ? (
