@@ -100,7 +100,7 @@ function ProjectDetail() {
   const mutateProject = async (path: string) => {
     try {
       await apiMutation(path)
-      toast.success("Done")
+      toast.success("Bajarildi!")
       await loadProject()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Amal bajarib bo'lmadi")
@@ -161,7 +161,7 @@ function ProjectDetail() {
         rating: Number(reviewRating),
         text: reviewText.trim() || null,
       })
-      toast.success("Done")
+      toast.success("Loyiha yakunlandi!")
       await loadProject()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Loyihani yakunlab bo'lmadi")
@@ -215,7 +215,7 @@ function ProjectDetail() {
                 params={{ problemId: problem.id }}
                 className="rounded-md border bg-muted/30 p-4 hover:bg-muted/50"
               >
-                <span className="block text-sm font-medium">Problem</span>
+                <span className="block text-sm font-medium">Muammo</span>
                 <span className="text-muted-foreground mt-1 block truncate text-sm">
                   {problem.title || problem.raw_text || "Nomsiz muammo"}
                 </span>
@@ -232,7 +232,7 @@ function ProjectDetail() {
                       }
                     >
                       <CheckCircle2 />
-                      OK
+                      Qabul qilish
                     </Button>
                     <Button
                       variant="outline"
@@ -241,7 +241,7 @@ function ProjectDetail() {
                       }
                     >
                       <XCircle />
-                      No
+                      Rad etish
                     </Button>
                   </>
                 )}
@@ -252,7 +252,7 @@ function ProjectDetail() {
                     }
                   >
                     <GitBranch />
-                    Pilot
+                    Pilotni boshlash
                   </Button>
                 )}
               </div>
@@ -262,7 +262,7 @@ function ProjectDetail() {
 
         <Card className="bg-background shadow-none">
           <CardHeader>
-            <CardTitle className="text-base">Log</CardTitle>
+            <CardTitle className="text-base">Yangiliklar</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             {canManage && (
@@ -270,7 +270,7 @@ function ProjectDetail() {
                 <Textarea
                   value={updateText}
                   onChange={(event) => setUpdateText(event.target.value)}
-                  placeholder="Update..."
+                  placeholder="Yangilik yozing..."
                 />
                 {updatePhotos.length > 0 && (
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -288,7 +288,7 @@ function ProjectDetail() {
                   <Button variant="outline" asChild>
                     <label>
                       <ImagePlus />
-                      Photo
+                      Rasm
                       <input
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
@@ -304,7 +304,7 @@ function ProjectDetail() {
                   </Button>
                   <Button onClick={addUpdate} disabled={isSendingUpdate}>
                     <Send />
-                    Send
+                    Yuborish
                   </Button>
                 </div>
               </>
@@ -346,7 +346,7 @@ function ProjectDetail() {
       <aside className="flex flex-col gap-4">
         <Card className="bg-background shadow-none">
           <CardHeader>
-            <CardTitle className="text-base">Plan</CardTitle>
+            <CardTitle className="text-base">Rejalar</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             {canManage && (
@@ -354,10 +354,10 @@ function ProjectDetail() {
                 <Input
                   value={milestoneTitle}
                   onChange={(event) => setMilestoneTitle(event.target.value)}
-                  placeholder="Milestone"
+                  placeholder="Bosqich nomi"
                 />
                 <Button variant="outline" onClick={addMilestone}>
-                  Add
+                  Qo'shish
                 </Button>
               </div>
             )}
@@ -401,7 +401,7 @@ function ProjectDetail() {
         {canSolve && (
           <Card className="bg-background shadow-none">
             <CardHeader>
-              <CardTitle className="text-base">Done</CardTitle>
+              <CardTitle className="text-base">Yakunlash</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
               <Input
@@ -414,9 +414,9 @@ function ProjectDetail() {
               <Textarea
                 value={reviewText}
                 onChange={(event) => setReviewText(event.target.value)}
-                placeholder="Review..."
+                placeholder="Sharh yozing..."
               />
-              <Button onClick={complete}>Solve</Button>
+              <Button onClick={complete}>Hal qilindi deb belgilash</Button>
             </CardContent>
           </Card>
         )}
@@ -424,7 +424,7 @@ function ProjectDetail() {
         {reviews.length > 0 && (
           <Card className="bg-background shadow-none">
             <CardHeader>
-              <CardTitle className="text-base">Review</CardTitle>
+              <CardTitle className="text-base">Baholashlar</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
               {reviews.map((review) => (
