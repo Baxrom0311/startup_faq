@@ -204,7 +204,10 @@ async function _tryRefreshToken(): Promise<boolean> {
       body: JSON.stringify({ refresh_token: refreshToken }),
     })
     if (!res.ok) return false
-    const data = (await res.json()) as { access_token?: string; refresh_token?: string }
+    const data = (await res.json()) as {
+      access_token?: string
+      refresh_token?: string
+    }
     if (data.access_token) {
       localStorage.setItem("access_token", data.access_token)
       if (data.refresh_token) {

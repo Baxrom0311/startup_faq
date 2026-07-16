@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.routes import (
     analytics,
+    broadcasts,
     health,
     login,
     media,
@@ -30,6 +31,7 @@ api_router.include_router(projects.router)
 api_router.include_router(analytics.router)
 api_router.include_router(media.router)
 api_router.include_router(notifications.router)
+api_router.include_router(broadcasts.router)
 
 
 if settings.ENVIRONMENT == "local":

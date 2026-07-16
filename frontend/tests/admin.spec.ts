@@ -4,7 +4,10 @@ import { createUser } from "./utils/privateApi"
 import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser } from "./utils/user"
 
-test.skip(true, "Obsolete template admin management is replaced by custom SignalHub admin")
+test.skip(
+  true,
+  "Obsolete template admin management is replaced by custom SignalHub admin",
+)
 
 test("Admin page is accessible and shows correct title", async ({ page }) => {
   await page.goto("/admin")

@@ -141,11 +141,7 @@ function Dashboard() {
       await loadDashboard(0)
       setSkip(0)
     } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : t("error_mark_read"),
-      )
+      toast.error(err instanceof Error ? err.message : t("error_mark_read"))
     }
   }
 
@@ -514,8 +510,14 @@ function PipelineCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3">
-        <PipelineCount label={t("dashboard_pipeline_inbox")} value={incoming.length} />
-        <PipelineCount label={t("dashboard_pipeline_active")} value={activeProjects.length} />
+        <PipelineCount
+          label={t("dashboard_pipeline_inbox")}
+          value={incoming.length}
+        />
+        <PipelineCount
+          label={t("dashboard_pipeline_active")}
+          value={activeProjects.length}
+        />
         <div className="grid gap-2 pt-2">
           {incoming.slice(0, 3).map((project) => (
             <Link

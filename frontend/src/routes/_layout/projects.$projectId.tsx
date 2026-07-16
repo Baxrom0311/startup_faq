@@ -89,7 +89,7 @@ function ProjectDetail() {
     loadProject().catch((err: unknown) =>
       toast.error(err instanceof Error ? err.message : t("error_load_project")),
     )
-  }, [loadProject])
+  }, [loadProject, t])
 
   useEffect(() => {
     return () => {
@@ -119,9 +119,7 @@ function ProjectDetail() {
       setMilestoneTitle("")
       await loadProject()
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : t("error_milestone_add"),
-      )
+      toast.error(err instanceof Error ? err.message : t("error_milestone_add"))
     }
   }
 
@@ -137,9 +135,7 @@ function ProjectDetail() {
       await loadProject()
     } catch (err) {
       toast.error(
-        err instanceof Error
-          ? err.message
-          : t("error_milestone_toggle"),
+        err instanceof Error ? err.message : t("error_milestone_toggle"),
       )
     }
   }
@@ -157,9 +153,7 @@ function ProjectDetail() {
       setUpdatePhotos([])
       await loadProject()
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : t("error_update_add"),
-      )
+      toast.error(err instanceof Error ? err.message : t("error_update_add"))
     } finally {
       setIsSendingUpdate(false)
     }
@@ -174,9 +168,7 @@ function ProjectDetail() {
       toast.success(t("project_complete_toast"))
       await loadProject()
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : t("error_complete"),
-      )
+      toast.error(err instanceof Error ? err.message : t("error_complete"))
     }
   }
 

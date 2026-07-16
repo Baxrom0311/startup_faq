@@ -5,11 +5,13 @@ import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { type UserPublic, UsersService } from "@/client"
+import BroadcastsManager from "@/components/Admin/BroadcastsManager"
 import { EmptyState, LoadingState } from "@/components/Product/StatusBadge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   type AIAnalysis,
   type AIAnalysisResponse,
@@ -102,83 +104,100 @@ function Admin() {
           {t("admin_title")}
         </h1>
 
-        <Card className="bg-background shadow-none">
-          <CardHeader className="border-b">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Bot className="size-4" />
-              {t("admin_feed_title")}
-              <Badge variant="secondary">{problems.length}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {problems.length === 0 ? (
-              <div className="p-6">
-                <EmptyState />
-              </div>
-            ) : (
-              <div className="divide-y">
-                {problems.map((problem) => (
-                  <div key={problem.id} className="grid gap-3 px-4 py-4">
-                    <div className="min-w-0">
-                      <Link
-                        to="/problems/$problemId"
-                        params={{ problemId: problem.id }}
-                        className="block truncate text-sm font-medium hover:underline"
-                      >
-                        {problem.title ||
-                          problem.raw_text ||
-                          t("unnamed_problem")}
-                      </Link>
-                      <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
-                        <span>{shortDate(problem.created_at)}</span>
-                        {problem.severity_score != null && (
-                          <span>
-                            {t("admin_score")}: {problem.severity_score}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
-                        {structuredSummary(problem) ||
-                          problem.raw_text ||
-                          t("audio_only")}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => runAction(problem.id, "reanalyze")}
-                      >
-                        <RefreshCcw />
-                        {t("admin_reanalyze")}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => runAction(problem.id, "archive")}
-                      >
-                        <Archive />
-                        {t("admin_archive")}
-                      </Button>
-                    </div>
-                    <MergeTargetPicker
-                      aiSuggestedId={
-                        typeof analyses[problem.id]?.summary_json
-                          .duplicate_of === "string"
-                          ? (analyses[problem.id]!.summary_json
-                              .duplicate_of as string)
-                          : null
-                      }
-                      onMerge={(targetId) =>
-                        runAction(problem.id, "merge", targetId)
-                      }
-                    />
+        <Tabs defaultValue="moderation" className="w-full flex flex-col gap-4">
+          <TabsList className="mr-auto">
+            <TabsTrigger value="moderation">
+              {t("admin_tab_moderation") || "Moderatsiya"}
+            </TabsTrigger>
+            <TabsTrigger value="broadcasts">
+              {t("admin_tab_broadcasts") || "Telegram E'lonlar"}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="moderation" className="mt-0 flex flex-col gap-4">
+            <Card className="bg-background shadow-none">
+              <CardHeader className="border-b">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Bot className="size-4" />
+                  {t("admin_feed_title")}
+                  <Badge variant="secondary">{problems.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {problems.length === 0 ? (
+                  <div className="p-6">
+                    <EmptyState />
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                ) : (
+                  <div className="divide-y">
+                    {problems.map((problem) => (
+                      <div key={problem.id} className="grid gap-3 px-4 py-4">
+                        <div className="min-w-0">
+                          <Link
+                            to="/problems/$problemId"
+                            params={{ problemId: problem.id }}
+                            className="block truncate text-sm font-medium hover:underline"
+                          >
+                            {problem.title ||
+                              problem.raw_text ||
+                              t("unnamed_problem")}
+                          </Link>
+                          <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
+                            <span>{shortDate(problem.created_at)}</span>
+                            {problem.severity_score != null && (
+                              <span>
+                                {t("admin_score")}: {problem.severity_score}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
+                            {structuredSummary(problem) ||
+                              problem.raw_text ||
+                              t("audio_only")}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => runAction(problem.id, "reanalyze")}
+                          >
+                            <RefreshCcw />
+                            {t("admin_reanalyze")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => runAction(problem.id, "archive")}
+                          >
+                            <Archive />
+                            {t("admin_archive")}
+                          </Button>
+                        </div>
+                        <MergeTargetPicker
+                          aiSuggestedId={
+                            typeof analyses[problem.id]?.summary_json
+                              .duplicate_of === "string"
+                              ? (analyses[problem.id]!.summary_json
+                                  .duplicate_of as string)
+                              : null
+                          }
+                          onMerge={(targetId) =>
+                            runAction(problem.id, "merge", targetId)
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="broadcasts" className="mt-0">
+            <BroadcastsManager />
+          </TabsContent>
+        </Tabs>
       </main>
 
       <aside>

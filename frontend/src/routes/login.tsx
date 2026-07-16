@@ -73,9 +73,7 @@ function Login() {
       setStatus("pending")
       window.location.href = data.deep_link
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("error_generic"),
-      )
+      toast.error(error instanceof Error ? error.message : t("error_generic"))
     } finally {
       setLoading(false)
     }
@@ -127,7 +125,7 @@ function Login() {
     }, 2000)
 
     return () => window.clearInterval(interval)
-  }, [navigate, session, status])
+  }, [navigate, session, status, t])
 
   const handleRetry = () => {
     setSession(null)

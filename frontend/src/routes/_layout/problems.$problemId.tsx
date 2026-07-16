@@ -109,7 +109,7 @@ function ProblemDetail() {
     loadProblem().catch((err: unknown) =>
       toast.error(err instanceof Error ? err.message : t("error_load_problem")),
     )
-  }, [loadProblem])
+  }, [loadProblem, t])
 
   const vote = async () => {
     if (!problem) return
@@ -149,9 +149,7 @@ function ProblemDetail() {
       toast.success(t("problem_proposal_sent"))
       await loadProblem()
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : t("error_request"),
-      )
+      toast.error(err instanceof Error ? err.message : t("error_request"))
     } finally {
       setClaiming(false)
     }
@@ -488,7 +486,9 @@ function AIPanel({ analysis }: { analysis: AIAnalysis }) {
       </CardHeader>
       <CardContent className="grid gap-3 text-sm">
         <Info label={t("ai_label_model")} value={analysis.model} />
-        {promptVersion && <Info label={t("ai_label_prompt")} value={promptVersion} />}
+        {promptVersion && (
+          <Info label={t("ai_label_prompt")} value={promptVersion} />
+        )}
         {typeof record.confidence === "number" && (
           <Info
             label={t("ai_label_trust")}
@@ -501,7 +501,9 @@ function AIPanel({ analysis }: { analysis: AIAnalysis }) {
         {typeof record.impact_scope === "string" && (
           <Info label={t("ai_label_scope")} value={record.impact_scope} />
         )}
-        {duplicateOf && <Info label={t("ai_label_duplicate")} value={duplicateOf} />}
+        {duplicateOf && (
+          <Info label={t("ai_label_duplicate")} value={duplicateOf} />
+        )}
         {typeof record.moderation_reason === "string" && (
           <Info label={t("ai_label_reason")} value={record.moderation_reason} />
         )}

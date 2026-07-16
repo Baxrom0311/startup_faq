@@ -545,3 +545,66 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+# Broadcast (Reklama/E'lonlar)
+class BroadcastBase(SQLModel):
+    title: str = Field(max_length=255)
+    text_uz: str = Field(max_length=4000)
+    text_ru: str | None = Field(default=None, max_length=4000)
+    text_en: str | None = Field(default=None, max_length=4000)
+    # [{"text": "Batafsil", "url": "https://..."}]
+    buttons: list[dict] = Field(
+        default_factory=list,
+        sa_column=Column(JSON, nullable=False),
+    )
+    photo_key: str | None = Field(default=None, max_length=255)
+    target_region_id: int | None = None
+
+
+class BroadcastCreate(SQLModel):
+    title: str = Field(max_length=255)
+    text_uz: str = Field(max_length=4000)
+    text_ru: str | None = Field(default=None, max_length=4000)
+    text_en: str | None = Field(default=None, max_length=4000)
+    buttons: list[dict] = Field(default_factory=list)
+    photo_key: str | None = Field(default=None, max_length=255)
+    target_region_id: int | None = None
+
+
+class BroadcastUpdate(SQLModel):
+    title: str | None = Field(default=None, max_length=255)
+    text_uz: str | None = Field(default=None, max_length=4000)
+    text_ru: str | None = Field(default=None, max_length=4000)
+    text_en: str | None = Field(default=None, max_length=4000)
+    buttons: list[dict] | None = None
+    photo_key: str | None = Field(default=None, max_length=255)
+    target_region_id: int | None = None
+
+
+class Broadcast(BroadcastBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    status: str = Field(default="pending", max_length=32, index=True)
+    sent_count: int = Field(default=0)
+    failed_count: int = Field(default=0)
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    started_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))  # type: ignore
+    completed_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))  # type: ignore
+
+
+class BroadcastPublic(BroadcastBase):
+    id: uuid.UUID
+    status: str
+    sent_count: int
+    failed_count: int
+    created_at: datetime
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+
+
+class BroadcastsPublic(SQLModel):
+    data: list[BroadcastPublic]
+    count: int

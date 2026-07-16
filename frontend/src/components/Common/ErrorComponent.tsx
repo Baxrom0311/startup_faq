@@ -16,7 +16,9 @@ const ErrorComponent = () => {
           <span className="text-6xl md:text-8xl font-bold leading-none mb-4">
             {t("error_page_title")}
           </span>
-          <span className="text-2xl font-bold mb-2">{t("error_page_subtitle")}</span>
+          <span className="text-2xl font-bold mb-2">
+            {t("error_page_subtitle")}
+          </span>
         </div>
       </div>
 

@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.worker.tasks.analyze_problem import analyze_problem
 from app.worker.tasks.cleanup_media import cleanup_orphan_media
 from app.worker.tasks.send_notification import send_notification
+from app.worker.tasks.send_broadcast import send_broadcast
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ def redis_settings_from_url(url: str) -> RedisSettings:
 
 
 class WorkerSettings:
-    functions = [analyze_problem, send_notification, cleanup_orphan_media]
+    functions = [analyze_problem, send_notification, cleanup_orphan_media, send_broadcast]
     cron_jobs = [cron(cleanup_orphan_media, hour=3, minute=0)]
     redis_settings = redis_settings_from_url(settings.REDIS_URL)
 

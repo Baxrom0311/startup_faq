@@ -8,7 +8,10 @@ import {
 } from "./utils/random"
 import { logInUser } from "./utils/user"
 
-test.skip(true, "Obsolete items template is replaced by projects and redirects to /projects")
+test.skip(
+  true,
+  "Obsolete items template is replaced by projects and redirects to /projects",
+)
 
 test("Items page is accessible and shows correct title", async ({ page }) => {
   await page.goto("/items")
