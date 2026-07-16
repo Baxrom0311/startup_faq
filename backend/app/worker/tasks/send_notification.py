@@ -9,23 +9,49 @@ from app.core.db import engine
 from app.models import Notification, User
 
 
-def _render_notification_text(notification: Notification) -> str:
+_LABELS: dict[str, dict[str, str]] = {
+    "uz": {
+        "project.proposed": "{project} bo'yicha yangi taklif keldi.",
+        "project.approved": "{project} tasdiqlandi.",
+        "project.rejected": "{project} rad etildi.",
+        "project.piloting_started": "{project} pilot bosqichiga o'tdi.",
+        "project.completed": "{project} yakunlandi.",
+        "problem.published": '"{problem}" muammongiz nashr qilindi.',
+        "problem.archived": '"{problem}" muammongiz arxivlandi.',
+        "problem.merged": '"{problem}" muammongiz mavjud muammoga birlashtirildi.',
+    },
+    "ru": {
+        "project.proposed": "Поступило новое предложение по проекту «{project}».",
+        "project.approved": "Проект «{project}» одобрен.",
+        "project.rejected": "Проект «{project}» отклонён.",
+        "project.piloting_started": "Проект «{project}» перешёл в стадию пилотирования.",
+        "project.completed": "Проект «{project}» завершён.",
+        "problem.published": 'Ваша проблема «{problem}» опубликована.',
+        "problem.archived": 'Ваша проблема «{problem}» архивирована.',
+        "problem.merged": 'Ваша проблема «{problem}» объединена с существующей.',
+    },
+    "en": {
+        "project.proposed": "A new proposal for «{project}» has been submitted.",
+        "project.approved": "Project «{project}» has been approved.",
+        "project.rejected": "Project «{project}» has been rejected.",
+        "project.piloting_started": "Project «{project}» has entered the piloting stage.",
+        "project.completed": "Project «{project}» has been completed.",
+        "problem.published": 'Your problem "{problem}" has been published.',
+        "problem.archived": 'Your problem "{problem}" has been archived.',
+        "problem.merged": 'Your problem "{problem}" has been merged with an existing one.',
+    },
+}
+
+
+def _render_notification_text(notification: Notification, lang: str = "uz") -> str:
     title = notification.payload.get("project_title")
     project_title = title if isinstance(title, str) and title else "Loyiha"
     problem_title = notification.payload.get("title")
     ptitle = problem_title if isinstance(problem_title, str) and problem_title else "Muammo"
 
-    labels = {
-        "project.proposed": f"{project_title} bo'yicha yangi taklif keldi.",
-        "project.approved": f"{project_title} tasdiqlandi.",
-        "project.rejected": f"{project_title} rad etildi.",
-        "project.piloting_started": f"{project_title} pilot bosqichiga o'tdi.",
-        "project.completed": f"{project_title} yakunlandi.",
-        "problem.published": f"\"{ptitle}\" muammongiz nashr qilindi.",
-        "problem.archived": f"\"{ptitle}\" muammongiz arxivlandi.",
-        "problem.merged": f"\"{ptitle}\" muammongiz mavjud muammoga birlashtirildi.",
-    }
-    return labels.get(notification.type, notification.type)
+    locale = lang if lang in _LABELS else "uz"
+    template = _LABELS[locale].get(notification.type, notification.type)
+    return template.format(project=project_title, problem=ptitle)
 
 
 async def _send_telegram_message(*, telegram_id: int, text: str) -> None:
@@ -68,7 +94,7 @@ async def send_notification(ctx: dict, notification_id: str) -> None:
         try:
             await _send_telegram_message(
                 telegram_id=user.telegram_id,
-                text=_render_notification_text(notification),
+                text=_render_notification_text(notification, lang=user.language or "uz"),
             )
         except Exception as exc:
             notification.delivery_status = "failed"
