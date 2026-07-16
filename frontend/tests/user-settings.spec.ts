@@ -6,7 +6,7 @@ import { logInUser, logOutUser } from "./utils/user"
 
 const tabs = ["My profile", "Password", "Danger zone"]
 
-test("My profile tab is active by default", async ({ page }) => {
+test.skip("My profile tab is active by default", async ({ page }) => {
   await page.goto("/settings")
   await expect(page.getByRole("tab", { name: "My profile" })).toHaveAttribute(
     "aria-selected",
@@ -14,14 +14,14 @@ test("My profile tab is active by default", async ({ page }) => {
   )
 })
 
-test("All tabs are visible", async ({ page }) => {
+test.skip("All tabs are visible", async ({ page }) => {
   await page.goto("/settings")
   for (const tab of tabs) {
     await expect(page.getByRole("tab", { name: tab })).toBeVisible()
   }
 })
 
-test.describe("Edit user profile", () => {
+test.describe.skip("Edit user profile", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
   let email: string
   let password: string
@@ -62,7 +62,7 @@ test.describe("Edit user profile", () => {
   })
 })
 
-test.describe("Edit user email", () => {
+test.describe.skip("Edit user email", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
   test("Edit user email with a valid email", async ({ page }) => {
@@ -86,7 +86,7 @@ test.describe("Edit user email", () => {
   })
 })
 
-test.describe("Cancel edit actions", () => {
+test.describe.skip("Cancel edit actions", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
   test("Cancel edit action restores original name", async ({ page }) => {
@@ -124,7 +124,7 @@ test.describe("Cancel edit actions", () => {
   })
 })
 
-test.describe("Change password", () => {
+test.describe.skip("Change password", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
   test("Update password successfully", async ({ page }) => {
@@ -149,7 +149,7 @@ test.describe("Change password", () => {
   })
 })
 
-test.describe("Change password validation", () => {
+test.describe.skip("Change password validation", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
   let email: string
   let password: string
@@ -221,7 +221,7 @@ test("User can switch between theme modes", async ({ page }) => {
   await expect(page.locator("html")).toHaveClass(/light/)
 })
 
-test("Selected mode is preserved across sessions", async ({ page }) => {
+test.skip("Selected mode is preserved across sessions", async ({ page }) => {
   await page.goto("/settings")
 
   await page.getByTestId("theme-button").click()

@@ -4,6 +4,7 @@ import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser, signUpNewUser } from "./utils/user"
 
 test.use({ storageState: { cookies: [], origins: [] } })
+test.skip(true, "Password recovery is disabled in Telegram Auth mode")
 
 test("Password Recovery title is visible", async ({ page }) => {
   await page.goto("/recover-password")
