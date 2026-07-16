@@ -12,12 +12,18 @@ from app.models import Notification, User
 def _render_notification_text(notification: Notification) -> str:
     title = notification.payload.get("project_title")
     project_title = title if isinstance(title, str) and title else "Loyiha"
+    problem_title = notification.payload.get("title")
+    ptitle = problem_title if isinstance(problem_title, str) and problem_title else "Muammo"
+
     labels = {
         "project.proposed": f"{project_title} bo'yicha yangi taklif keldi.",
         "project.approved": f"{project_title} tasdiqlandi.",
         "project.rejected": f"{project_title} rad etildi.",
         "project.piloting_started": f"{project_title} pilot bosqichiga o'tdi.",
         "project.completed": f"{project_title} yakunlandi.",
+        "problem.published": f"\"{ptitle}\" muammongiz nashr qilindi.",
+        "problem.archived": f"\"{ptitle}\" muammongiz arxivlandi.",
+        "problem.merged": f"\"{ptitle}\" muammongiz mavjud muammoga birlashtirildi.",
     }
     return labels.get(notification.type, notification.type)
 

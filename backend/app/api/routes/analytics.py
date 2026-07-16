@@ -27,6 +27,8 @@ def read_analytics_overview(
 ) -> AnalyticsOverview:
     _ = current_user
     submitted = session.exec(select(func.count()).select_from(Problem)).one()
+    ai_processing = _count_problems(session, "ai_processing")
+    needs_review = _count_problems(session, "needs_review")
     published = _count_problems(session, "published")
     claimed = _count_problems(session, "claimed")
     piloting = _count_problems(session, "piloting")
@@ -37,6 +39,8 @@ def read_analytics_overview(
 
     return AnalyticsOverview(
         submitted_problems=submitted,
+        ai_processing_problems=ai_processing,
+        needs_review_problems=needs_review,
         published_problems=published,
         claimed_problems=claimed,
         piloting_problems=piloting,

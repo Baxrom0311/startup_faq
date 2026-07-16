@@ -52,7 +52,7 @@ const UserInformation = () => {
     mutationFn: (data: UserUpdateMe) =>
       UsersService.updateUserMe({ requestBody: data }),
     onSuccess: () => {
-      showSuccessToast("User updated successfully")
+      showSuccessToast("Done")
       toggleEditMode()
     },
     onError: handleError.bind(showErrorToast),
@@ -82,7 +82,7 @@ const UserInformation = () => {
 
   return (
     <div className="max-w-md">
-      <h3 className="text-lg font-semibold py-4">User Information</h3>
+      <h3 className="py-4 text-lg font-semibold">Profile</h3>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

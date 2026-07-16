@@ -52,3 +52,27 @@ def test_render_notification_text_uses_project_title() -> None:
     )
 
     assert _render_notification_text(notification) == "Agro pilot tasdiqlandi."
+
+
+def test_render_notification_text_problem_published() -> None:
+    notification = Notification(
+        user_id=uuid.uuid4(),
+        type="problem.published",
+        payload={"problem_id": str(uuid.uuid4()), "title": "Sug'orish tizimi"},
+    )
+
+    text = _render_notification_text(notification)
+    assert "Sug'orish tizimi" in text
+    assert "nashr" in text
+
+
+def test_render_notification_text_problem_merged() -> None:
+    notification = Notification(
+        user_id=uuid.uuid4(),
+        type="problem.merged",
+        payload={"problem_id": str(uuid.uuid4()), "title": "Yo'l muammosi"},
+    )
+
+    text = _render_notification_text(notification)
+    assert "Yo'l muammosi" in text
+    assert "birlashtirildi" in text

@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from sqlmodel import Session, func, select
 
 from app.models import (
+    Notification,
     Problem,
     Project,
     ProjectCreate,
@@ -16,6 +17,7 @@ from app.modules.notifications.service import create_notification
 from app.modules.problems.lifecycle import transition_problem
 
 MAX_PROPOSED_PROJECTS_PER_PROBLEM = 3
+MANAGEABLE_PROJECT_STATUSES = {"approved", "in_progress", "piloting"}
 
 
 def claim_problem(
@@ -24,7 +26,7 @@ def claim_problem(
     problem: Problem,
     lead: User,
     project_in: ProjectCreate,
-) -> Project:
+) -> tuple[Project, Notification]:
     if problem.status != "published":
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -62,7 +64,7 @@ def claim_problem(
     session.add(project)
     session.flush()
     session.add(ProjectMember(project_id=project.id, user_id=lead.id, role="lead"))
-    create_notification(
+    notification = create_notification(
         session=session,
         user_id=problem.author_id,
         type="project.proposed",
@@ -73,10 +75,10 @@ def claim_problem(
             "lead_id": str(lead.id),
         },
     )
-    return project
+    return project, notification
 
 
-def approve_project(*, session: Session, project: Project, actor: User) -> Project:
+def approve_project(*, session: Session, project: Project, actor: User) -> tuple[Project, Notification]:
     problem = session.get(Problem, project.problem_id)
     if not problem:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Problem not found")
@@ -97,7 +99,7 @@ def approve_project(*, session: Session, project: Project, actor: User) -> Proje
         actor_id=actor.id,
         reason="project_approved",
     )
-    create_notification(
+    notification = create_notification(
         session=session,
         user_id=project.lead_id,
         type="project.approved",
@@ -107,10 +109,10 @@ def approve_project(*, session: Session, project: Project, actor: User) -> Proje
             "project_title": project.title,
         },
     )
-    return project
+    return project, notification
 
 
-def reject_project(*, session: Session, project: Project, actor: User) -> Project:
+def reject_project(*, session: Session, project: Project, actor: User) -> tuple[Project, Notification]:
     problem = session.get(Problem, project.problem_id)
     if not problem:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Problem not found")
@@ -121,7 +123,7 @@ def reject_project(*, session: Session, project: Project, actor: User) -> Projec
     project.status = "rejected"
     project.updated_at = datetime.now(timezone.utc)
     session.add(project)
-    create_notification(
+    notification = create_notification(
         session=session,
         user_id=project.lead_id,
         type="project.rejected",
@@ -131,7 +133,7 @@ def reject_project(*, session: Session, project: Project, actor: User) -> Projec
             "project_title": project.title,
         },
     )
-    return project
+    return project, notification
 
 
 def ensure_project_manager(*, project: Project, actor: User) -> None:
@@ -140,7 +142,25 @@ def ensure_project_manager(*, project: Project, actor: User) -> None:
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
 
-def start_piloting(*, session: Session, project: Project, actor: User) -> Project:
+def ensure_project_manageable(*, project: Project) -> None:
+    if project.status in MANAGEABLE_PROJECT_STATUSES:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail="Project is not active",
+    )
+
+
+def mark_project_in_progress(*, session: Session, project: Project) -> Project:
+    if project.status != "approved":
+        return project
+    project.status = "in_progress"
+    project.updated_at = datetime.now(timezone.utc)
+    session.add(project)
+    return project
+
+
+def start_piloting(*, session: Session, project: Project, actor: User) -> tuple[Project, Notification]:
     ensure_project_manager(project=project, actor=actor)
     if project.status not in {"approved", "in_progress"}:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Project is not ready for piloting")
@@ -157,7 +177,7 @@ def start_piloting(*, session: Session, project: Project, actor: User) -> Projec
         actor_id=actor.id,
         reason="project_piloting_started",
     )
-    create_notification(
+    notification = create_notification(
         session=session,
         user_id=problem.author_id,
         type="project.piloting_started",
@@ -167,7 +187,7 @@ def start_piloting(*, session: Session, project: Project, actor: User) -> Projec
             "project_title": project.title,
         },
     )
-    return project
+    return project, notification
 
 
 def complete_project_with_review(
@@ -176,7 +196,7 @@ def complete_project_with_review(
     project: Project,
     actor: User,
     review_in: ReviewCreate,
-) -> tuple[Project, Review]:
+) -> tuple[Project, Review, Notification]:
     problem = session.get(Problem, project.problem_id)
     if not problem:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Problem not found")
@@ -200,7 +220,7 @@ def complete_project_with_review(
         actor_id=actor.id,
         reason="project_completed_with_review",
     )
-    create_notification(
+    notification = create_notification(
         session=session,
         user_id=project.lead_id,
         type="project.completed",
@@ -211,4 +231,4 @@ def complete_project_with_review(
             "rating": review.rating,
         },
     )
-    return project, review
+    return project, review, notification

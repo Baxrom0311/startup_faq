@@ -64,3 +64,25 @@ def create_presigned_upload_url(*, object_key: str, content_type: str) -> str:
         },
         ExpiresIn=3600,
     )
+
+
+def create_presigned_read_url(*, object_key: str) -> str:
+    client = create_s3_client()
+    return client.generate_presigned_url(
+        "get_object",
+        Params={
+            "Bucket": settings.S3_BUCKET_MEDIA,
+            "Key": object_key,
+        },
+        ExpiresIn=3600,
+    )
+
+
+def delete_media_object(*, object_key: str) -> None:
+    client = create_s3_client()
+    client.delete_object(Bucket=settings.S3_BUCKET_MEDIA, Key=object_key)
+
+
+def download_media_object(*, object_key: str, destination_path: str) -> None:
+    client = create_s3_client()
+    client.download_file(settings.S3_BUCKET_MEDIA, object_key, destination_path)

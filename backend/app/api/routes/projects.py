@@ -2,11 +2,13 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from sqlalchemy import or_
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
     Problem,
+    ProblemMedia,
     Project,
     ProjectCreate,
     ProjectMilestone,
@@ -18,21 +20,85 @@ from app.models import (
     ProjectsPublic,
     ProjectUpdateCreate,
     ProjectUpdateLog,
+    ProjectUpdateMediaPublic,
     ProjectUpdatePublic,
     ProjectUpdatesPublic,
+    Review,
     ReviewCreate,
     ReviewPublic,
+    ReviewsPublic,
+    User,
 )
+from app.modules.media.service import create_presigned_read_url
+from app.modules.notifications.queue import enqueue_notification_delivery_best_effort
 from app.modules.projects.service import (
     approve_project,
     claim_problem,
     complete_project_with_review,
+    ensure_project_manageable,
     ensure_project_manager,
+    mark_project_in_progress,
     reject_project,
     start_piloting,
 )
 
 router = APIRouter(tags=["projects"])
+
+
+def _serialize_project_update(
+    *, session: SessionDep, update: ProjectUpdateLog
+) -> ProjectUpdatePublic:
+    media_rows = []
+    if update.media_keys:
+        media_rows = session.exec(
+            select(ProblemMedia).where(
+                or_(
+                    ProblemMedia.project_update_id == update.id,
+                    ProblemMedia.object_key.in_(update.media_keys),
+                )
+            )
+        ).all()
+    media_by_key = {media.object_key: media for media in media_rows}
+    media = [
+        ProjectUpdateMediaPublic(
+            object_key=key,
+            kind=media_by_key[key].kind,
+            url=create_presigned_read_url(object_key=key),
+        )
+        for key in update.media_keys
+        if key in media_by_key
+    ]
+    return ProjectUpdatePublic.model_validate(update, update={"media": media})
+
+
+def _get_owned_update_media(
+    *, session: SessionDep, current_user: User, media_keys: list[str]
+) -> list[ProblemMedia]:
+    keys = list(dict.fromkeys(media_keys))
+    if not keys:
+        return []
+    media_rows = session.exec(
+        select(ProblemMedia).where(
+            ProblemMedia.object_key.in_(keys),
+            ProblemMedia.uploaded_by == current_user.id,
+            ProblemMedia.problem_id.is_(None),
+            ProblemMedia.project_update_id.is_(None),
+        )
+    ).all()
+    media_rows = [
+        media
+        for media in media_rows
+        if media.uploaded_by == current_user.id
+        and media.problem_id is None
+        and media.project_update_id is None
+    ]
+    allowed_keys = {media.object_key for media in media_rows}
+    if allowed_keys != set(keys):
+        raise HTTPException(
+            status_code=403,
+            detail="Media does not belong to the current user",
+        )
+    return media_rows
 
 
 @router.post("/problems/{problem_id}/claim", response_model=ProjectPublic, status_code=201)
@@ -46,13 +112,14 @@ def create_claim(
     problem = session.get(Problem, problem_id)
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
-    project = claim_problem(
+    project, notification = claim_problem(
         session=session,
         problem=problem,
         lead=current_user,
         project_in=project_in,
     )
     session.commit()
+    enqueue_notification_delivery_best_effort(notification.id)
     session.refresh(project)
     return project
 
@@ -108,7 +175,7 @@ def read_projects(
 
 
 @router.get("/projects/{project_id}", response_model=ProjectPublic)
-def read_project(session: SessionDep, project_id: uuid.UUID) -> Any:
+def read_project(session: SessionDep, current_user: CurrentUser, project_id: uuid.UUID) -> Any:
     project = session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -122,8 +189,9 @@ def approve_project_endpoint(
     project = session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    approve_project(session=session, project=project, actor=current_user)
+    project, notification = approve_project(session=session, project=project, actor=current_user)
     session.commit()
+    enqueue_notification_delivery_best_effort(notification.id)
     session.refresh(project)
     return project
 
@@ -135,8 +203,9 @@ def reject_project_endpoint(
     project = session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    reject_project(session=session, project=project, actor=current_user)
+    project, notification = reject_project(session=session, project=project, actor=current_user)
     session.commit()
+    enqueue_notification_delivery_best_effort(notification.id)
     session.refresh(project)
     return project
 
@@ -148,8 +217,9 @@ def start_project_piloting_endpoint(
     project = session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    start_piloting(session=session, project=project, actor=current_user)
+    project, notification = start_piloting(session=session, project=project, actor=current_user)
     session.commit()
+    enqueue_notification_delivery_best_effort(notification.id)
     session.refresh(project)
     return project
 
@@ -165,19 +235,33 @@ def complete_project_endpoint(
     project = session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    _, review = complete_project_with_review(
+    _, review, notification = complete_project_with_review(
         session=session,
         project=project,
         actor=current_user,
         review_in=review_in,
     )
     session.commit()
+    enqueue_notification_delivery_best_effort(notification.id)
     session.refresh(review)
     return review
 
 
+@router.get("/projects/{project_id}/reviews", response_model=ReviewsPublic)
+def read_project_reviews(session: SessionDep, current_user: CurrentUser, project_id: uuid.UUID) -> Any:
+    project = session.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    reviews = session.exec(
+        select(Review)
+        .where(Review.project_id == project_id)
+        .order_by(Review.created_at.desc())
+    ).all()
+    return ReviewsPublic(data=reviews, count=len(reviews))
+
+
 @router.get("/projects/{project_id}/milestones", response_model=ProjectMilestonesPublic)
-def read_project_milestones(session: SessionDep, project_id: uuid.UUID) -> Any:
+def read_project_milestones(session: SessionDep, current_user: CurrentUser, project_id: uuid.UUID) -> Any:
     project = session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -206,6 +290,8 @@ def create_project_milestone(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     ensure_project_manager(project=project, actor=current_user)
+    ensure_project_manageable(project=project)
+    mark_project_in_progress(session=session, project=project)
     milestone = ProjectMilestone.model_validate(
         milestone_in,
         update={"project_id": project_id},
@@ -231,6 +317,8 @@ def update_project_milestone(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     ensure_project_manager(project=project, actor=current_user)
+    ensure_project_manageable(project=project)
+    mark_project_in_progress(session=session, project=project)
     milestone.sqlmodel_update(milestone_in.model_dump(exclude_unset=True))
     session.add(milestone)
     session.commit()
@@ -239,7 +327,7 @@ def update_project_milestone(
 
 
 @router.get("/projects/{project_id}/updates", response_model=ProjectUpdatesPublic)
-def read_project_updates(session: SessionDep, project_id: uuid.UUID) -> Any:
+def read_project_updates(session: SessionDep, current_user: CurrentUser, project_id: uuid.UUID) -> Any:
     project = session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -249,7 +337,13 @@ def read_project_updates(session: SessionDep, project_id: uuid.UUID) -> Any:
         .order_by(ProjectUpdateLog.created_at.desc())
     )
     updates = session.exec(statement).all()
-    return ProjectUpdatesPublic(data=updates, count=len(updates))
+    return ProjectUpdatesPublic(
+        data=[
+            _serialize_project_update(session=session, update=update)
+            for update in updates
+        ],
+        count=len(updates),
+    )
 
 
 @router.post(
@@ -268,11 +362,22 @@ def create_project_update(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     ensure_project_manager(project=project, actor=current_user)
+    ensure_project_manageable(project=project)
+    mark_project_in_progress(session=session, project=project)
+    media_rows = _get_owned_update_media(
+        session=session,
+        current_user=current_user,
+        media_keys=update_in.media_keys,
+    )
     update = ProjectUpdateLog.model_validate(
         update_in,
         update={"project_id": project_id, "author_id": current_user.id},
     )
     session.add(update)
+    session.flush()
+    for media in media_rows:
+        media.project_update_id = update.id
+        session.add(media)
     session.commit()
     session.refresh(update)
-    return update
+    return _serialize_project_update(session=session, update=update)

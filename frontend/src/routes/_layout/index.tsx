@@ -3,6 +3,7 @@ import {
   Bell,
   CheckCheck,
   CircleDot,
+  GitBranch,
   MessageSquare,
   Plus,
   Search,
@@ -11,6 +12,7 @@ import {
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 
+import { CardSkeleton, EmptyState, StatusBadge } from "@/components/Product/StatusBadge"
 import { SubmitProblemDialog } from "@/components/Product/SubmitProblemDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -23,10 +25,14 @@ import {
   type NotificationItem,
   type NotificationsResponse,
   notificationLabel,
+  notificationLink,
   type Problem,
   type ProblemsResponse,
   type Project,
   type ProjectsResponse,
+  shortDate,
+  statusLabel,
+  structuredSummary,
 } from "@/lib/product-api"
 
 export const Route = createFileRoute("/_layout/")({
@@ -48,8 +54,12 @@ function Dashboard() {
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [submitOpen, setSubmitOpen] = useState(false)
   const [query, setQuery] = useState("")
+  const [initialLoading, setInitialLoading] = useState(true)
 
   const loadDashboard = useCallback(async () => {
+    const searchParam = query.trim()
+      ? `&q=${encodeURIComponent(query.trim())}`
+      : ""
     const [
       problemsData,
       processingData,
@@ -58,7 +68,7 @@ function Dashboard() {
       analyticsData,
       notificationsData,
     ] = await Promise.all([
-      apiJson<ProblemsResponse>("/problems/?status=published"),
+      apiJson<ProblemsResponse>(`/problems/?status=published${searchParam}`),
       apiJson<ProblemsResponse>("/problems/?status=ai_processing&mine=true"),
       apiJson<ProjectsResponse>("/projects?owner=true&status=proposed"),
       apiJson<ProjectsResponse>("/projects?mine=true"),
@@ -76,10 +86,12 @@ function Dashboard() {
     setAnalytics(analyticsData)
     setNotifications(notificationsData.data)
     setUnreadNotifications(notificationsData.unread_count)
-  }, [])
+  }, [query])
 
   useEffect(() => {
-    loadDashboard().catch(() => undefined)
+    loadDashboard()
+      .catch(() => undefined)
+      .finally(() => setInitialLoading(false))
   }, [loadDashboard])
 
   const markAllNotificationsRead = async () => {
@@ -87,32 +99,19 @@ function Dashboard() {
     try {
       await apiMutation("/notifications/read", { notification_ids: [] })
       await loadDashboard()
-    } catch {
-      toast.error("Bildirishnomalar yangilanmadi.")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Bildirishnomalarni o'qilgan sifatida belgilab bo'lmadi")
     }
   }
-
-  const filteredProblems = problems.filter((problem) => {
-    const haystack =
-      `${problem.title || ""} ${problem.raw_text || ""}`.toLowerCase()
-    return haystack.includes(query.trim().toLowerCase())
-  })
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 border-b pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
           <div className="mb-3 flex items-center gap-2">
-            <Badge variant="secondary">Problem marketplace</Badge>
-            <span className="text-muted-foreground text-xs">API-first MVP</span>
+            <Badge variant="secondary">Beta</Badge>
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Signal board
-          </h1>
-          <p className="text-muted-foreground mt-2 max-w-2xl text-sm">
-            Published muammolar, yangi takliflar va active pilotlar bitta
-            operatsion oynada.
-          </p>
+          <h1 className="text-3xl font-semibold tracking-tight">Signals</h1>
         </div>
         <div className="grid gap-2 sm:grid-cols-[minmax(240px,1fr)_auto] lg:w-[540px]">
           <div className="relative">
@@ -121,12 +120,12 @@ function Dashboard() {
               className="bg-background pl-9"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Muammo yoki sektor bo'yicha qidirish"
+              placeholder="Search"
             />
           </div>
           <Button onClick={() => setSubmitOpen(true)}>
             <Plus />
-            Muammo yuborish
+            New
           </Button>
         </div>
       </div>
@@ -141,36 +140,35 @@ function Dashboard() {
         <main className="flex flex-col gap-3">
           <div className="grid gap-3 sm:grid-cols-3">
             <MetricCard
-              label="Published"
+              label="Open"
               value={analytics?.published_problems ?? problems.length}
             />
             <MetricCard
-              label="Claimed"
-              value={analytics?.claimed_problems ?? 0}
+              label="Review"
+              value={analytics?.needs_review_problems ?? 0}
             />
             <MetricCard
-              label="Solved"
-              value={analytics?.solved_problems ?? 0}
+              label="AI"
+              value={analytics?.ai_processing_problems ?? 0}
             />
           </div>
 
-          <section className="overflow-hidden rounded-lg border bg-background">
+          <section className="overflow-hidden rounded-lg border bg-background shadow-none">
             <div className="flex items-center justify-between border-b px-4 py-3">
-              <div>
-                <h2 className="font-medium">Live problem feed</h2>
-                <p className="text-muted-foreground text-xs">
-                  Ovoz, comment va claim alohida detail sahifada.
-                </p>
-              </div>
-              <Badge variant="outline">{filteredProblems.length}</Badge>
+              <h2 className="font-medium">Feed</h2>
+              {!initialLoading && (
+                <Badge variant="outline">{problems.length}</Badge>
+              )}
             </div>
-            {filteredProblems.length === 0 ? (
-              <div className="text-muted-foreground flex min-h-56 items-center justify-center px-4 text-center text-sm">
-                Hozircha mos published muammo yo'q.
+            {initialLoading ? (
+              <CardSkeleton rows={4} />
+            ) : problems.length === 0 ? (
+              <div className="py-2">
+                <EmptyState message="Hozircha muammolar yo'q" />
               </div>
             ) : (
               <div className="divide-y">
-                {filteredProblems.map((problem) => (
+                {problems.map((problem) => (
                   <ProblemFeedRow key={problem.id} problem={problem} />
                 ))}
               </div>
@@ -197,7 +195,7 @@ function Dashboard() {
 
 function MetricCard({ label, value }: { label: string; value: number }) {
   return (
-    <Card className="bg-background">
+    <Card className="bg-background shadow-none">
       <CardHeader className="pb-2">
         <CardTitle className="text-muted-foreground text-xs font-medium uppercase">
           {label}
@@ -213,19 +211,19 @@ function ProblemFeedRow({ problem }: { problem: Problem }) {
     <Link
       to="/problems/$problemId"
       params={{ problemId: problem.id }}
-      className="group grid gap-3 px-4 py-4 transition-colors hover:bg-muted/50 sm:grid-cols-[56px_1fr_auto]"
+      className="group grid gap-3 px-4 py-4 transition-colors hover:bg-muted/50 sm:grid-cols-[48px_1fr_auto]"
     >
-      <div className="hidden flex-col items-center rounded-md border bg-muted/30 py-2 text-sm sm:flex">
+      <div className="hidden flex-col items-center rounded-md bg-muted/40 py-2 text-sm sm:flex">
         <ThumbsUp className="mb-1 size-4 text-muted-foreground" />
         <span className="font-medium">{problem.vote_count}</span>
       </div>
       <div className="min-w-0">
         <div className="mb-2 flex items-center gap-2">
-          <Badge variant="secondary">{problem.status}</Badge>
+          <StatusBadge status={problem.status} />
           {problem.severity_score !== null &&
             problem.severity_score !== undefined && (
               <span className="text-muted-foreground text-xs">
-                score {problem.severity_score}
+                {problem.severity_score}
               </span>
             )}
         </div>
@@ -234,7 +232,7 @@ function ProblemFeedRow({ problem }: { problem: Problem }) {
         </h3>
         {problem.raw_text && (
           <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
-            {problem.raw_text}
+            {structuredSummary(problem) || problem.raw_text}
           </p>
         )}
       </div>
@@ -244,10 +242,15 @@ function ProblemFeedRow({ problem }: { problem: Problem }) {
           {problem.vote_count}
         </span>
         <span className="inline-flex items-center gap-1">
-          <MessageSquare className="size-4" />0
+          <MessageSquare className="size-4" />
+          {problem.comment_count}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <GitBranch className="size-4" />
+          {problem.project_count}
         </span>
         <span className="rounded-md border px-3 py-1 text-xs font-medium text-foreground">
-          Open
+          View
         </span>
       </div>
     </Link>
@@ -264,7 +267,7 @@ function InboxCard({
   onMarkAllRead: () => void
 }) {
   return (
-    <Card className="bg-background">
+    <Card className="bg-background shadow-none">
       <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
         <CardTitle className="flex min-w-0 items-center gap-2 text-sm font-medium">
           <Bell className="size-4 shrink-0" />
@@ -282,26 +285,43 @@ function InboxCard({
       </CardHeader>
       <CardContent className="grid gap-2">
         {notifications.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Inbox bo'sh.</p>
+          <EmptyState />
         ) : (
-          notifications.map((notification) => (
-            <div
-              key={notification.id}
-              className="flex items-start justify-between gap-3 rounded-md border px-3 py-2"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">
-                  {notificationLabel(notification)}
-                </p>
-                <p className="text-muted-foreground text-xs">
-                  {new Date(notification.created_at).toLocaleString()}
-                </p>
+          notifications.map((notification) => {
+            const link = notificationLink(notification)
+            const inner = (
+              <>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">
+                    {notificationLabel(notification)}
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    {shortDate(notification.created_at)}
+                  </p>
+                </div>
+                {!notification.read_at && (
+                  <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
+                )}
+              </>
+            )
+            return link ? (
+              <Link
+                key={notification.id}
+                to={link.to as string}
+                params={link.params}
+                className="flex items-start justify-between gap-3 rounded-md border px-3 py-2 transition-colors hover:bg-muted/50"
+              >
+                {inner}
+              </Link>
+            ) : (
+              <div
+                key={notification.id}
+                className="flex items-start justify-between gap-3 rounded-md border px-3 py-2"
+              >
+                {inner}
               </div>
-              {!notification.read_at && (
-                <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
-              )}
-            </div>
-          ))
+            )
+          })
         )}
       </CardContent>
     </Card>
@@ -318,20 +338,17 @@ function PipelineCard({
   activeProjects: Project[]
 }) {
   return (
-    <Card className="bg-background">
+    <Card className="bg-background shadow-none">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <CircleDot className="size-4" />
-          Pipeline
+          Flow
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3">
-        <PipelineCount label="AI processing" value={processing.length} />
-        <PipelineCount label="Incoming proposals" value={incoming.length} />
-        <PipelineCount
-          label="My active projects"
-          value={activeProjects.length}
-        />
+        <PipelineCount label="AI" value={processing.length} />
+        <PipelineCount label="Inbox" value={incoming.length} />
+        <PipelineCount label="Active" value={activeProjects.length} />
         <div className="grid gap-2 pt-2">
           {incoming.slice(0, 3).map((project) => (
             <Link
@@ -344,7 +361,7 @@ function PipelineCard({
                 {project.title}
               </span>
               <span className="text-muted-foreground text-xs">
-                Review needed
+                {statusLabel(project.status)}
               </span>
             </Link>
           ))}
@@ -359,7 +376,7 @@ function PipelineCard({
                 {project.title}
               </span>
               <span className="text-muted-foreground text-xs">
-                {project.status}
+                {statusLabel(project.status)}
               </span>
             </Link>
           ))}

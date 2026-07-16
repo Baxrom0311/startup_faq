@@ -26,6 +26,28 @@ def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
     return encoded_jwt
 
 
+def create_refresh_token(subject: str | Any, expires_delta: timedelta) -> str:
+    expire = datetime.now(timezone.utc) + expires_delta
+    to_encode = {"exp": expire, "sub": str(subject), "type": "refresh"}
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_refresh_token(token: str) -> str:
+    """Decode a refresh token and return the user_id (sub). Raises ValueError on any error."""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise ValueError("Refresh token expired")
+    except jwt.InvalidTokenError as exc:
+        raise ValueError(f"Invalid refresh token: {exc}")
+    if payload.get("type") != "refresh":
+        raise ValueError("Not a refresh token")
+    sub = payload.get("sub")
+    if not sub:
+        raise ValueError("Missing subject in refresh token")
+    return str(sub)
+
+
 def verify_password(
     plain_password: str, hashed_password: str
 ) -> tuple[bool, str | None]:

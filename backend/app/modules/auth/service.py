@@ -166,3 +166,12 @@ def access_token_for_verified_session(auth_session: AuthSession) -> str | None:
         auth_session.user_id,
         expires_delta=timedelta(seconds=settings.JWT_ACCESS_TTL_SECONDS),
     )
+
+
+def refresh_token_for_verified_session(auth_session: AuthSession) -> str | None:
+    if auth_session.status != "verified" or not auth_session.user_id:
+        return None
+    return security.create_refresh_token(
+        auth_session.user_id,
+        expires_delta=timedelta(days=settings.JWT_REFRESH_TTL_DAYS),
+    )

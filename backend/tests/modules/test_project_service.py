@@ -4,7 +4,12 @@ import pytest
 from fastapi import HTTPException
 
 from app.models import Problem, Project, ProjectCreate, User
-from app.modules.projects.service import claim_problem, start_piloting
+from app.modules.projects.service import (
+    claim_problem,
+    ensure_project_manageable,
+    mark_project_in_progress,
+    start_piloting,
+)
 
 
 class DummySession:
@@ -70,7 +75,7 @@ def test_claim_problem_creates_proposed_project() -> None:
         hashed_password="x",
     )
 
-    project = claim_problem(
+    project, notification = claim_problem(
         session=DummySession(),  # type: ignore[arg-type]
         problem=problem,
         lead=lead,
@@ -80,6 +85,8 @@ def test_claim_problem_creates_proposed_project() -> None:
     assert project.problem_id == problem.id
     assert project.lead_id == lead.id
     assert project.status == "proposed"
+    assert notification.type == "project.proposed"
+    assert notification.user_id == problem.author_id
 
 
 def test_start_piloting_moves_project_and_problem() -> None:
@@ -102,11 +109,77 @@ def test_start_piloting_moves_project_and_problem() -> None:
         status="approved",
     )
 
-    start_piloting(
+    result_project, notification = start_piloting(
         session=DummySession(problem),  # type: ignore[arg-type]
         project=project,
         actor=lead,
     )
 
-    assert project.status == "piloting"
+    assert result_project.status == "piloting"
     assert problem.status == "piloting"
+    assert notification.type == "project.piloting_started"
+
+
+@pytest.mark.parametrize("status", ["approved", "in_progress", "piloting"])
+def test_ensure_project_manageable_accepts_active_statuses(status: str) -> None:
+    project = Project(
+        id=uuid.uuid4(),
+        problem_id=uuid.uuid4(),
+        lead_id=uuid.uuid4(),
+        title="Demo",
+        status=status,
+    )
+
+    ensure_project_manageable(project=project)
+
+
+@pytest.mark.parametrize("status", ["proposed", "rejected", "completed"])
+def test_ensure_project_manageable_rejects_inactive_statuses(status: str) -> None:
+    project = Project(
+        id=uuid.uuid4(),
+        problem_id=uuid.uuid4(),
+        lead_id=uuid.uuid4(),
+        title="Demo",
+        status=status,
+    )
+
+    with pytest.raises(HTTPException):
+        ensure_project_manageable(project=project)
+
+
+def test_mark_project_in_progress_moves_approved_project() -> None:
+    session = DummySession()
+    project = Project(
+        id=uuid.uuid4(),
+        problem_id=uuid.uuid4(),
+        lead_id=uuid.uuid4(),
+        title="Demo",
+        status="approved",
+    )
+
+    mark_project_in_progress(
+        session=session,  # type: ignore[arg-type]
+        project=project,
+    )
+
+    assert project.status == "in_progress"
+    assert project in session.objects
+
+
+def test_mark_project_in_progress_keeps_non_approved_project() -> None:
+    session = DummySession()
+    project = Project(
+        id=uuid.uuid4(),
+        problem_id=uuid.uuid4(),
+        lead_id=uuid.uuid4(),
+        title="Demo",
+        status="piloting",
+    )
+
+    mark_project_in_progress(
+        session=session,  # type: ignore[arg-type]
+        project=project,
+    )
+
+    assert project.status == "piloting"
+    assert project not in session.objects

@@ -4,6 +4,8 @@ from app.modules.analytics.schemas import AnalyticsOverview
 def test_analytics_overview_schema() -> None:
     overview = AnalyticsOverview(
         submitted_problems=10,
+        ai_processing_problems=1,
+        needs_review_problems=2,
         published_problems=4,
         claimed_problems=2,
         piloting_problems=1,

@@ -9,8 +9,8 @@ from app.models import Problem, ProblemStatusLog
 ALLOWED_TRANSITIONS: dict[str, set[str]] = {
     "draft": {"ai_processing", "archived"},
     "ai_processing": {"published", "needs_review", "archived"},
-    "needs_review": {"published", "archived"},
-    "published": {"claimed", "archived"},
+    "needs_review": {"ai_processing", "published", "archived"},
+    "published": {"ai_processing", "claimed", "archived"},
     "claimed": {"piloting", "published", "archived"},
     "piloting": {"solved", "archived"},
     "solved": {"archived"},

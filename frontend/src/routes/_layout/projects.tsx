@@ -2,6 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { Briefcase, Inbox } from "lucide-react"
 import { useEffect, useState } from "react"
 
+import {
+  CardSkeleton,
+  EmptyState,
+  StatusBadge,
+} from "@/components/Product/StatusBadge"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { apiJson, type Project, type ProjectsResponse } from "@/lib/product-api"
@@ -14,8 +19,8 @@ export const Route = createFileRoute("/_layout/projects")({
 })
 
 function Projects() {
-  const [incoming, setIncoming] = useState<Project[]>([])
-  const [mine, setMine] = useState<Project[]>([])
+  const [incoming, setIncoming] = useState<Project[] | null>(null)
+  const [mine, setMine] = useState<Project[] | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -26,22 +31,23 @@ function Projects() {
         setIncoming(incomingData.data)
         setMine(mineData.data)
       })
-      .catch(() => undefined)
+      .catch(() => {
+        setIncoming([])
+        setMine([])
+      })
   }, [])
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <ProjectColumn
-        title="Incoming proposals"
+        title="Inbox"
         icon={<Inbox className="size-4" />}
         projects={incoming}
-        empty="Tasdiqlash kutayotgan takliflar yo'q."
       />
       <ProjectColumn
-        title="My projects"
+        title="Mine"
         icon={<Briefcase className="size-4" />}
         projects={mine}
-        empty="Siz yuritayotgan loyiha yo'q."
       />
     </div>
   )
@@ -51,25 +57,29 @@ function ProjectColumn({
   title,
   icon,
   projects,
-  empty,
 }: {
   title: string
   icon: React.ReactNode
-  projects: Project[]
-  empty: string
+  projects: Project[] | null
 }) {
   return (
-    <Card className="bg-background">
+    <Card className="bg-background shadow-none">
       <CardHeader className="border-b">
         <CardTitle className="flex items-center gap-2 text-base">
           {icon}
           {title}
-          <Badge variant="secondary">{projects.length}</Badge>
+          {projects !== null && (
+            <Badge variant="secondary">{projects.length}</Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        {projects.length === 0 ? (
-          <p className="text-muted-foreground p-6 text-sm">{empty}</p>
+        {projects === null ? (
+          <CardSkeleton rows={3} />
+        ) : projects.length === 0 ? (
+          <div className="p-6">
+            <EmptyState />
+          </div>
         ) : (
           <div className="divide-y">
             {projects.map((project) => (
@@ -90,7 +100,7 @@ function ProjectColumn({
                       </p>
                     )}
                   </div>
-                  <Badge variant="outline">{project.status}</Badge>
+                  <StatusBadge status={project.status} />
                 </div>
               </Link>
             ))}

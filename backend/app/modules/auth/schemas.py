@@ -17,6 +17,18 @@ class TelegramAuthStartResponse(SQLModel):
 class TelegramAuthStatusResponse(SQLModel):
     status: str
     access_token: str | None = None
+    refresh_token: str | None = None
+    token_type: str = "bearer"
+    expires_at: datetime | None = None
+    retry_after_seconds: int | None = None
+
+
+class TokenRefreshRequest(SQLModel):
+    refresh_token: str
+
+
+class TokenRefreshResponse(SQLModel):
+    access_token: str
     token_type: str = "bearer"
 
 

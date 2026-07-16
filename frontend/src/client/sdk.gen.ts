@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AnalyticsReadAnalyticsOverviewResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MediaPresignMediaUploadData, MediaPresignMediaUploadResponse, NotificationsReadNotificationsData, NotificationsReadNotificationsResponse, NotificationsMarkOneNotificationReadData, NotificationsMarkOneNotificationReadResponse, NotificationsMarkNotificationsReadData, NotificationsMarkNotificationsReadResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProblemsCreateProblemData, ProblemsCreateProblemResponse, ProblemsReadProblemsData, ProblemsReadProblemsResponse, ProblemsReadProblemData, ProblemsReadProblemResponse, ProblemsVoteProblemData, ProblemsVoteProblemResponse, ProblemsUnvoteProblemData, ProblemsUnvoteProblemResponse, ProblemsReadCommentsData, ProblemsReadCommentsResponse, ProblemsCreateCommentData, ProblemsCreateCommentResponse, ProjectsCreateClaimData, ProjectsCreateClaimResponse, ProjectsReadProjectsData, ProjectsReadProjectsResponse, ProjectsReadProjectData, ProjectsReadProjectResponse, ProjectsApproveProjectEndpointData, ProjectsApproveProjectEndpointResponse, ProjectsRejectProjectEndpointData, ProjectsRejectProjectEndpointResponse, ProjectsStartProjectPilotingEndpointData, ProjectsStartProjectPilotingEndpointResponse, ProjectsCompleteProjectEndpointData, ProjectsCompleteProjectEndpointResponse, ProjectsReadProjectMilestonesData, ProjectsReadProjectMilestonesResponse, ProjectsCreateProjectMilestoneData, ProjectsCreateProjectMilestoneResponse, ProjectsUpdateProjectMilestoneData, ProjectsUpdateProjectMilestoneResponse, ProjectsReadProjectUpdatesData, ProjectsReadProjectUpdatesResponse, ProjectsCreateProjectUpdateData, ProjectsCreateProjectUpdateResponse, TelegramAuthStartTelegramAuthData, TelegramAuthStartTelegramAuthResponse, TelegramAuthTelegramAuthStatusData, TelegramAuthTelegramAuthStatusResponse, TelegramAuthMarkStartData, TelegramAuthMarkStartResponse, TelegramAuthVerifyContactData, TelegramAuthVerifyContactResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, UtilsReadinessCheckResponse } from './types.gen';
+import type { AnalyticsReadAnalyticsOverviewResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MediaPresignMediaUploadData, MediaPresignMediaUploadResponse, NotificationsReadNotificationsData, NotificationsReadNotificationsResponse, NotificationsMarkOneNotificationReadData, NotificationsMarkOneNotificationReadResponse, NotificationsMarkNotificationsReadData, NotificationsMarkNotificationsReadResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProblemsCreateProblemData, ProblemsCreateProblemResponse, ProblemsReadProblemsData, ProblemsReadProblemsResponse, ProblemsReadProblemMediaData, ProblemsReadProblemMediaResponse, ProblemsReadProblemAnalysesData, ProblemsReadProblemAnalysesResponse, ProblemsReadProblemData, ProblemsReadProblemResponse, ProblemsPublishProblemData, ProblemsPublishProblemResponse, ProblemsArchiveProblemData, ProblemsArchiveProblemResponse, ProblemsReanalyzeProblemData, ProblemsReanalyzeProblemResponse, ProblemsSolveProblemData, ProblemsSolveProblemResponse, ProblemsMergeProblemData, ProblemsMergeProblemResponse, ProblemsVoteProblemData, ProblemsVoteProblemResponse, ProblemsUnvoteProblemData, ProblemsUnvoteProblemResponse, ProblemsReadCommentsData, ProblemsReadCommentsResponse, ProblemsCreateCommentData, ProblemsCreateCommentResponse, ProjectsCreateClaimData, ProjectsCreateClaimResponse, ProjectsReadProjectsData, ProjectsReadProjectsResponse, ProjectsReadProjectData, ProjectsReadProjectResponse, ProjectsApproveProjectEndpointData, ProjectsApproveProjectEndpointResponse, ProjectsRejectProjectEndpointData, ProjectsRejectProjectEndpointResponse, ProjectsStartProjectPilotingEndpointData, ProjectsStartProjectPilotingEndpointResponse, ProjectsCompleteProjectEndpointData, ProjectsCompleteProjectEndpointResponse, ProjectsReadProjectReviewsData, ProjectsReadProjectReviewsResponse, ProjectsReadProjectMilestonesData, ProjectsReadProjectMilestonesResponse, ProjectsCreateProjectMilestoneData, ProjectsCreateProjectMilestoneResponse, ProjectsUpdateProjectMilestoneData, ProjectsUpdateProjectMilestoneResponse, ProjectsReadProjectUpdatesData, ProjectsReadProjectUpdatesResponse, ProjectsCreateProjectUpdateData, ProjectsCreateProjectUpdateResponse, TelegramAuthStartTelegramAuthData, TelegramAuthStartTelegramAuthResponse, TelegramAuthTelegramAuthStatusData, TelegramAuthTelegramAuthStatusResponse, TelegramAuthMarkStartData, TelegramAuthMarkStartResponse, TelegramAuthVerifyContactData, TelegramAuthVerifyContactResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, UtilsReadinessCheckResponse } from './types.gen';
 
 export class AnalyticsService {
     /**
@@ -133,21 +133,14 @@ export class ItemsService {
 export class LoginService {
     /**
      * Login Access Token
-     * OAuth2 compatible token login, get an access token for future requests
-     * @param data The data for the request.
-     * @param data.formData
+     * Disabled: SignalHub uses Telegram contact verification for login.
      * @returns Token Successful Response
      * @throws ApiError
      */
-    public static loginAccessToken(data: LoginLoginAccessTokenData): CancelablePromise<LoginLoginAccessTokenResponse> {
+    public static loginAccessToken(): CancelablePromise<LoginLoginAccessTokenResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/login/access-token',
-            formData: data.formData,
-            mediaType: 'application/x-www-form-urlencoded',
-            errors: {
-                422: 'Validation Error'
-            }
+            url: '/api/v1/login/access-token'
         });
     }
     
@@ -166,7 +159,7 @@ export class LoginService {
     
     /**
      * Recover Password
-     * Password Recovery
+     * Disabled: SignalHub uses Telegram contact verification for login.
      * @param data The data for the request.
      * @param data.email
      * @returns Message Successful Response
@@ -187,7 +180,7 @@ export class LoginService {
     
     /**
      * Reset Password
-     * Reset password
+     * Disabled: SignalHub uses Telegram contact verification for login.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns Message Successful Response
@@ -364,6 +357,7 @@ export class ProblemsService {
      * @param data.sectorId
      * @param data.regionId
      * @param data.mine
+     * @param data.q
      * @returns ProblemsPublic Successful Response
      * @throws ApiError
      */
@@ -377,7 +371,48 @@ export class ProblemsService {
                 status: data.status,
                 sector_id: data.sectorId,
                 region_id: data.regionId,
-                mine: data.mine
+                mine: data.mine,
+                q: data.q
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Problem Media
+     * @param data The data for the request.
+     * @param data.problemId
+     * @returns ProblemMediaPublics Successful Response
+     * @throws ApiError
+     */
+    public static readProblemMedia(data: ProblemsReadProblemMediaData): CancelablePromise<ProblemsReadProblemMediaResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/problems/{problem_id}/media',
+            path: {
+                problem_id: data.problemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Problem Analyses
+     * @param data The data for the request.
+     * @param data.problemId
+     * @returns AIAnalysisPublics Successful Response
+     * @throws ApiError
+     */
+    public static readProblemAnalyses(data: ProblemsReadProblemAnalysesData): CancelablePromise<ProblemsReadProblemAnalysesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/problems/{problem_id}/analyses',
+            path: {
+                problem_id: data.problemId
             },
             errors: {
                 422: 'Validation Error'
@@ -399,6 +434,109 @@ export class ProblemsService {
             path: {
                 problem_id: data.problemId
             },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Publish Problem
+     * @param data The data for the request.
+     * @param data.problemId
+     * @returns ProblemPublic Successful Response
+     * @throws ApiError
+     */
+    public static publishProblem(data: ProblemsPublishProblemData): CancelablePromise<ProblemsPublishProblemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/problems/{problem_id}/publish',
+            path: {
+                problem_id: data.problemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Archive Problem
+     * @param data The data for the request.
+     * @param data.problemId
+     * @returns ProblemPublic Successful Response
+     * @throws ApiError
+     */
+    public static archiveProblem(data: ProblemsArchiveProblemData): CancelablePromise<ProblemsArchiveProblemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/problems/{problem_id}/archive',
+            path: {
+                problem_id: data.problemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reanalyze Problem
+     * @param data The data for the request.
+     * @param data.problemId
+     * @returns ProblemPublic Successful Response
+     * @throws ApiError
+     */
+    public static reanalyzeProblem(data: ProblemsReanalyzeProblemData): CancelablePromise<ProblemsReanalyzeProblemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/problems/{problem_id}/reanalyze',
+            path: {
+                problem_id: data.problemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Solve Problem
+     * @param data The data for the request.
+     * @param data.problemId
+     * @returns ProblemPublic Successful Response
+     * @throws ApiError
+     */
+    public static solveProblem(data: ProblemsSolveProblemData): CancelablePromise<ProblemsSolveProblemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/problems/{problem_id}/solve',
+            path: {
+                problem_id: data.problemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Merge Problem
+     * @param data The data for the request.
+     * @param data.problemId
+     * @param data.requestBody
+     * @returns ProblemPublic Successful Response
+     * @throws ApiError
+     */
+    public static mergeProblem(data: ProblemsMergeProblemData): CancelablePromise<ProblemsMergeProblemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/problems/{problem_id}/merge',
+            path: {
+                problem_id: data.problemId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }
@@ -527,6 +665,7 @@ export class ProjectsService {
      * @param data.mine
      * @param data.owner
      * @param data.status
+     * @param data.problemId
      * @returns ProjectsPublic Successful Response
      * @throws ApiError
      */
@@ -539,7 +678,8 @@ export class ProjectsService {
                 limit: data.limit,
                 mine: data.mine,
                 owner: data.owner,
-                status: data.status
+                status: data.status,
+                problem_id: data.problemId
             },
             errors: {
                 422: 'Validation Error'
@@ -644,6 +784,26 @@ export class ProjectsService {
             },
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Project Reviews
+     * @param data The data for the request.
+     * @param data.projectId
+     * @returns ReviewsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readProjectReviews(data: ProjectsReadProjectReviewsData): CancelablePromise<ProjectsReadProjectReviewsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/projects/{project_id}/reviews',
+            path: {
+                project_id: data.projectId
+            },
             errors: {
                 422: 'Validation Error'
             }
@@ -940,27 +1100,20 @@ export class UsersService {
     
     /**
      * Update Password Me
-     * Update own password.
-     * @param data The data for the request.
-     * @param data.requestBody
+     * Disabled: SignalHub uses Telegram contact verification for login.
      * @returns Message Successful Response
      * @throws ApiError
      */
-    public static updatePasswordMe(data: UsersUpdatePasswordMeData): CancelablePromise<UsersUpdatePasswordMeResponse> {
+    public static updatePasswordMe(): CancelablePromise<UsersUpdatePasswordMeResponse> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/api/v1/users/me/password',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
+            url: '/api/v1/users/me/password'
         });
     }
     
     /**
      * Register User
-     * Create new user without the need to be logged in.
+     * Disabled: SignalHub uses Telegram contact verification for registration.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns UserPublic Successful Response

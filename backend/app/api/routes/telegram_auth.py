@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from fastapi import APIRouter, Header, HTTPException, Request, status
 
 from app.api.deps import SessionDep
@@ -7,6 +9,8 @@ from app.modules.auth.schemas import (
     TelegramAuthStartResponse,
     TelegramAuthStatusResponse,
     TelegramContactVerifyRequest,
+    TokenRefreshRequest,
+    TokenRefreshResponse,
 )
 from app.modules.auth.service import (
     access_token_for_verified_session,
@@ -15,10 +19,22 @@ from app.modules.auth.service import (
     get_auth_session,
     mark_telegram_start_used,
     refresh_session_status,
+    refresh_token_for_verified_session,
     verify_telegram_contact,
 )
 
 router = APIRouter(prefix="/auth/telegram", tags=["telegram-auth"])
+
+
+def _status_response(auth_session) -> TelegramAuthStatusResponse:
+    retry_after_seconds = 2 if auth_session.status in {"pending", "used_start"} else None
+    return TelegramAuthStatusResponse(
+        status=auth_session.status,
+        access_token=access_token_for_verified_session(auth_session),
+        refresh_token=refresh_token_for_verified_session(auth_session),
+        expires_at=auth_session.expires_at,
+        retry_after_seconds=retry_after_seconds,
+    )
 
 
 @router.post("/start", response_model=TelegramAuthStartResponse)
@@ -46,10 +62,7 @@ def telegram_auth_status(
     if not auth_session:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     auth_session = refresh_session_status(session=session, auth_session=auth_session)
-    return TelegramAuthStatusResponse(
-        status=auth_session.status,
-        access_token=access_token_for_verified_session(auth_session),
-    )
+    return _status_response(auth_session)
 
 
 @router.post("/mark-start/{session_id}", response_model=TelegramAuthStatusResponse)
@@ -62,7 +75,7 @@ def mark_start(
     if settings.TG_WEBHOOK_SECRET and x_telegram_webhook_secret != settings.TG_WEBHOOK_SECRET:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid bot secret")
     auth_session = mark_telegram_start_used(session=session, token=session_id)
-    return TelegramAuthStatusResponse(status=auth_session.status)
+    return _status_response(auth_session)
 
 
 @router.post("/verify-contact", response_model=TelegramAuthStatusResponse)
@@ -86,7 +99,34 @@ def verify_contact(
         contact_user_id=body.contact_user_id,
         from_user_id=body.from_user_id,
     )
-    return TelegramAuthStatusResponse(
-        status=auth_session.status,
-        access_token=access_token_for_verified_session(auth_session),
+    return _status_response(auth_session)
+
+
+@router.post("/refresh", response_model=TokenRefreshResponse)
+def refresh_access_token(
+    *, session: SessionDep, body: TokenRefreshRequest
+) -> TokenRefreshResponse:
+    """Exchange a valid refresh token for a new access token."""
+    from app.core import security as sec
+    from app.models import User
+
+    try:
+        user_id = sec.decode_refresh_token(body.refresh_token)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        )
+
+    user = session.get(User, user_id)
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or inactive",
+        )
+
+    access_token = sec.create_access_token(
+        user.id,
+        expires_delta=timedelta(seconds=settings.JWT_ACCESS_TTL_SECONDS),
     )
+    return TokenRefreshResponse(access_token=access_token)

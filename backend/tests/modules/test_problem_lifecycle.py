@@ -18,6 +18,8 @@ class DummySession:
 def test_allowed_transition_matrix_contains_core_flow() -> None:
     assert "ai_processing" in ALLOWED_TRANSITIONS["draft"]
     assert "published" in ALLOWED_TRANSITIONS["ai_processing"]
+    assert "ai_processing" in ALLOWED_TRANSITIONS["needs_review"]
+    assert "ai_processing" in ALLOWED_TRANSITIONS["published"]
     assert "claimed" in ALLOWED_TRANSITIONS["published"]
     assert "piloting" in ALLOWED_TRANSITIONS["claimed"]
     assert "solved" in ALLOWED_TRANSITIONS["piloting"]

@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 import { Send } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { AuthLayout } from "@/components/Common/AuthLayout"
@@ -17,27 +17,32 @@ type TelegramStartResponse = {
 type TelegramStatusResponse = {
   status: string
   access_token?: string | null
+  refresh_token?: string | null
 }
 
 const API_BASE = import.meta.env.VITE_API_URL
+const MAX_POLL_RETRIES = 60 // 60 × 2s = 2 daqiqa
 
 export const Route = createFileRoute("/login")({
   component: Login,
   beforeLoad: async () => {
     if (isLoggedIn()) {
-      throw redirect({
-        to: "/",
-      })
+      throw redirect({ to: "/" })
     }
   },
   head: () => ({
-    meta: [
-      {
-        title: "Kirish - Platforma",
-      },
-    ],
+    meta: [{ title: "Login - SignalHub" }],
   }),
 })
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Telegram'da tasdiqlang...",
+  started: "Telegram ochilmoqda...",
+  verified: "Kirildi!",
+  expired: "Sessiya tugadi. Qaytadan urinib ko'ring.",
+  phone_mismatch: "Telefon raqami mos kelmadi.",
+  timed_out: "Vaqt tugadi. Qaytadan urinib ko'ring.",
+}
 
 function Login() {
   const navigate = useNavigate()
@@ -45,10 +50,12 @@ function Login() {
   const [session, setSession] = useState<TelegramStartResponse | null>(null)
   const [status, setStatus] = useState<string>("idle")
   const [loading, setLoading] = useState(false)
+  const retryCount = useRef(0)
 
   const startTelegramAuth = async () => {
     if (loading) return
     setLoading(true)
+    retryCount.current = 0
     try {
       const response = await fetch(`${API_BASE}/api/v1/auth/telegram/start`, {
         method: "POST",
@@ -56,25 +63,40 @@ function Login() {
         body: JSON.stringify({ phone, client: "web" }),
       })
       if (!response.ok) {
-        throw new Error("Telefon raqamni tekshirib qaytadan urinib ko'ring.")
+        let message: string
+        try {
+          const body = await response.json()
+          message = typeof body?.detail === "string" ? body.detail : `HTTP ${response.status}`
+        } catch {
+          message = `HTTP ${response.status}`
+        }
+        throw new Error(message)
       }
       const data = (await response.json()) as TelegramStartResponse
       setSession(data)
       setStatus("pending")
       window.location.href = data.deep_link
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Kirishda xatolik bo'ldi.",
-      )
+      toast.error(error instanceof Error ? error.message : "Autentifikatsiya xatosi")
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    if (!session || status === "verified" || status === "expired") return
+    const terminalStatuses = new Set(["verified", "expired", "phone_mismatch", "timed_out"])
+    if (!session || terminalStatuses.has(status)) return
 
     const interval = window.setInterval(async () => {
+      retryCount.current += 1
+
+      if (retryCount.current > MAX_POLL_RETRIES) {
+        window.clearInterval(interval)
+        setStatus("timed_out")
+        toast.error("Vaqt tugadi")
+        return
+      }
+
       try {
         const response = await fetch(
           `${API_BASE}/api/v1/auth/telegram/status/${session.session_id}`,
@@ -82,38 +104,47 @@ function Login() {
         if (!response.ok) return
         const data = (await response.json()) as TelegramStatusResponse
         setStatus(data.status)
+
         if (data.status === "verified" && data.access_token) {
           localStorage.setItem("access_token", data.access_token)
+          if (data.refresh_token) {
+            localStorage.setItem("refresh_token", data.refresh_token)
+          }
           navigate({ to: "/" })
         }
         if (data.status === "expired") {
-          toast.error("Sessiya muddati tugadi. Qaytadan urinib ko'ring.")
+          toast.error("Sessiya tugadi")
         }
         if (data.status === "phone_mismatch") {
-          toast.error("Kiritilgan raqam Telegram raqamingizga mos kelmadi.")
+          toast.error("Telefon raqami mos kelmadi")
         }
       } catch {
-        // Keep polling; short connection drops should not break the login flow.
+        // Short connection drops should not break the login flow
       }
     }, 2000)
 
     return () => window.clearInterval(interval)
   }, [navigate, session, status])
 
+  const handleRetry = () => {
+    setSession(null)
+    setStatus("idle")
+    retryCount.current = 0
+  }
+
+  const isTerminal = ["expired", "phone_mismatch", "timed_out"].includes(status)
+
   return (
     <AuthLayout>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-bold">Platformaga kirish</h1>
-          <p className="text-muted-foreground text-sm">
-            Telefon raqamingizni kiriting va Telegram orqali tasdiqlang.
-          </p>
+          <h1 className="text-2xl font-semibold">Login</h1>
         </div>
 
         <div className="grid gap-4">
           <div className="grid gap-2">
             <label className="text-sm font-medium" htmlFor="phone">
-              Telefon raqam
+              Phone
             </label>
             <Input
               id="phone"
@@ -121,31 +152,40 @@ function Login() {
               placeholder="+998 90 123 45 67"
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
+              disabled={!!session && !isTerminal}
             />
           </div>
 
-          <LoadingButton
-            type="button"
-            loading={loading}
-            disabled={phone.trim().length < 9}
-            onClick={startTelegramAuth}
-          >
-            <Send />
-            Telegram orqali davom etish
-          </LoadingButton>
+          {isTerminal ? (
+            <LoadingButton type="button" loading={false} onClick={handleRetry}>
+              Qaytadan urinish
+            </LoadingButton>
+          ) : (
+            <LoadingButton
+              type="button"
+              loading={loading}
+              disabled={phone.trim().length < 9 || (!!session && status === "pending")}
+              onClick={startTelegramAuth}
+            >
+              <Send />
+              Telegram
+            </LoadingButton>
+          )}
 
-          {session && (
+          {session && !isTerminal && (
             <a
               className="text-center text-sm underline underline-offset-4"
               href={session.deep_link}
             >
-              Telegram ochilmasa, shu linkni bosing
+              Telegram'ni ochish
             </a>
           )}
 
           {status !== "idle" && (
-            <p className="text-muted-foreground text-center text-sm">
-              Holat: {status}
+            <p
+              className={`text-center text-sm ${isTerminal ? "text-destructive" : "text-muted-foreground"}`}
+            >
+              {STATUS_LABELS[status] ?? status}
             </p>
           )}
         </div>

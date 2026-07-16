@@ -3,6 +3,8 @@ from sqlmodel import SQLModel
 
 class AnalyticsOverview(SQLModel):
     submitted_problems: int
+    ai_processing_problems: int
+    needs_review_problems: int
     published_problems: int
     claimed_problems: int
     piloting_problems: int

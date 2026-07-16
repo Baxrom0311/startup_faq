@@ -55,6 +55,8 @@ services:
       - S3_ACCESS_KEY=${S3_ACCESS_KEY?Variable not set}
       - S3_SECRET_KEY=${S3_SECRET_KEY?Variable not set}
       - S3_BUCKET_MEDIA=${S3_BUCKET_MEDIA?Variable not set}
+      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
+      - EXTRA_CORS_ORIGINS=${EXTRA_CORS_ORIGINS:-}
     volumes:
       - ./infra/minio:/config:ro
     entrypoint: ["/bin/sh", "/config/init.sh"]
@@ -180,7 +182,7 @@ services:
       - SENTRY_DSN=${SENTRY_DSN}
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -223,8 +225,42 @@ services:
     env_file:
       - .env
     environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
       - POSTGRES_SERVER=db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - REDIS_URL=${REDIS_URL?Variable not set}
+      - S3_ENDPOINT=${S3_ENDPOINT?Variable not set}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY?Variable not set}
+      - S3_SECRET_KEY=${S3_SECRET_KEY?Variable not set}
+      - S3_BUCKET_MEDIA=${S3_BUCKET_MEDIA?Variable not set}
+      - MEDIA_ORPHAN_TTL_HOURS=${MEDIA_ORPHAN_TTL_HOURS}
+      - TG_BOT_TOKEN=${TG_BOT_TOKEN}
+      - LLM_PROVIDER=${LLM_PROVIDER}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - ANTHROPIC_MODEL=${ANTHROPIC_MODEL}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL}
+      - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OLLAMA_MODEL=${OLLAMA_MODEL}
+      - STT_PROVIDER=${STT_PROVIDER}
+      - STT_API_URL=${STT_API_URL}
+      - STT_LANGUAGE=${STT_LANGUAGE}
+      - WHISPER_MODEL=${WHISPER_MODEL}
+      - WHISPER_DEVICE=${WHISPER_DEVICE}
+      - WHISPER_COMPUTE_TYPE=${WHISPER_COMPUTE_TYPE}
+      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - EMBEDDING_API_URL=${EMBEDDING_API_URL}
+      - SENTRY_DSN=${SENTRY_DSN}
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -245,8 +281,20 @@ services:
     env_file:
       - .env
     environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
       - POSTGRES_SERVER=db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - REDIS_URL=${REDIS_URL?Variable not set}
+      - AUTH_PROVIDER=${AUTH_PROVIDER}
+      - TG_BOT_TOKEN=${TG_BOT_TOKEN}
+      - TG_BOT_USERNAME=${TG_BOT_USERNAME}
+      - TG_WEBHOOK_SECRET=${TG_WEBHOOK_SECRET}
+      - BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL}
+      - SENTRY_DSN=${SENTRY_DSN}
     build:
       context: .
       dockerfile: backend/Dockerfile

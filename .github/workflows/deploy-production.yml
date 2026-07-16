@@ -15,18 +15,80 @@ jobs:
     env:
       ENVIRONMENT: production
       DOMAIN: ${{ secrets.DOMAIN_PRODUCTION }}
+      FRONTEND_HOST: ${{ secrets.FRONTEND_HOST_PRODUCTION }}
       STACK_NAME: ${{ secrets.STACK_NAME_PRODUCTION }}
+      DOCKER_IMAGE_BACKEND: ${{ secrets.DOCKER_IMAGE_BACKEND }}
+      DOCKER_IMAGE_FRONTEND: ${{ secrets.DOCKER_IMAGE_FRONTEND }}
+
+      # Core
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
       FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+      BACKEND_CORS_ORIGINS: ${{ secrets.BACKEND_CORS_ORIGINS }}
+
+      # Postgres
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+
+      # Redis
+      REDIS_URL: ${{ secrets.REDIS_URL }}
+
+      # Object storage
+      S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+      S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+      S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+      S3_BUCKET_MEDIA: ${{ secrets.S3_BUCKET_MEDIA }}
+      MEDIA_ORPHAN_TTL_HOURS: ${{ secrets.MEDIA_ORPHAN_TTL_HOURS }}
+
+      # Auth / Telegram
+      AUTH_PROVIDER: telegram
+      TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+      TG_BOT_USERNAME: ${{ secrets.TG_BOT_USERNAME }}
+      TG_WEBHOOK_SECRET: ${{ secrets.TG_WEBHOOK_SECRET }}
+      BACKEND_INTERNAL_URL: ${{ secrets.BACKEND_INTERNAL_URL }}
+      JWT_ACCESS_TTL_SECONDS: ${{ secrets.JWT_ACCESS_TTL_SECONDS }}
+      JWT_REFRESH_TTL_DAYS: ${{ secrets.JWT_REFRESH_TTL_DAYS }}
+
+      # AI / LLM
+      LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANTHROPIC_MODEL: ${{ secrets.ANTHROPIC_MODEL }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL }}
+      DEEPSEEK_BASE_URL: ${{ secrets.DEEPSEEK_BASE_URL }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+      OLLAMA_BASE_URL: ${{ secrets.OLLAMA_BASE_URL }}
+      OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL }}
+
+      # STT
+      STT_PROVIDER: ${{ secrets.STT_PROVIDER }}
+      STT_API_URL: ${{ secrets.STT_API_URL }}
+      STT_LANGUAGE: ${{ secrets.STT_LANGUAGE }}
+      WHISPER_MODEL: ${{ secrets.WHISPER_MODEL }}
+      WHISPER_DEVICE: ${{ secrets.WHISPER_DEVICE }}
+      WHISPER_COMPUTE_TYPE: ${{ secrets.WHISPER_COMPUTE_TYPE }}
+
+      # Embeddings
+      EMBEDDING_PROVIDER: ${{ secrets.EMBEDDING_PROVIDER }}
+      EMBEDDING_MODEL: ${{ secrets.EMBEDDING_MODEL }}
+      EMBEDDING_API_URL: ${{ secrets.EMBEDDING_API_URL }}
+
+      # Email (optional)
       SMTP_HOST: ${{ secrets.SMTP_HOST }}
       SMTP_USER: ${{ secrets.SMTP_USER }}
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
       EMAILS_FROM_EMAIL: ${{ secrets.EMAILS_FROM_EMAIL }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+
+      # Observability
       SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
       - run: docker compose -f compose.yml --project-name ${{ secrets.STACK_NAME_PRODUCTION }} build
       - run: docker compose -f compose.yml --project-name ${{ secrets.STACK_NAME_PRODUCTION }} up -d

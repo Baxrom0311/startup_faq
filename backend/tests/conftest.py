@@ -2,12 +2,12 @@ from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session, delete
+from sqlalchemy import text
+from sqlmodel import Session
 
 from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
-from app.models import Item, User
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
@@ -17,10 +17,9 @@ def db() -> Generator[Session, None, None]:
     with Session(engine) as session:
         init_db(session)
         yield session
-        statement = delete(Item)
-        session.execute(statement)
-        statement = delete(User)
-        session.execute(statement)
+        # TRUNCATE CASCADE cleans up all FK-referencing tables regardless of
+        # ON DELETE actions defined on individual constraints.
+        session.exec(text('TRUNCATE "user" CASCADE'))
         session.commit()
 
 
@@ -32,8 +31,7 @@ def client() -> Generator[TestClient, None, None]:
 
 @pytest.fixture(scope="module")
 def superuser_token_headers(client: TestClient, db: Session) -> dict[str, str]:
-    _ = db
-    return get_superuser_token_headers(client)
+    return get_superuser_token_headers(client, db)
 
 
 @pytest.fixture(scope="module")

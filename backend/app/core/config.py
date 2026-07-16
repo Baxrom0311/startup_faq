@@ -100,6 +100,7 @@ class Settings(BaseSettings):
     S3_ACCESS_KEY: str = "minio"
     S3_SECRET_KEY: str = "minio123"
     S3_BUCKET_MEDIA: str = "media"
+    MEDIA_ORPHAN_TTL_HOURS: int = 24
 
     AUTH_PROVIDER: Literal["telegram", "sms"] = "telegram"
     TG_BOT_TOKEN: str = ""
@@ -110,12 +111,28 @@ class Settings(BaseSettings):
     JWT_ACCESS_TTL_SECONDS: int = 900
     JWT_REFRESH_TTL_DAYS: int = 60
 
-    LLM_PROVIDER: Literal["anthropic", "ollama", "openai"] = "anthropic"
+    LLM_PROVIDER: Literal["anthropic", "deepseek", "gemini", "ollama", "openai"] = "anthropic"
     ANTHROPIC_API_KEY: str = ""
+    ANTHROPIC_MODEL: str = "claude-sonnet-4-5"
+    DEEPSEEK_API_KEY: str = ""
+    DEEPSEEK_MODEL: str = "deepseek-chat"
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.5-flash"
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-5.1"
     OLLAMA_BASE_URL: str = "http://ollama:11434"
+    OLLAMA_MODEL: str = "qwen2.5:7b"
 
     STT_PROVIDER: Literal["whisper_local", "api"] = "whisper_local"
-    EMBEDDING_MODEL: str = "paraphrase-multilingual-mpnet-base-v2"
+    STT_API_URL: str = ""
+    STT_LANGUAGE: str = "uz"
+    WHISPER_MODEL: str = "small"
+    WHISPER_DEVICE: str = "cpu"
+    WHISPER_COMPUTE_TYPE: str = "int8"
+    EMBEDDING_PROVIDER: Literal["api", "gemini", "hash", "ollama", "openai"] = "hash"
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    EMBEDDING_API_URL: str = ""
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":

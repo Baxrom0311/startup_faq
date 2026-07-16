@@ -68,7 +68,6 @@ class User(UserBase, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
     problems: list["Problem"] = Relationship(back_populates="author", cascade_delete=True)
 
 
@@ -82,46 +81,6 @@ class UsersPublic(SQLModel):
     data: list[UserPublic]
     count: int
 
-
-# Shared properties
-class ItemBase(SQLModel):
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=255)
-
-
-# Properties to receive on item creation
-class ItemCreate(ItemBase):
-    pass
-
-
-# Properties to receive on item update
-class ItemUpdate(ItemBase):
-    title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
-
-
-# Database model, database table inferred from class name
-class Item(ItemBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime | None = Field(
-        default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
-    )
-    owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
-    )
-    owner: User | None = Relationship(back_populates="items")
-
-
-# Properties to return via API, id is always required
-class ItemPublic(ItemBase):
-    id: uuid.UUID
-    owner_id: uuid.UUID
-    created_at: datetime | None = None
-
-
-class ItemsPublic(SQLModel):
-    data: list[ItemPublic]
-    count: int
 
 
 class AuthSession(SQLModel, table=True):
@@ -161,16 +120,22 @@ class ProblemBase(SQLModel):
 
 
 class ProblemCreate(ProblemBase):
+    photo_keys: list[str] = Field(default_factory=list)
+
     @model_validator(mode="after")
     def _require_text_or_audio(self) -> "ProblemCreate":
-        if not self.raw_text and not self.raw_audio_key:
-            raise ValueError("raw_text or raw_audio_key is required")
+        if not self.raw_text and not self.raw_audio_key and not self.photo_keys:
+            raise ValueError("raw_text, raw_audio_key or photo_keys is required")
         return self
 
 
 class ProblemUpdate(SQLModel):
     raw_text: str | None = Field(default=None, max_length=5000)
     region_id: int | None = None
+
+
+class ProblemMergeRequest(SQLModel):
+    target_problem_id: uuid.UUID
 
 
 class Problem(ProblemBase, table=True):
@@ -214,11 +179,56 @@ class ProblemStatusLog(SQLModel, table=True):
     )
 
 
+class AIAnalysis(SQLModel, table=True):
+    __tablename__ = "ai_analysis"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    problem_id: uuid.UUID = Field(foreign_key="problem.id", nullable=False, ondelete="CASCADE")
+    model: str = Field(max_length=120)
+    summary_json: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class ProblemEmbedding(SQLModel, table=True):
+    __tablename__ = "problem_embedding"
+
+    problem_id: uuid.UUID = Field(
+        foreign_key="problem.id",
+        primary_key=True,
+        ondelete="CASCADE",
+    )
+    model: str = Field(max_length=120)
+    embedding: list[float] = Field(sa_column=Column(JSON, nullable=False))
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    updated_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
 class ProblemMedia(SQLModel, table=True):
     __tablename__ = "problem_media"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     problem_id: uuid.UUID | None = Field(default=None, foreign_key="problem.id", ondelete="CASCADE")
+    project_update_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="project_update.id",
+        index=True,
+        ondelete="CASCADE",
+    )
+    uploaded_by: uuid.UUID = Field(
+        foreign_key="user.id",
+        nullable=False,
+        index=True,
+        ondelete="CASCADE",
+    )
     kind: str = Field(max_length=32)
     object_key: str = Field(unique=True, index=True, max_length=512)
     created_at: datetime = Field(
@@ -284,7 +294,11 @@ class ProblemPublic(SQLModel):
     status: str
     severity_score: float | None = None
     vote_count: int
+    comment_count: int = 0
+    project_count: int = 0
     duplicate_of: uuid.UUID | None = None
+    is_duplicate: bool = False
+    has_voted: bool = False
     published_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
@@ -405,11 +419,18 @@ class ProjectUpdateLog(ProjectUpdateBase, table=True):
     )
 
 
+class ProjectUpdateMediaPublic(SQLModel):
+    object_key: str
+    kind: str
+    url: str
+
+
 class ProjectUpdatePublic(ProjectUpdateBase):
     id: uuid.UUID
     project_id: uuid.UUID
     author_id: uuid.UUID
     created_at: datetime
+    media: list[ProjectUpdateMediaPublic] = Field(default_factory=list)
 
 
 class ProjectUpdatesPublic(SQLModel):
@@ -441,6 +462,11 @@ class ReviewPublic(ReviewBase):
     project_id: uuid.UUID
     reviewer_id: uuid.UUID
     created_at: datetime
+
+
+class ReviewsPublic(SQLModel):
+    data: list[ReviewPublic]
+    count: int
 
 
 class Notification(SQLModel, table=True):

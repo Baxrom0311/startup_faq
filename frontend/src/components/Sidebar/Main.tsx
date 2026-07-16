@@ -1,6 +1,7 @@
 import { Link as RouterLink, useRouterState } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -14,6 +15,7 @@ export type Item = {
   icon: LucideIcon
   title: string
   path: string
+  badge?: number
 }
 
 interface MainProps {
@@ -48,6 +50,14 @@ export function Main({ items }: MainProps) {
                   <RouterLink to={item.path} onClick={handleMenuClick}>
                     <item.icon />
                     <span>{item.title}</span>
+                    {item.badge != null && item.badge > 0 && (
+                      <Badge
+                        className="ml-auto h-5 min-w-5 px-1 text-xs"
+                        variant="secondary"
+                      >
+                        {item.badge}
+                      </Badge>
+                    )}
                   </RouterLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

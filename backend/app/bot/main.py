@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 
 import httpx
 from aiogram import Bot, Dispatcher, F, Router
@@ -17,7 +18,42 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = Router()
-auth_tokens_by_user_id: dict[int, str] = {}
+
+# {telegram_id: (token, created_at)}
+auth_tokens_by_user_id: dict[int, tuple[str, float]] = {}
+TOKEN_TTL_SECONDS = 300  # 5 daqiqa
+
+
+def _store_token(telegram_id: int, token: str) -> None:
+    auth_tokens_by_user_id[telegram_id] = (token, time.monotonic())
+
+
+def _pop_token(telegram_id: int) -> str | None:
+    entry = auth_tokens_by_user_id.pop(telegram_id, None)
+    if entry is None:
+        return None
+    token, created_at = entry
+    if time.monotonic() - created_at > TOKEN_TTL_SECONDS:
+        logger.info("Token expired for telegram_id=%s", telegram_id)
+        return None
+    return token
+
+
+def _purge_stale_tokens() -> None:
+    now = time.monotonic()
+    stale = [uid for uid, (_, ts) in auth_tokens_by_user_id.items() if now - ts > TOKEN_TTL_SECONDS]
+    for uid in stale:
+        auth_tokens_by_user_id.pop(uid, None)
+    if stale:
+        logger.debug("Purged %d stale auth tokens", len(stale))
+
+
+@router.message(CommandStart(deep_link=False))
+async def start_no_token(message: Message) -> None:
+    await message.answer(
+        "Salom! Bu bot platformaga kirish uchun ishlatiladi.\n\n"
+        "Kirish uchun saytga o'ting va «Telegram orqali kirish» tugmasini bosing.",
+    )
 
 
 @router.message(CommandStart(deep_link=True))
@@ -26,20 +62,25 @@ async def start_auth(message: Message, command: CommandObject) -> None:
     if not token:
         await message.answer("Login sessiya topilmadi. Saytga qaytib qaytadan urinib ko'ring.")
         return
+
     if message.from_user:
-        auth_tokens_by_user_id[message.from_user.id] = token
+        _purge_stale_tokens()
+        _store_token(message.from_user.id, token)
+
     headers = {}
     if settings.TG_WEBHOOK_SECRET:
         headers["X-Telegram-Webhook-Secret"] = settings.TG_WEBHOOK_SECRET
-    async with httpx.AsyncClient(base_url=settings.BACKEND_INTERNAL_URL, timeout=10) as client:
-        response = await client.post(f"/auth/telegram/mark-start/{token}", headers=headers)
-    if response.status_code >= 400:
-        logger.warning("Telegram auth mark-start failed: %s %s", response.status_code, response.text)
+
+    try:
+        async with httpx.AsyncClient(base_url=settings.BACKEND_INTERNAL_URL, timeout=10) as client:
+            response = await client.post(f"/auth/telegram/mark-start/{token}", headers=headers)
+        if response.status_code >= 400:
+            logger.warning("Telegram auth mark-start failed: %s %s", response.status_code, response.text)
+    except httpx.HTTPError as exc:
+        logger.warning("Telegram auth mark-start HTTP error: %s", exc)
 
     keyboard = ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="Raqamni ulashish", request_contact=True)],
-        ],
+        keyboard=[[KeyboardButton(text="Raqamni ulashish", request_contact=True)]],
         resize_keyboard=True,
         one_time_keyboard=True,
     )
@@ -55,9 +96,9 @@ async def verify_contact(message: Message) -> None:
         await message.answer("Kontakt kelmadi. Qaytadan urinib ko'ring.")
         return
 
-    token = auth_tokens_by_user_id.get(message.from_user.id)
+    token = _pop_token(message.from_user.id)
     if not token:
-        await message.answer("Login sessiya eskirgan. Saytga qaytib qaytadan urinib ko'ring.")
+        await message.answer("Login sessiya topilmadi yoki muddati tugagan. Saytga qaytib qaytadan urinib ko'ring.")
         return
 
     payload = {
@@ -74,29 +115,31 @@ async def verify_contact(message: Message) -> None:
     if settings.TG_WEBHOOK_SECRET:
         headers["X-Telegram-Webhook-Secret"] = settings.TG_WEBHOOK_SECRET
 
-    async with httpx.AsyncClient(base_url=settings.BACKEND_INTERNAL_URL, timeout=10) as client:
-        response = await client.post(
-            "/auth/telegram/verify-contact",
-            json=payload,
-            headers=headers,
-        )
+    try:
+        async with httpx.AsyncClient(base_url=settings.BACKEND_INTERNAL_URL, timeout=10) as client:
+            response = await client.post(
+                "/auth/telegram/verify-contact",
+                json=payload,
+                headers=headers,
+            )
+    except httpx.HTTPError as exc:
+        logger.warning("Telegram contact verification HTTP error: %s", exc)
+        await message.answer("Tarmoq xatosi. Qaytadan urinib ko'ring.")
+        return
 
     if response.status_code >= 400:
         logger.warning("Telegram contact verification failed: %s %s", response.status_code, response.text)
         await message.answer("Tasdiqlashda xatolik bo'ldi. Saytga qaytib qaytadan urinib ko'ring.")
         return
 
-    auth_tokens_by_user_id.pop(message.from_user.id, None)
-
     await message.answer(
         "Kirdingiz. Saytga qayting.",
         reply_markup=ReplyKeyboardRemove(),
     )
     logger.info(
-        "Received Telegram contact user_id=%s phone=%s token_present=%s",
+        "Telegram auth verified: user_id=%s phone=%s",
         message.from_user.id,
         message.contact.phone_number,
-        True,
     )
 
 

@@ -2,7 +2,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import col, delete, func, select
+from sqlmodel import func, select
 
 from app import crud
 from app.api.deps import (
@@ -11,11 +11,8 @@ from app.api.deps import (
     get_current_active_superuser,
 )
 from app.core.config import settings
-from app.core.security import get_password_hash, verify_password
 from app.models import (
-    Item,
     Message,
-    UpdatePassword,
     User,
     UserCreate,
     UserPublic,
@@ -27,6 +24,10 @@ from app.models import (
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+def _telegram_auth_only() -> None:
+    raise HTTPException(status_code=404, detail="Telegram auth only")
 
 
 @router.get(
@@ -98,24 +99,11 @@ def update_user_me(
 
 
 @router.patch("/me/password", response_model=Message)
-def update_password_me(
-    *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
-) -> Any:
+def update_password_me() -> Message:
     """
-    Update own password.
+    Disabled: SignalHub uses Telegram contact verification for login.
     """
-    verified, _ = verify_password(body.current_password, current_user.hashed_password)
-    if not verified:
-        raise HTTPException(status_code=400, detail="Incorrect password")
-    if body.current_password == body.new_password:
-        raise HTTPException(
-            status_code=400, detail="New password cannot be the same as the current one"
-        )
-    hashed_password = get_password_hash(body.new_password)
-    current_user.hashed_password = hashed_password
-    session.add(current_user)
-    session.commit()
-    return Message(message="Password updated successfully")
+    _telegram_auth_only()
 
 
 @router.get("/me", response_model=UserPublic)
@@ -143,17 +131,10 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
 @router.post("/signup", response_model=UserPublic)
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
-    Create new user without the need to be logged in.
+    Disabled: SignalHub uses Telegram contact verification for registration.
     """
-    user = crud.get_user_by_email(session=session, email=user_in.email)
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this email already exists in the system",
-        )
-    user_create = UserCreate.model_validate(user_in)
-    user = crud.create_user(session=session, user_create=user_create)
-    return user
+    _ = (session, user_in)
+    _telegram_auth_only()
 
 
 @router.get("/{user_id}", response_model=UserPublic)
@@ -222,8 +203,6 @@ def delete_user(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    statement = delete(Item).where(col(Item.owner_id) == user_id)
-    session.exec(statement)  # type: ignore
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")

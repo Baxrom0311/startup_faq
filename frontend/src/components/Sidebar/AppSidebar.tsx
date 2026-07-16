@@ -1,4 +1,5 @@
-import { Briefcase, LayoutDashboard, Shield, Users } from "lucide-react"
+import { Briefcase, LayoutDashboard, Shield } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -9,23 +10,32 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
+import { apiJson, type NotificationsResponse } from "@/lib/product-api"
 import { type Item, Main } from "./Main"
 import { User } from "./User"
 
-const baseItems: Item[] = [
-  { icon: LayoutDashboard, title: "Signals", path: "/" },
-  { icon: Briefcase, title: "Projects", path: "/projects" },
-]
-
 export function AppSidebar() {
   const { user: currentUser } = useAuth()
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    apiJson<NotificationsResponse>("/notifications?limit=1")
+      .then((r) => setUnreadCount(r.unread_count))
+      .catch(() => {})
+  }, [])
+
+  const baseItems: Item[] = [
+    {
+      icon: LayoutDashboard,
+      title: "Signals",
+      path: "/",
+      badge: unreadCount > 0 ? unreadCount : undefined,
+    },
+    { icon: Briefcase, title: "Projects", path: "/projects" },
+  ]
 
   const items = currentUser?.is_superuser
-    ? [
-        ...baseItems,
-        { icon: Users, title: "Users", path: "/items" },
-        { icon: Shield, title: "Admin", path: "/admin" },
-      ]
+    ? [...baseItems, { icon: Shield, title: "Admin", path: "/admin" }]
     : baseItems
 
   return (
