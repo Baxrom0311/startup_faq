@@ -8,6 +8,7 @@ const uz = {
   nav_projects: "Loyihalar",
   nav_admin: "Admin",
   nav_settings: "Sozlamalar",
+  nav_logout: "Chiqish",
 
   // Dashboard
   dashboard_title: "Signallar",
@@ -159,6 +160,7 @@ const ru: typeof uz = {
   nav_projects: "Проекты",
   nav_admin: "Админ",
   nav_settings: "Настройки",
+  nav_logout: "Выйти",
 
   dashboard_title: "Сигналы",
   dashboard_search: "Поиск...",
@@ -299,6 +301,7 @@ const en: typeof uz = {
   nav_projects: "Projects",
   nav_admin: "Admin",
   nav_settings: "Settings",
+  nav_logout: "Logout",
 
   dashboard_title: "Signals",
   dashboard_search: "Search...",

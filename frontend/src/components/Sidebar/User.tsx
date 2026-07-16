@@ -1,6 +1,8 @@
 import { Link as RouterLink } from "@tanstack/react-router"
 import { ChevronsUpDown, LogOut, Settings } from "lucide-react"
 
+import { useTranslation } from "react-i18next"
+
 import type { UserPublic } from "@/client"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -43,6 +45,7 @@ function UserInfo({ fullName, email }: UserInfoProps) {
 }
 
 export function User({ user }: { user: UserPublic | null | undefined }) {
+  const { t } = useTranslation()
   const { logout } = useAuth()
   const { isMobile, setOpenMobile } = useSidebar()
 
@@ -84,12 +87,12 @@ export function User({ user }: { user: UserPublic | null | undefined }) {
             <RouterLink to="/settings" onClick={handleMenuClick}>
               <DropdownMenuItem>
                 <Settings />
-                Settings
+                {t("nav_settings")}
               </DropdownMenuItem>
             </RouterLink>
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
-              Logout
+              {t("nav_logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

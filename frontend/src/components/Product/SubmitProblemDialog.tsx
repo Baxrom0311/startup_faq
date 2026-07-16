@@ -193,7 +193,7 @@ export function SubmitProblemDialog({
             </p>
             <div className="rounded-md border bg-muted/40 p-4">
               <p className="truncate text-sm font-medium">
-                {duplicateProblem.title || duplicateProblem.raw_text || "Muammo"}
+                {duplicateProblem.title || duplicateProblem.raw_text || t("unnamed_problem")}
               </p>
               <p className="text-muted-foreground mt-1 text-xs">
                 {duplicateProblem.vote_count} {t("votes")}
