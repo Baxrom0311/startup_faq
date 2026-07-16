@@ -20,6 +20,10 @@ async def enqueue_notification_delivery(notification_id: UUID) -> None:
 
 def enqueue_notification_delivery_best_effort(notification_id: UUID) -> None:
     try:
-        asyncio.run(enqueue_notification_delivery(notification_id))
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(enqueue_notification_delivery(notification_id))
+        except RuntimeError:
+            asyncio.run(enqueue_notification_delivery(notification_id))
     except Exception:
         logger.exception("Failed to enqueue send_notification for notification_id=%s", notification_id)

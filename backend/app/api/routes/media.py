@@ -62,17 +62,14 @@ def presign_media_upload(
 
 
 @router.post("/cleanup-orphans", response_model=Message)
-def cleanup_orphans(*, current_user: CurrentUser) -> Message:
+async def cleanup_orphans(*, current_user: CurrentUser) -> Message:
     """Admin-only: enqueue an orphan-media cleanup task via arq."""
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
-    async def _enqueue() -> None:
-        redis = await create_pool(redis_settings_from_url(settings.REDIS_URL))
-        try:
-            await redis.enqueue_job("cleanup_orphan_media")
-        finally:
-            await redis.aclose()
-
-    asyncio.run(_enqueue())
+    redis = await create_pool(redis_settings_from_url(settings.REDIS_URL))
+    try:
+        await redis.enqueue_job("cleanup_orphan_media")
+    finally:
+        await redis.aclose()
     return Message(message="Cleanup task enqueued")

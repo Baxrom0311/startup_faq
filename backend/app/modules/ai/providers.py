@@ -245,11 +245,25 @@ class NoopSTTProvider:
 
 class WhisperLocalSTTProvider:
     name = "whisper-local-stt"
+    _model = None
+
+    @classmethod
+    def _get_model(cls):
+        if cls._model is None:
+            try:
+                from faster_whisper import WhisperModel
+            except ImportError:
+                return None
+            cls._model = WhisperModel(
+                settings.WHISPER_MODEL,
+                device=settings.WHISPER_DEVICE,
+                compute_type=settings.WHISPER_COMPUTE_TYPE,
+            )
+        return cls._model
 
     async def transcribe(self, object_key: str) -> str:
-        try:
-            from faster_whisper import WhisperModel
-        except ImportError:
+        model = self._get_model()
+        if not model:
             return ""
 
         suffix = Path(object_key).suffix or ".audio"
@@ -257,11 +271,6 @@ class WhisperLocalSTTProvider:
             download_media_object(
                 object_key=object_key,
                 destination_path=media_file.name,
-            )
-            model = WhisperModel(
-                settings.WHISPER_MODEL,
-                device=settings.WHISPER_DEVICE,
-                compute_type=settings.WHISPER_COMPUTE_TYPE,
             )
             segments, _ = model.transcribe(
                 media_file.name,
