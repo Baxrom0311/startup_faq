@@ -235,7 +235,7 @@ function ProblemDetail() {
               </span>
             </div>
             <CardTitle className="break-words text-2xl">
-              {problem.title || problem.raw_text || "Nomsiz muammo"}
+              {problem.title || problem.raw_text || t("unnamed_problem")}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-5 p-5">

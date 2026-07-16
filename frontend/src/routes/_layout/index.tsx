@@ -263,6 +263,7 @@ function ProblemFeedRow({
   problem: Problem
   sectorMap: Map<number, Sector>
 }) {
+  const { t } = useTranslation()
   const sector = problem.sector_id != null ? sectorMap.get(problem.sector_id) : null
   return (
     <Link
@@ -284,7 +285,7 @@ function ProblemFeedRow({
           )}
         </div>
         <h3 className="truncate font-medium group-hover:underline">
-          {problem.title || problem.raw_text || "Nomsiz muammo"}
+          {problem.title || problem.raw_text || t("unnamed_problem")}
         </h3>
         {problem.raw_text && (
           <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">

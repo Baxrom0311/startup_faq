@@ -219,7 +219,7 @@ function ProjectDetail() {
               >
                 <span className="block text-sm font-medium">{t("project_problem_label")}</span>
                 <span className="text-muted-foreground mt-1 block truncate text-sm">
-                  {problem.title || problem.raw_text || "Nomsiz muammo"}
+                  {problem.title || problem.raw_text || t("unnamed_problem")}
                 </span>
               </Link>
             )}

@@ -86,7 +86,7 @@ function Admin() {
       } else {
         await actionProblem(problemId, action)
       }
-      toast.success("Done")
+      toast.success(t("problem_action_done"))
       await loadReview()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error")
@@ -123,7 +123,7 @@ function Admin() {
                         params={{ problemId: problem.id }}
                         className="block truncate text-sm font-medium hover:underline"
                       >
-                        {problem.title || problem.raw_text || "Problem"}
+                        {problem.title || problem.raw_text || t("unnamed_problem")}
                       </Link>
                       <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
                         <span>{shortDate(problem.created_at)}</span>
@@ -198,10 +198,10 @@ function Admin() {
                     </p>
                     <div className="flex flex-wrap items-center gap-2">
                       {user.is_superuser && (
-                        <Badge variant="outline">Admin</Badge>
+                        <Badge variant="outline">{t("settings_admin")}</Badge>
                       )}
                       <Badge variant={user.is_active ? "secondary" : "outline"}>
-                        {user.is_active ? "Active" : "Off"}
+                        {user.is_active ? t("settings_active") : t("settings_inactive")}
                       </Badge>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 import { Send } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { AuthLayout } from "@/components/Common/AuthLayout"
@@ -35,16 +36,8 @@ export const Route = createFileRoute("/login")({
   }),
 })
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: "Telegram'da tasdiqlang...",
-  started: "Telegram ochilmoqda...",
-  verified: "Kirildi!",
-  expired: "Sessiya tugadi. Qaytadan urinib ko'ring.",
-  phone_mismatch: "Telefon raqami mos kelmadi.",
-  timed_out: "Vaqt tugadi. Qaytadan urinib ko'ring.",
-}
-
 function Login() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [phone, setPhone] = useState("")
   const [session, setSession] = useState<TelegramStartResponse | null>(null)
@@ -138,13 +131,13 @@ function Login() {
     <AuthLayout>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-semibold">Login</h1>
+          <h1 className="text-2xl font-semibold">{t("login_title")}</h1>
         </div>
 
         <div className="grid gap-4">
           <div className="grid gap-2">
             <label className="text-sm font-medium" htmlFor="phone">
-              Phone
+              {t("login_phone_label")}
             </label>
             <Input
               id="phone"
@@ -158,7 +151,7 @@ function Login() {
 
           {isTerminal ? (
             <LoadingButton type="button" loading={false} onClick={handleRetry}>
-              Qaytadan urinish
+              {t("login_retry")}
             </LoadingButton>
           ) : (
             <LoadingButton
@@ -168,7 +161,7 @@ function Login() {
               onClick={startTelegramAuth}
             >
               <Send />
-              Telegram
+              {t("login_send")}
             </LoadingButton>
           )}
 
@@ -177,7 +170,7 @@ function Login() {
               className="text-center text-sm underline underline-offset-4"
               href={session.deep_link}
             >
-              Telegram'ni ochish
+              {t("login_open_telegram")}
             </a>
           )}
 
@@ -185,7 +178,7 @@ function Login() {
             <p
               className={`text-center text-sm ${isTerminal ? "text-destructive" : "text-muted-foreground"}`}
             >
-              {STATUS_LABELS[status] ?? status}
+              {t(`login_status_${status}` as never) || status}
             </p>
           )}
         </div>

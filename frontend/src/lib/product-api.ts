@@ -386,8 +386,12 @@ export function statusLabel(status: string) {
   return labels[status] || status
 }
 
+const LOCALE_MAP: Record<string, string> = { uz: "uz-UZ", ru: "ru-RU", en: "en-US" }
+
 export function shortDate(value: string) {
-  return new Date(value).toLocaleDateString(undefined, {
+  const lang = i18n.language?.slice(0, 2) ?? "uz"
+  const locale = LOCALE_MAP[lang] ?? "uz-UZ"
+  return new Date(value).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
   })
