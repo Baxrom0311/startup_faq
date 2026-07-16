@@ -14,6 +14,7 @@ from app.models import (
     Message,
 )
 from app.modules.broadcasts.queue import enqueue_broadcast_delivery_best_effort
+from app.modules.media.service import delete_media_object
 
 router = APIRouter(prefix="/broadcasts", tags=["broadcasts"])
 
@@ -93,6 +94,12 @@ def delete_broadcast(*, session: SessionDep, id: uuid.UUID) -> Message:
             detail="Cannot delete a broadcast that is currently sending",
         )
     
+    if broadcast.photo_key:
+        try:
+            delete_media_object(object_key=broadcast.photo_key)
+        except Exception:
+            pass
+            
     session.delete(broadcast)
     session.commit()
     return Message(message="Broadcast deleted successfully")
