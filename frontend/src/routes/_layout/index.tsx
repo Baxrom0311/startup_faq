@@ -192,14 +192,18 @@ function Dashboard() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <main className="flex flex-col gap-3">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
             <MetricCard
               label={t("metric_open")}
               value={analytics?.published_problems ?? problems.length}
             />
             <MetricCard
-              label={t("metric_piloting")}
-              value={analytics?.piloting_problems ?? 0}
+              label={t("metric_active_projects")}
+              value={analytics?.active_projects ?? 0}
+            />
+            <MetricCard
+              label={t("metric_completed_projects")}
+              value={analytics?.completed_projects ?? 0}
             />
             <MetricCard
               label={t("metric_solved")}

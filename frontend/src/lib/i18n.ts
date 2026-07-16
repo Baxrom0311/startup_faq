@@ -20,6 +20,8 @@ const uz = {
   metric_open: "Ochiq",
   metric_piloting: "Pilotda",
   metric_solved: "Hal qilindi",
+  metric_active_projects: "Faol loyihalar",
+  metric_completed_projects: "Yakunlangan loyihalar",
 
   // Submit dialog
   submit_title: "Muammo yuborish",
@@ -271,6 +273,8 @@ const ru: typeof uz = {
   metric_open: "Открытые",
   metric_piloting: "В пилоте",
   metric_solved: "Решено",
+  metric_active_projects: "Активные проекты",
+  metric_completed_projects: "Завершенные проекты",
 
   submit_title: "Добавить проблему",
   submit_text_label: "Текст проблемы",
@@ -511,6 +515,8 @@ const en: typeof uz = {
   metric_open: "Open",
   metric_piloting: "Piloting",
   metric_solved: "Solved",
+  metric_active_projects: "Active projects",
+  metric_completed_projects: "Completed projects",
 
   submit_title: "Submit problem",
   submit_text_label: "Problem text",
