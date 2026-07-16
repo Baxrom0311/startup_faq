@@ -5,8 +5,15 @@ export type Sector = {
   icon: string | null
 }
 
+export type Region = {
+  id: number
+  name: string
+  parent_id: number | null
+}
+
 export type Problem = {
   sector_id?: number | null
+  region_id?: number | null
   id: string
   author_id: string
   title?: string | null
@@ -376,6 +383,10 @@ export function shortDate(value: string) {
 
 export function fetchSectors(): Promise<Sector[]> {
   return apiJson<Sector[]>("/sectors/")
+}
+
+export function fetchRegions(): Promise<Region[]> {
+  return apiJson<Region[]>("/regions/")
 }
 
 export function structuredSummary(problem: Problem) {

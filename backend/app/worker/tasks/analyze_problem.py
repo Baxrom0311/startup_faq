@@ -11,12 +11,15 @@ from app.modules.problems.lifecycle import transition_problem
 logger = logging.getLogger(__name__)
 
 
+_ANALYZABLE_STATUSES = frozenset({"ai_processing", "published", "claimed", "piloting"})
+
+
 async def analyze_problem(ctx: dict, problem_id: str) -> None:
     _ = ctx
     parsed_problem_id = uuid.UUID(problem_id)
     with Session(engine) as session:
         problem = session.get(Problem, parsed_problem_id)
-        if not problem or problem.status != "ai_processing":
+        if not problem or problem.status not in _ANALYZABLE_STATUSES:
             return
 
         try:
@@ -33,10 +36,13 @@ async def analyze_problem(ctx: dict, problem_id: str) -> None:
                     },
                 )
             )
-            transition_problem(
-                session=session,
-                problem=problem,
-                to_status="needs_review",
-                reason="ai_worker_error",
-            )
+            # Only transition to needs_review if still in ai_processing;
+            # published problems stay published even if deep analysis fails.
+            if problem.status == "ai_processing":
+                transition_problem(
+                    session=session,
+                    problem=problem,
+                    to_status="needs_review",
+                    reason="ai_worker_error",
+                )
         session.commit()

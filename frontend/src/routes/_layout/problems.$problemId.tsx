@@ -34,12 +34,14 @@ import {
   apiMutation,
   type Comment,
   type CommentsResponse,
+  fetchRegions,
   fetchSectors,
   type Problem,
   type ProblemMedia,
   type ProblemMediaResponse,
   type Project,
   type ProjectsResponse,
+  type Region,
   type Sector,
   shortDate,
   statusLabel,
@@ -62,15 +64,15 @@ function ProblemDetail() {
   const [media, setMedia] = useState<ProblemMedia[]>([])
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null)
   const [sectors, setSectors] = useState<Sector[]>([])
+  const [regions, setRegions] = useState<Region[]>([])
   const [commentText, setCommentText] = useState("")
   const [projectTitle, setProjectTitle] = useState("")
   const [projectPitch, setProjectPitch] = useState("")
   const [claiming, setClaiming] = useState(false)
 
   useEffect(() => {
-    fetchSectors()
-      .then(setSectors)
-      .catch(() => undefined)
+    fetchSectors().then(setSectors).catch(() => undefined)
+    fetchRegions().then(setRegions).catch(() => undefined)
   }, [])
 
   const loadProblem = useCallback(async () => {
@@ -187,6 +189,9 @@ function ProblemDetail() {
   const sector = problem.sector_id != null
     ? sectors.find((s) => s.id === problem.sector_id) ?? null
     : null
+  const region = problem.region_id != null
+    ? regions.find((r) => r.id === problem.region_id) ?? null
+    : null
   const audio = media.filter((item) => item.kind === "audio")
   const photos = media.filter((item) => item.kind === "photo")
 
@@ -221,6 +226,11 @@ function ProblemDetail() {
               {sector && (
                 <span className="rounded-full border px-2.5 py-0.5 text-xs font-medium">
                   {sector.icon} {sector.name_uz}
+                </span>
+              )}
+              {region && (
+                <span className="rounded-full border px-2.5 py-0.5 text-xs font-medium">
+                  📍 {region.name}
                 </span>
               )}
               <span className="text-muted-foreground text-xs">

@@ -2,7 +2,7 @@ from sqlmodel import Session, create_engine, select
 
 from app import crud
 from app.core.config import settings
-from app.models import Sector, User, UserCreate
+from app.models import Region, Sector, User, UserCreate
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -37,6 +37,23 @@ _SECTORS: list[dict] = [
     {"id": 27, "slug": "hr",          "name_uz": "HR va bandlik",          "icon": "👥"},
 ]
 
+_REGIONS: list[dict] = [
+    {"id": 1,  "name": "Toshkent shahri"},
+    {"id": 2,  "name": "Toshkent viloyati"},
+    {"id": 3,  "name": "Andijon viloyati"},
+    {"id": 4,  "name": "Farg'ona viloyati"},
+    {"id": 5,  "name": "Namangan viloyati"},
+    {"id": 6,  "name": "Samarqand viloyati"},
+    {"id": 7,  "name": "Buxoro viloyati"},
+    {"id": 8,  "name": "Qashqadaryo viloyati"},
+    {"id": 9,  "name": "Surxondaryo viloyati"},
+    {"id": 10, "name": "Sirdaryo viloyati"},
+    {"id": 11, "name": "Jizzax viloyati"},
+    {"id": 12, "name": "Navoiy viloyati"},
+    {"id": 13, "name": "Xorazm viloyati"},
+    {"id": 14, "name": "Qoraqalpog'iston Respublikasi"},
+]
+
 
 # make sure all SQLModel models are imported (app.models) before initializing DB
 # otherwise, SQLModel might fail to initialize relationships properly
@@ -51,6 +68,14 @@ def _seed_sectors(session: Session) -> None:
     session.commit()
 
 
+def _seed_regions(session: Session) -> None:
+    for row in _REGIONS:
+        existing = session.get(Region, row["id"])
+        if not existing:
+            session.add(Region(**row))
+    session.commit()
+
+
 def init_db(session: Session) -> None:
     # Tables should be created with Alembic migrations
     # But if you don't want to use migrations, create
@@ -61,6 +86,7 @@ def init_db(session: Session) -> None:
     # SQLModel.metadata.create_all(engine)
 
     _seed_sectors(session)
+    _seed_regions(session)
 
     user = session.exec(
         select(User).where(User.email == settings.FIRST_SUPERUSER)

@@ -73,6 +73,8 @@ async def _call_llm(prompt: str) -> str:
         return await _anthropic(prompt)
     if provider == "gemini" and settings.GEMINI_API_KEY:
         return await _gemini(prompt)
+    if provider == "ollama":
+        return await _ollama(prompt)
     # No LLM configured → approve everything
     return '{"approved": true, "reason": null}'
 
@@ -149,6 +151,28 @@ async def _anthropic(prompt: str) -> str:
     return "".join(
         b.get("text", "") for b in payload.get("content", []) if b.get("type") == "text"
     )
+
+
+async def _ollama(prompt: str) -> str:
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await _with_retry(
+            lambda: client.post(
+                f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/chat",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "model": settings.OLLAMA_MODEL,
+                    "messages": [
+                        {"role": "system", "content": "Return only valid JSON. No markdown."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "stream": False,
+                    "format": "json",
+                    "options": {"temperature": 0.0},
+                },
+            )
+        )
+    payload = response.json()
+    return payload.get("message", {}).get("content", "{}")
 
 
 async def _gemini(prompt: str) -> str:

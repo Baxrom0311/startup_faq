@@ -23,8 +23,10 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import {
   apiMutation,
+  fetchRegions,
   fetchSectors,
   type Problem,
+  type Region,
   type Sector,
   uploadProblemAudio,
   uploadProblemPhoto,
@@ -58,7 +60,9 @@ export function SubmitProblemDialog({
 }: SubmitProblemDialogProps) {
   const [rawText, setRawText] = useState("")
   const [sectorId, setSectorId] = useState<string>("")
+  const [regionId, setRegionId] = useState<string>("")
   const [sectors, setSectors] = useState<Sector[]>([])
+  const [regions, setRegions] = useState<Region[]>([])
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [photoFiles, setPhotoFiles] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -67,6 +71,9 @@ export function SubmitProblemDialog({
   useEffect(() => {
     fetchSectors()
       .then(setSectors)
+      .catch(() => undefined)
+    fetchRegions()
+      .then(setRegions)
       .catch(() => undefined)
   }, [])
 
@@ -102,6 +109,7 @@ export function SubmitProblemDialog({
     if (!open) {
       setDuplicateProblem(null)
       setSectorId("")
+      setRegionId("")
     }
   }, [open])
 
@@ -142,6 +150,7 @@ export function SubmitProblemDialog({
         raw_audio_key: rawAudioKey,
         photo_keys: photoKeys,
         sector_id: sectorId ? Number(sectorId) : null,
+        region_id: regionId ? Number(regionId) : null,
       })
 
       setRawText("")
@@ -228,23 +237,42 @@ export function SubmitProblemDialog({
             rows={4}
           />
         </div>
-        {sectors.length > 0 && (
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Soha</label>
-            <Select value={sectorId} onValueChange={setSectorId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sohani tanlang (ixtiyoriy)" />
-              </SelectTrigger>
-              <SelectContent>
-                {sectors.map((sector) => (
-                  <SelectItem key={sector.id} value={String(sector.id)}>
-                    {sector.icon} {sector.name_uz}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        <div className="grid grid-cols-2 gap-3">
+          {sectors.length > 0 && (
+            <div className="grid gap-2">
+              <label className="text-sm font-medium">Soha</label>
+              <Select value={sectorId} onValueChange={setSectorId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tanlang..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {sectors.map((sector) => (
+                    <SelectItem key={sector.id} value={String(sector.id)}>
+                      {sector.icon} {sector.name_uz}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {regions.length > 0 && (
+            <div className="grid gap-2">
+              <label className="text-sm font-medium">Hudud</label>
+              <Select value={regionId} onValueChange={setRegionId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tanlang..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {regions.map((region) => (
+                    <SelectItem key={region.id} value={String(region.id)}>
+                      {region.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
         <div className="grid gap-2">
           <label className="text-sm font-medium" htmlFor="audio-file">
             Audio

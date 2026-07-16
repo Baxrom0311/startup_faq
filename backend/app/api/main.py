@@ -9,6 +9,7 @@ from app.api.routes import (
     private,
     problems,
     projects,
+    regions,
     sectors,
     telegram_auth,
     users,
@@ -23,6 +24,7 @@ api_router.include_router(users.router)
 api_router.include_router(utils.router)
 api_router.include_router(telegram_auth.router)
 api_router.include_router(sectors.router)
+api_router.include_router(regions.router)
 api_router.include_router(problems.router)
 api_router.include_router(projects.router)
 api_router.include_router(analytics.router)
