@@ -70,6 +70,20 @@ export default function BroadcastsManager() {
   )
   const [submitting, setSubmitting] = useState(false)
   const [sendingId, setSendingId] = useState<string | null>(null)
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null)
+  const [activePreviewLang, setActivePreviewLang] = useState<
+    "uz" | "ru" | "en"
+  >("uz")
+
+  useEffect(() => {
+    if (!photoFile) {
+      setPhotoPreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(photoFile)
+    setPhotoPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [photoFile])
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -217,202 +231,300 @@ export default function BroadcastsManager() {
               {t("admin_new_broadcast") || "Yangi e'lon"}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
+          <DialogContent className="max-h-[90vh] overflow-y-auto lg:max-w-[950px]">
             <DialogHeader>
               <DialogTitle>
                 {t("admin_new_broadcast") || "Yangi reklama e'loni"}
               </DialogTitle>
             </DialogHeader>
 
-            <form onSubmit={handleCreateBroadcast} className="grid gap-4 py-2">
-              <div className="grid gap-1">
-                <span className="text-xs font-medium text-muted-foreground">
-                  {t("admin_broadcast_title_label") ||
-                    "E'lon nomi (faqat adminlar uchun)"}
-                </span>
-                <Input
-                  required
-                  placeholder="masalan: 2.0 yangilanishi"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  disabled={submitting}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-[1fr_340px] py-2">
+              {/* Form Side */}
+              <form onSubmit={handleCreateBroadcast} className="grid gap-4">
                 <div className="grid gap-1">
                   <span className="text-xs font-medium text-muted-foreground">
-                    {t("submit_region_label") || "Hudud bo'yicha filter"}
+                    {t("admin_broadcast_title_label") ||
+                      "E'lon nomi (faqat adminlar uchun)"}
                   </span>
-                  <Select
-                    value={regionId}
-                    onValueChange={setRegionId}
+                  <Input
+                    required
+                    placeholder="masalan: 2.0 yangilanishi"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     disabled={submitting}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Barchaga yuborish" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        {t("region_all") || "Barchaga yuborish"}
-                      </SelectItem>
-                      {regions.map((region) => (
-                        <SelectItem key={region.id} value={String(region.id)}>
-                          {region.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
 
-                <div className="grid gap-1">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {t("admin_broadcast_photo") || "Rasm (ixtiyoriy)"}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="file"
-                      accept="image/*"
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="grid gap-1">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {t("submit_region_label") || "Hudud bo'yicha filter"}
+                    </span>
+                    <Select
+                      value={regionId}
+                      onValueChange={setRegionId}
                       disabled={submitting}
-                      className="cursor-pointer"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) setPhotoFile(file)
-                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Barchaga yuborish" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">
+                          {t("region_all") || "Barchaga yuborish"}
+                        </SelectItem>
+                        {regions.map((region) => (
+                          <SelectItem key={region.id} value={String(region.id)}>
+                            {region.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-1">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {t("admin_broadcast_photo") || "Rasm (ixtiyoriy)"}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        disabled={submitting}
+                        className="cursor-pointer"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) setPhotoFile(file)
+                        }}
+                      />
+                      {photoFile && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setPhotoFile(null)}
+                        >
+                          <Trash2 className="size-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-2 border-t pt-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t("admin_broadcast_texts") ||
+                      "E'lon matnlari (HTML format qo'llab-quvvatlanadi)"}
+                  </span>
+
+                  <div className="grid gap-1">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      O'zbekcha matn (UZ) *
+                    </span>
+                    <Textarea
+                      required
+                      placeholder="E'lon matnini kiriting..."
+                      value={textUz}
+                      onChange={(e) => setTextUz(e.target.value)}
+                      disabled={submitting}
+                      rows={4}
                     />
-                    {photoFile && (
+                  </div>
+
+                  <div className="grid gap-1">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      Русский текст (RU)
+                    </span>
+                    <Textarea
+                      placeholder="Введите текст объявления..."
+                      value={textRu}
+                      onChange={(e) => setTextRu(e.target.value)}
+                      disabled={submitting}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="grid gap-1">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      English text (EN)
+                    </span>
+                    <Textarea
+                      placeholder="Enter broadcast text..."
+                      value={textEn}
+                      onChange={(e) => setTextEn(e.target.value)}
+                      disabled={submitting}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-2 border-t pt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t("admin_broadcast_buttons") ||
+                        "Inline tugmalar (Inline Buttons)"}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddButtonRow}
+                      disabled={submitting}
+                      className="h-7 gap-1 px-2 text-xs"
+                    >
+                      <Plus className="size-3" />
+                      {t("add_item") || "Tugma qo'shish"}
+                    </Button>
+                  </div>
+
+                  {buttons.map((btn, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <Input
+                        required
+                        placeholder="Tugma matni (masalan: Batafsil)"
+                        value={btn.text}
+                        onChange={(e) =>
+                          handleButtonChange(idx, "text", e.target.value)
+                        }
+                        disabled={submitting}
+                        className="flex-1"
+                      />
+                      <Input
+                        required
+                        type="url"
+                        placeholder="Havola (masalan: https://...)"
+                        value={btn.url}
+                        onChange={(e) =>
+                          handleButtonChange(idx, "url", e.target.value)
+                        }
+                        disabled={submitting}
+                        className="flex-[2]"
+                      />
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
-                        onClick={() => setPhotoFile(null)}
+                        onClick={() => handleRemoveButtonRow(idx)}
+                        disabled={submitting}
                       >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-2 flex justify-end gap-2 border-t pt-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setDialogOpen(false)}
+                    disabled={submitting}
+                  >
+                    {t("settings_delete_cancel") || "Bekor qilish"}
+                  </Button>
+                  <Button type="submit" disabled={submitting}>
+                    {submitting && (
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                    )}
+                    {t("layout_retry") || "Yaratish"}
+                  </Button>
+                </div>
+              </form>
+
+              {/* Telegram Preview Side */}
+              <div className="hidden lg:flex flex-col gap-3 border-l pl-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Telegram Preview
+                  </span>
+                  <div className="flex gap-1 rounded-md border p-0.5 bg-muted/40">
+                    {(["uz", "ru", "en"] as const).map((lang) => (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => setActivePreviewLang(lang)}
+                        className={`px-1.5 py-0.5 text-[10px] font-medium rounded-sm uppercase transition-colors ${
+                          activePreviewLang === lang
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {lang}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="relative flex-1 rounded-lg border bg-[#e7ebf0] dark:bg-[#0e1621] p-4 flex flex-col justify-end min-h-[380px] max-h-[560px] overflow-y-auto">
+                  {/* Telegram Message Header */}
+                  <div className="absolute top-3 left-4 right-4 flex items-center gap-2 border-b pb-2 border-black/5 dark:border-white/5">
+                    <div className="size-7 rounded-full bg-gradient-to-tr from-sky-400 to-blue-500 flex items-center justify-center text-[10px] font-bold text-white uppercase select-none">
+                      PB
+                    </div>
+                    <div className="flex flex-col leading-none">
+                      <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-1">
+                        Platforma Bot
+                        <span className="bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[9px] px-1 py-0.25 rounded font-normal uppercase scale-90">
+                          bot
+                        </span>
+                      </span>
+                      <span className="text-[10px] text-muted-foreground mt-0.5">
+                        {t("settings_active") || "active"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Message Bubble Container */}
+                  <div className="flex flex-col gap-1.5 mt-12 max-w-[90%] self-start w-full">
+                    <div className="bg-white dark:bg-[#182533] text-black dark:text-white rounded-lg shadow-sm overflow-hidden border border-black/5 dark:border-white/5">
+                      {photoPreviewUrl ? (
+                        <img
+                          src={photoPreviewUrl}
+                          alt=""
+                          className="w-full aspect-video object-cover"
+                        />
+                      ) : null}
+                      <div className="p-2.5 text-xs whitespace-pre-wrap leading-relaxed break-words">
+                        {activePreviewLang === "uz"
+                          ? textUz || (
+                              <span className="text-muted-foreground/50 italic">
+                                [O'zbekcha matn kiritilmagan]
+                              </span>
+                            )
+                          : activePreviewLang === "ru"
+                            ? textRu || (
+                                <span className="text-muted-foreground/50 italic">
+                                  [Русский текст не введен]
+                                </span>
+                              )
+                            : textEn || (
+                                <span className="text-muted-foreground/50 italic">
+                                  [English text not entered]
+                                </span>
+                              )}
+                      </div>
+                    </div>
+
+                    {/* Inline Buttons Preview */}
+                    {buttons.length > 0 && (
+                      <div className="grid gap-1 mt-1 w-full">
+                        {buttons.map((btn, idx) => (
+                          <div
+                            key={idx}
+                            className="bg-[#2f6ea5]/10 dark:bg-[#2f6ea5]/20 text-[#2f6ea5] dark:text-[#64b5f6] hover:bg-[#2f6ea5]/20 text-center py-2 px-3 rounded-md text-[11px] font-medium border border-[#2f6ea5]/20 truncate cursor-default select-none"
+                          >
+                            {btn.text || (
+                              <span className="text-muted-foreground/50 italic">
+                                [Tugma matni]
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>
               </div>
-
-              <div className="grid gap-2 border-t pt-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {t("admin_broadcast_texts") ||
-                    "E'lon matnlari (HTML format qo'llab-quvvatlanadi)"}
-                </span>
-
-                <div className="grid gap-1">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    O'zbekcha matn (UZ) *
-                  </span>
-                  <Textarea
-                    required
-                    placeholder="E'lon matnini kiriting..."
-                    value={textUz}
-                    onChange={(e) => setTextUz(e.target.value)}
-                    disabled={submitting}
-                    rows={4}
-                  />
-                </div>
-
-                <div className="grid gap-1">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    Русский текст (RU)
-                  </span>
-                  <Textarea
-                    placeholder="Введите текст объявления..."
-                    value={textRu}
-                    onChange={(e) => setTextRu(e.target.value)}
-                    disabled={submitting}
-                    rows={3}
-                  />
-                </div>
-
-                <div className="grid gap-1">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    English text (EN)
-                  </span>
-                  <Textarea
-                    placeholder="Enter broadcast text..."
-                    value={textEn}
-                    onChange={(e) => setTextEn(e.target.value)}
-                    disabled={submitting}
-                    rows={3}
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-2 border-t pt-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {t("admin_broadcast_buttons") ||
-                      "Inline tugmalar (Inline Buttons)"}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddButtonRow}
-                    disabled={submitting}
-                    className="h-7 gap-1 px-2 text-xs"
-                  >
-                    <Plus className="size-3" />
-                    {t("add_item") || "Tugma qo'shish"}
-                  </Button>
-                </div>
-
-                {buttons.map((btn, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <Input
-                      required
-                      placeholder="Tugma matni (masalan: Batafsil)"
-                      value={btn.text}
-                      onChange={(e) =>
-                        handleButtonChange(idx, "text", e.target.value)
-                      }
-                      disabled={submitting}
-                      className="flex-1"
-                    />
-                    <Input
-                      required
-                      type="url"
-                      placeholder="Havola (masalan: https://...)"
-                      value={btn.url}
-                      onChange={(e) =>
-                        handleButtonChange(idx, "url", e.target.value)
-                      }
-                      disabled={submitting}
-                      className="flex-[2]"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveButtonRow(idx)}
-                      disabled={submitting}
-                    >
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-2 flex justify-end gap-2 border-t pt-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                  disabled={submitting}
-                >
-                  {t("settings_delete_cancel") || "Bekor qilish"}
-                </Button>
-                <Button type="submit" disabled={submitting}>
-                  {submitting && (
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                  )}
-                  {t("layout_retry") || "Yaratish"}
-                </Button>
-              </div>
-            </form>
+            </div>
           </DialogContent>
         </Dialog>
       </CardHeader>
