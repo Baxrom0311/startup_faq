@@ -288,7 +288,7 @@ def read_problem_analyses(
 
 
 @router.get("/", response_model=ProblemsPublic)
-def read_problems(
+async def read_problems(
     session: SessionDep,
     current_user: CurrentUser,
     skip: int = 0,
@@ -319,24 +319,94 @@ def read_problems(
         filters.append(Problem.region_id == region_id)
     if mine:
         filters.append(Problem.author_id == current_user.id)
-    if q:
-        pattern = f"%{q.strip()}%"
-        filters.append(
-            (Problem.title.ilike(pattern))
-            | (Problem.raw_text.ilike(pattern))
-            | (Problem.transcript.ilike(pattern))
-        )
 
-    count_statement = select(func.count()).select_from(Problem).where(*filters)
-    count = session.exec(count_statement).one()
-    statement = (
-        select(Problem)
-        .where(*filters)
-        .order_by(Problem.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-    )
-    problems = session.exec(statement).all()
+    if q and q.strip():
+        from app.modules.ai.providers import get_embedding_provider
+        from app.modules.ai.analyzer import cosine_similarity
+        from app.models import ProblemEmbedding
+
+        q_clean = q.strip()
+        q_embedding = None
+        try:
+            embedding_provider = get_embedding_provider()
+            q_embedding = await embedding_provider.embed(q_clean)
+        except Exception:
+            pass
+
+        if q_embedding:
+            # Fetch all problems matching base filters
+            stmt = select(Problem).where(*filters)
+            problems_list = session.exec(stmt).all()
+
+            scored_candidates = []
+            keyword_pattern = q_clean.lower()
+            for problem in problems_list:
+                # Query embedding if exists
+                prob_emb = session.get(ProblemEmbedding, problem.id)
+                sim_score = 0.0
+                if prob_emb:
+                    sim_score = cosine_similarity(q_embedding, prob_emb.embedding)
+
+                # Direct match boost
+                boost = 0.0
+                title_lower = (problem.title or "").lower()
+                text_lower = (problem.raw_text or "").lower()
+                transcript_lower = (problem.transcript or "").lower()
+
+                if keyword_pattern in title_lower:
+                    boost += 0.3
+                if keyword_pattern in text_lower or keyword_pattern in transcript_lower:
+                    boost += 0.15
+
+                final_score = sim_score + boost
+                scored_candidates.append((problem, final_score))
+
+            # Filter relevant or containing keyword pattern
+            scored_candidates = [
+                c for c in scored_candidates if c[1] >= 0.3 or any(
+                    keyword_pattern in (c[0].title or "").lower() or
+                    keyword_pattern in (c[0].raw_text or "").lower() or
+                    keyword_pattern in (c[0].transcript or "").lower()
+                    for _ in [1]
+                )
+            ]
+            scored_candidates.sort(key=lambda x: x[1], reverse=True)
+
+            count = len(scored_candidates)
+            paginated = scored_candidates[skip : skip + limit]
+            problems = [item[0] for item in paginated]
+        else:
+            # Fallback to pure keyword search using ILIKE
+            pattern = f"%{q_clean}%"
+            filters.append(
+                (Problem.title.ilike(pattern))
+                | (Problem.raw_text.ilike(pattern))
+                | (Problem.transcript.ilike(pattern))
+            )
+
+            count_statement = select(func.count()).select_from(Problem).where(*filters)
+            count = session.exec(count_statement).one()
+
+            statement = (
+                select(Problem)
+                .where(*filters)
+                .order_by(Problem.created_at.desc())
+                .offset(skip)
+                .limit(limit)
+            )
+            problems = session.exec(statement).all()
+    else:
+        count_statement = select(func.count()).select_from(Problem).where(*filters)
+        count = session.exec(count_statement).one()
+
+        statement = (
+            select(Problem)
+            .where(*filters)
+            .order_by(Problem.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+        )
+        problems = session.exec(statement).all()
     problem_ids = [problem.id for problem in problems]
     voted_problem_ids = set()
     comment_counts = {}

@@ -84,9 +84,7 @@ function Settings() {
           region_id: regionId === "none" ? null : Number(regionId),
         },
       })
-      toast.success(
-        t("settings_success_update") || "Profile updated successfully!",
-      )
+      toast.success(t("settings_success_update"))
       queryClient.invalidateQueries({ queryKey: ["currentUser"] })
       setIsEditing(false)
     } catch (error) {
@@ -118,7 +116,7 @@ function Settings() {
                 onClick={() => setIsEditing(true)}
               >
                 <Edit className="size-3.5" />
-                {t("settings_edit_profile") || "Edit Profile"}
+                {t("settings_edit_profile")}
               </Button>
             )}
           </CardHeader>
@@ -130,11 +128,11 @@ function Settings() {
                   className="text-xs font-medium text-muted-foreground"
                   htmlFor="fullName"
                 >
-                  {t("settings_name") || "Name"}
+                  {t("settings_name")}
                 </label>
                 <Input
                   id="fullName"
-                  placeholder="Ismingizni kiriting..."
+                  placeholder={t("settings_name")}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   disabled={updating}
@@ -146,12 +144,12 @@ function Settings() {
                   className="text-xs font-medium text-muted-foreground"
                   htmlFor="email"
                 >
-                  {t("settings_email") || "Email"}
+                  {t("settings_email")}
                 </label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Emailingizni kiriting..."
+                  placeholder={t("settings_email")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={updating}
@@ -163,7 +161,7 @@ function Settings() {
                   className="text-xs font-medium text-muted-foreground"
                   htmlFor="regionId"
                 >
-                  {t("settings_region") || "Region"}
+                  {t("settings_region")}
                 </label>
                 <Select
                   value={regionId}
@@ -171,11 +169,11 @@ function Settings() {
                   disabled={updating}
                 >
                   <SelectTrigger id="regionId">
-                    <SelectValue placeholder="Hududni tanlang..." />
+                    <SelectValue placeholder={t("settings_region")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">
-                      {t("region_all") || "Tashkilot hududi tanlanmagan"}
+                      {t("region_all")}
                     </SelectItem>
                     {regions.map((region) => (
                       <SelectItem key={region.id} value={String(region.id)}>
@@ -191,11 +189,11 @@ function Settings() {
                   className="text-xs font-medium text-muted-foreground"
                   htmlFor="bio"
                 >
-                  {t("settings_bio") || "Bio"}
+                  {t("settings_bio")}
                 </label>
                 <Textarea
                   id="bio"
-                  placeholder="Men haqimda..."
+                  placeholder={t("settings_bio")}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   disabled={updating}
@@ -211,13 +209,13 @@ function Settings() {
                   onClick={() => setIsEditing(false)}
                   disabled={updating}
                 >
-                  {t("settings_cancel") || "Bekor qilish"}
+                  {t("settings_cancel")}
                 </Button>
                 <Button type="submit" size="sm" disabled={updating}>
                   {updating && (
                     <Loader2 className="mr-1.5 size-3.5 animate-spin" />
                   )}
-                  {t("settings_save") || "Saqlash"}
+                  {t("settings_save")}
                 </Button>
               </div>
             </form>
@@ -231,11 +229,11 @@ function Settings() {
               />
               <Info label={t("settings_email")} value={user.email || "—"} />
               <Info
-                label={t("settings_region") || "Hudud"}
+                label={t("settings_region")}
                 value={userRegionName}
               />
               <Info
-                label={t("settings_bio") || "Men haqimda"}
+                label={t("settings_bio")}
                 value={user.bio || "—"}
               />
             </CardContent>

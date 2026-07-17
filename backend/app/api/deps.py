@@ -1,7 +1,8 @@
-from collections.abc import Generator
+from collections.abc import Generator, AsyncGenerator
 from typing import Annotated
 
 import jwt
+from redis.asyncio import Redis
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
@@ -66,3 +67,14 @@ def get_current_active_superuser(current_user: CurrentUser) -> User:
             status_code=403, detail="The user doesn't have enough privileges"
         )
     return current_user
+
+
+async def get_redis() -> AsyncGenerator[Redis, None]:
+    client = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+    try:
+        yield client
+    finally:
+        await client.aclose()
+
+
+RedisDep = Annotated[Redis, Depends(get_redis)]
