@@ -172,9 +172,7 @@ function Settings() {
                     <SelectValue placeholder={t("settings_region")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">
-                      {t("region_all")}
-                    </SelectItem>
+                    <SelectItem value="none">{t("region_all")}</SelectItem>
                     {regions.map((region) => (
                       <SelectItem key={region.id} value={String(region.id)}>
                         {region.name}
@@ -228,14 +226,8 @@ function Settings() {
                 value={user.telegram_username || "—"}
               />
               <Info label={t("settings_email")} value={user.email || "—"} />
-              <Info
-                label={t("settings_region")}
-                value={userRegionName}
-              />
-              <Info
-                label={t("settings_bio")}
-                value={user.bio || "—"}
-              />
+              <Info label={t("settings_region")} value={userRegionName} />
+              <Info label={t("settings_bio")} value={user.bio || "—"} />
             </CardContent>
           )}
         </Card>

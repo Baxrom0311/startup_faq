@@ -193,21 +193,17 @@ export default function BroadcastsManager() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return (
-          <Badge variant="outline">
-            {t("broadcast_status_pending") || "Kutilmoqda"}
-          </Badge>
-        )
+        return <Badge variant="outline">{t("broadcast_status_pending")}</Badge>
       case "sending":
         return (
           <Badge className="bg-amber-500 text-white animate-pulse">
-            {t("broadcast_status_sending") || "Yuborilmoqda..."}
+            {t("broadcast_status_sending")}
           </Badge>
         )
       case "completed":
         return (
           <Badge className="bg-green-600 text-white">
-            {t("broadcast_status_completed") || "Bajarildi"}
+            {t("broadcast_status_completed")}
           </Badge>
         )
       default:
@@ -220,7 +216,7 @@ export default function BroadcastsManager() {
       <CardHeader className="flex flex-row items-center justify-between border-b py-4">
         <CardTitle className="flex items-center gap-2 text-base">
           <Bot className="size-4" />
-          {t("admin_tab_broadcasts") || "Telegram Reklama & E'lonlar"}
+          {t("admin_tab_broadcasts")}
           {!loading && <Badge variant="secondary">{broadcasts.length}</Badge>}
         </CardTitle>
 
@@ -228,14 +224,12 @@ export default function BroadcastsManager() {
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1">
               <Plus className="size-4" />
-              {t("admin_new_broadcast") || "Yangi e'lon"}
+              {t("admin_new_broadcast")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto lg:max-w-[950px]">
             <DialogHeader>
-              <DialogTitle>
-                {t("admin_new_broadcast") || "Yangi reklama e'loni"}
-              </DialogTitle>
+              <DialogTitle>{t("admin_new_broadcast")}</DialogTitle>
             </DialogHeader>
 
             <div className="grid gap-6 lg:grid-cols-[1fr_340px] py-2">
@@ -243,8 +237,7 @@ export default function BroadcastsManager() {
               <form onSubmit={handleCreateBroadcast} className="grid gap-4">
                 <div className="grid gap-1">
                   <span className="text-xs font-medium text-muted-foreground">
-                    {t("admin_broadcast_title_label") ||
-                      "E'lon nomi (faqat adminlar uchun)"}
+                    {t("admin_broadcast_title_label")}
                   </span>
                   <Input
                     required
@@ -258,7 +251,7 @@ export default function BroadcastsManager() {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="grid gap-1">
                     <span className="text-xs font-medium text-muted-foreground">
-                      {t("submit_region_label") || "Hudud bo'yicha filter"}
+                      {t("submit_region_label")}
                     </span>
                     <Select
                       value={regionId}
@@ -266,12 +259,10 @@ export default function BroadcastsManager() {
                       disabled={submitting}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Barchaga yuborish" />
+                        <SelectValue placeholder={t("region_all")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">
-                          {t("region_all") || "Barchaga yuborish"}
-                        </SelectItem>
+                        <SelectItem value="all">{t("region_all")}</SelectItem>
                         {regions.map((region) => (
                           <SelectItem key={region.id} value={String(region.id)}>
                             {region.name}
@@ -283,7 +274,7 @@ export default function BroadcastsManager() {
 
                   <div className="grid gap-1">
                     <span className="text-xs font-medium text-muted-foreground">
-                      {t("admin_broadcast_photo") || "Rasm (ixtiyoriy)"}
+                      {t("admin_broadcast_photo")}
                     </span>
                     <div className="flex items-center gap-2">
                       <Input
@@ -312,8 +303,7 @@ export default function BroadcastsManager() {
 
                 <div className="grid gap-2 border-t pt-2">
                   <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {t("admin_broadcast_texts") ||
-                      "E'lon matnlari (HTML format qo'llab-quvvatlanadi)"}
+                    {t("admin_broadcast_texts")}
                   </span>
 
                   <div className="grid gap-1">
@@ -360,8 +350,7 @@ export default function BroadcastsManager() {
                 <div className="grid gap-2 border-t pt-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {t("admin_broadcast_buttons") ||
-                        "Inline tugmalar (Inline Buttons)"}
+                      {t("admin_broadcast_buttons")}
                     </span>
                     <Button
                       type="button"
@@ -372,7 +361,7 @@ export default function BroadcastsManager() {
                       className="h-7 gap-1 px-2 text-xs"
                     >
                       <Plus className="size-3" />
-                      {t("add_item") || "Tugma qo'shish"}
+                      {t("add_item")}
                     </Button>
                   </div>
 
@@ -419,13 +408,13 @@ export default function BroadcastsManager() {
                     onClick={() => setDialogOpen(false)}
                     disabled={submitting}
                   >
-                    {t("settings_delete_cancel") || "Bekor qilish"}
+                    {t("settings_delete_cancel")}
                   </Button>
                   <Button type="submit" disabled={submitting}>
                     {submitting && (
                       <Loader2 className="mr-2 size-4 animate-spin" />
                     )}
-                    {t("layout_retry") || "Yaratish"}
+                    {t("broadcast_create")}
                   </Button>
                 </div>
               </form>
@@ -468,7 +457,7 @@ export default function BroadcastsManager() {
                         </span>
                       </span>
                       <span className="text-[10px] text-muted-foreground mt-0.5">
-                        {t("settings_active") || "active"}
+                        {t("settings_active")}
                       </span>
                     </div>
                   </div>
@@ -537,9 +526,7 @@ export default function BroadcastsManager() {
         ) : broadcasts.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
             <Send className="size-8 stroke-[1.5] mb-2" />
-            <p className="text-sm">
-              {t("no_results") || "Hech qanday e'lonlar topilmadi."}
-            </p>
+            <p className="text-sm">{t("no_results")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -547,18 +534,14 @@ export default function BroadcastsManager() {
               <thead>
                 <tr className="border-b bg-muted/20 text-muted-foreground text-xs uppercase">
                   <th className="px-4 py-3">
-                    {t("admin_broadcast_title_label") || "E'lon nomi"}
+                    {t("admin_broadcast_title_label")}
                   </th>
-                  <th className="px-4 py-3">
-                    {t("submit_region_label") || "Hudud"}
-                  </th>
-                  <th className="px-4 py-3">
-                    {t("settings_status") || "Status"}
-                  </th>
-                  <th className="px-4 py-3">{t("admin_score") || "Natija"}</th>
-                  <th className="px-4 py-3">{t("settings_name") || "Sana"}</th>
+                  <th className="px-4 py-3">{t("submit_region_label")}</th>
+                  <th className="px-4 py-3">{t("settings_status")}</th>
+                  <th className="px-4 py-3">{t("broadcast_results")}</th>
+                  <th className="px-4 py-3">{t("broadcast_date")}</th>
                   <th className="px-4 py-3 text-right">
-                    {t("settings_access") || "Amallar"}
+                    {t("broadcast_actions")}
                   </th>
                 </tr>
               </thead>
@@ -566,8 +549,7 @@ export default function BroadcastsManager() {
                 {broadcasts.map((b) => {
                   const regionName =
                     regions.find((r) => r.id === b.target_region_id)?.name ||
-                    t("region_all") ||
-                    "Barchaga"
+                    t("region_all")
 
                   return (
                     <tr key={b.id} className="hover:bg-muted/10">
@@ -620,7 +602,7 @@ export default function BroadcastsManager() {
                               ) : (
                                 <Send className="size-3 text-primary" />
                               )}
-                              {t("admin_merge") || "Yuborish"}
+                              {t("broadcast_send")}
                             </Button>
                           )}
                           {b.status !== "sending" && (

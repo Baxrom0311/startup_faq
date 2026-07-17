@@ -328,7 +328,10 @@ function Admin() {
                         return (
                           <div key={sect.sector_id} className="space-y-1">
                             <div className="flex justify-between text-xs font-medium">
-                              <span>{sect[`name_${i18n.language.slice(0, 2)}`] ?? sect.name_uz}</span>
+                              <span>
+                                {sect[`name_${i18n.language.slice(0, 2)}`] ??
+                                  sect.name_uz}
+                              </span>
                               <span className="text-muted-foreground">
                                 {sect.problem_count} ({pct}%)
                               </span>
