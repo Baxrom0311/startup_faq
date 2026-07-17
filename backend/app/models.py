@@ -55,6 +55,8 @@ class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
     language: str | None = Field(default=None, max_length=5)
+    bio: str | None = Field(default=None, max_length=1000)
+    region_id: int | None = None
 
 
 class UpdatePassword(SQLModel):

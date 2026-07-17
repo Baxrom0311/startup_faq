@@ -444,6 +444,8 @@ export type UserUpdateMe = {
     full_name?: (string | null);
     email?: (string | null);
     language?: (string | null);
+    bio?: (string | null);
+    region_id?: (number | null);
 };
 
 export type ValidationError = {

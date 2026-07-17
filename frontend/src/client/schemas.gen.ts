@@ -2380,6 +2380,29 @@ export const UserUpdateMeSchema = {
                 }
             ],
             title: 'Language'
+        },
+        bio: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bio'
+        },
+        region_id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Region Id'
         }
     },
     type: 'object',
