@@ -419,7 +419,7 @@ function ProjectDetail() {
             <CardContent className="grid gap-3">
               <div className="flex items-center gap-1.5 py-1">
                 <span className="text-sm font-medium text-muted-foreground mr-1">
-                  {t("project_rating") || "Baho"}:
+                  {t("project_rating")}:
                 </span>
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button

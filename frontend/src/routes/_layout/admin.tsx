@@ -107,10 +107,10 @@ function Admin() {
         <Tabs defaultValue="moderation" className="w-full flex flex-col gap-4">
           <TabsList className="mr-auto">
             <TabsTrigger value="moderation">
-              {t("admin_tab_moderation") || "Moderatsiya"}
+              {t("admin_tab_moderation")}
             </TabsTrigger>
             <TabsTrigger value="broadcasts">
-              {t("admin_tab_broadcasts") || "Telegram E'lonlar"}
+              {t("admin_tab_broadcasts")}
             </TabsTrigger>
           </TabsList>
 
@@ -296,7 +296,9 @@ function MergeTargetPicker({
       {aiSuggestedId && (
         <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-950">
           <Bot className="text-muted-foreground size-3.5 shrink-0" />
-          <span className="text-muted-foreground text-xs">AI:</span>
+          <span className="text-muted-foreground text-xs">
+            {t("ai_panel_title")}:
+          </span>
           <Link
             to="/problems/$problemId"
             params={{ problemId: aiSuggestedId }}

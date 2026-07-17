@@ -292,7 +292,9 @@ function ProblemDetail() {
             )}
             {structuredSummary(problem) && (
               <div className="rounded-md border bg-muted/30 p-4">
-                <h3 className="mb-2 text-sm font-medium">AI</h3>
+                <h3 className="mb-2 text-sm font-medium">
+                  {t("ai_panel_title")}
+                </h3>
                 <p className="text-muted-foreground text-sm">
                   {structuredSummary(problem)}
                 </p>
