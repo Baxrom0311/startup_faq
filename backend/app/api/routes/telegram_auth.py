@@ -4,6 +4,7 @@ from fastapi import APIRouter, Header, HTTPException, Request, status
 
 from app.api.deps import SessionDep
 from app.core.config import settings
+from app.core.limiter import limiter
 from app.models import Message
 from app.modules.auth.schemas import (
     TelegramAuthStartRequest,
@@ -39,6 +40,7 @@ def _status_response(session: SessionDep, auth_session) -> TelegramAuthStatusRes
 
 
 @router.post("/start", response_model=TelegramAuthStartResponse)
+@limiter.limit("5/minute")
 def start_telegram_auth(
     *, session: SessionDep, request: Request, body: TelegramAuthStartRequest
 ) -> TelegramAuthStartResponse:
@@ -104,8 +106,9 @@ def verify_contact(
 
 
 @router.post("/refresh", response_model=TokenRefreshResponse)
+@limiter.limit("5/minute")
 def refresh_access_token(
-    *, session: SessionDep, body: TokenRefreshRequest
+    *, session: SessionDep, request: Request, body: TokenRefreshRequest
 ) -> TokenRefreshResponse:
     """Exchange a valid refresh token for a new access token, with rotation and revocation."""
     from app.core import security as sec

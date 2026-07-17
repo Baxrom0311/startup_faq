@@ -1,8 +1,10 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from sqlmodel import func, select
+
+from app.core.limiter import limiter
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
@@ -109,9 +111,11 @@ def _attach_owned_media(
 
 
 @router.post("/", response_model=ProblemPublic, status_code=201)
+@limiter.limit("20/minute")
 async def create_problem(
     *,
     session: SessionDep,
+    request: Request,
     current_user: CurrentUser,
     problem_in: ProblemCreate,
 ) -> Any:
@@ -509,8 +513,9 @@ def merge_problem(
 
 
 @router.put("/{problem_id}/vote", status_code=204)
+@limiter.limit("20/minute")
 def vote_problem(
-    *, session: SessionDep, current_user: CurrentUser, problem_id: uuid.UUID
+    *, session: SessionDep, request: Request, current_user: CurrentUser, problem_id: uuid.UUID
 ) -> None:
     problem = session.get(Problem, problem_id)
     if not problem:
@@ -528,8 +533,9 @@ def vote_problem(
 
 
 @router.delete("/{problem_id}/vote")
+@limiter.limit("20/minute")
 def unvote_problem(
-    *, session: SessionDep, current_user: CurrentUser, problem_id: uuid.UUID
+    *, session: SessionDep, request: Request, current_user: CurrentUser, problem_id: uuid.UUID
 ) -> Message:
     problem = session.get(Problem, problem_id)
     if not problem:
@@ -568,9 +574,11 @@ def read_comments(
 
 
 @router.post("/{problem_id}/comments", response_model=Comment, status_code=201)
+@limiter.limit("20/minute")
 def create_comment(
     *,
     session: SessionDep,
+    request: Request,
     current_user: CurrentUser,
     problem_id: uuid.UUID,
     comment_in: CommentCreate,

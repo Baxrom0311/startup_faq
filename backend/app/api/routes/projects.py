@@ -1,9 +1,11 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import or_
 from sqlmodel import func, select
+
+from app.core.limiter import limiter
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
@@ -232,9 +234,11 @@ def start_project_piloting_endpoint(
 
 
 @router.post("/projects/{project_id}/complete", response_model=ReviewPublic)
+@limiter.limit("20/minute")
 def complete_project_endpoint(
     *,
     session: SessionDep,
+    request: Request,
     current_user: CurrentUser,
     project_id: uuid.UUID,
     review_in: ReviewCreate,
