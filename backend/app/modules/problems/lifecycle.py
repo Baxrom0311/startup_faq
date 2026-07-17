@@ -41,6 +41,13 @@ def transition_problem(
     if to_status == "published" and problem.published_at is None:
         problem.published_at = now
 
+    if to_status == "published":
+        from app.models import User
+        author = session.get(User, problem.author_id)
+        if author:
+            author.reputation = max(author.reputation + 5, 0)
+            session.add(author)
+
     session.add(problem)
     session.add(
         ProblemStatusLog(

@@ -21,6 +21,7 @@ from app.models import (
     ProblemsPublic,
     Project,
     Sector,
+    User,
     Vote,
 )
 from app.modules.ai.moderation import moderate_content
@@ -528,6 +529,12 @@ def vote_problem(
     session.add(Vote(user_id=current_user.id, problem_id=problem_id))
     problem.vote_count += 1
     session.add(problem)
+    
+    author = session.get(User, problem.author_id)
+    if author:
+        author.reputation = max(author.reputation + 1, 0)
+        session.add(author)
+
     session.commit()
     return None
 
@@ -546,6 +553,12 @@ def unvote_problem(
         session.delete(vote)
         problem.vote_count = max(problem.vote_count - 1, 0)
         session.add(problem)
+        
+        author = session.get(User, problem.author_id)
+        if author:
+            author.reputation = max(author.reputation - 1, 0)
+            session.add(author)
+
         session.commit()
     return Message(message="Vote removed")
 
@@ -591,6 +604,10 @@ def create_comment(
         update={"problem_id": problem_id, "user_id": current_user.id},
     )
     session.add(comment)
+    
+    current_user.reputation = max(current_user.reputation + 2, 0)
+    session.add(current_user)
+
     session.commit()
     session.refresh(comment)
     return comment
