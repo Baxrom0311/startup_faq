@@ -1,5 +1,14 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router"
-import { Archive, Bot, GitMerge, RefreshCcw, Users } from "lucide-react"
+import {
+  Archive,
+  BarChart3,
+  Bot,
+  Download,
+  GitMerge,
+  PieChart,
+  RefreshCcw,
+  Users,
+} from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -43,6 +52,9 @@ function Admin() {
   const [analyses, setAnalyses] = useState<Record<string, AIAnalysis | null>>(
     {},
   )
+  const [sectorAnalytics, setSectorAnalytics] = useState<any[] | null>(null)
+  const [trendAnalytics, setTrendAnalytics] = useState<any[] | null>(null)
+  const [overviewAnalytics, setOverviewAnalytics] = useState<any | null>(null)
 
   const loadReview = useCallback(async () => {
     const response = await apiJson<ProblemsResponse>(
@@ -64,6 +76,23 @@ function Admin() {
     setAnalyses(Object.fromEntries(analysisPairs))
   }, [])
 
+  const loadAnalytics = useCallback(async () => {
+    try {
+      const [sectorsData, trendData, overviewData] = await Promise.all([
+        apiJson<any[]>("/analytics/by-sector"),
+        apiJson<any[]>("/analytics/trend?days=30"),
+        apiJson<any>("/analytics/overview"),
+      ])
+      setSectorAnalytics(sectorsData)
+      setTrendAnalytics(trendData)
+      setOverviewAnalytics(overviewData)
+    } catch {
+      setSectorAnalytics([])
+      setTrendAnalytics([])
+      setOverviewAnalytics(null)
+    }
+  }, [])
+
   useEffect(() => {
     UsersService.readUsers({ skip: 0, limit: 100 })
       .then((response) => setUsers(response.data))
@@ -72,7 +101,8 @@ function Admin() {
       toast.error(t("error_generic"))
       setProblems([])
     })
-  }, [loadReview, t])
+    loadAnalytics().catch(() => undefined)
+  }, [loadReview, loadAnalytics, t])
 
   const runAction = async (
     problemId: string,
@@ -95,6 +125,14 @@ function Admin() {
     }
   }
 
+  const exportCsv = () => {
+    const token = localStorage.getItem("access_token")
+    if (!token) return
+    const apiBase = import.meta.env.VITE_API_URL || ""
+    const downloadUrl = `${apiBase}/problems/export/csv?token=${token}`
+    window.open(downloadUrl, "_blank")
+  }
+
   if (!users || !problems) return <LoadingState />
 
   return (
@@ -111,6 +149,9 @@ function Admin() {
             </TabsTrigger>
             <TabsTrigger value="broadcasts">
               {t("admin_tab_broadcasts")}
+            </TabsTrigger>
+            <TabsTrigger value="analytics">
+              {t("admin_tab_analytics")}
             </TabsTrigger>
           </TabsList>
 
@@ -196,6 +237,164 @@ function Admin() {
 
           <TabsContent value="broadcasts" className="mt-0">
             <BroadcastsManager />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-0 flex flex-col gap-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-medium tracking-tight">
+                {t("admin_tab_analytics")}
+              </h2>
+              <Button onClick={exportCsv} className="flex items-center gap-1.5">
+                <Download className="size-4" />
+                {t("admin_export_problems")}
+              </Button>
+            </div>
+
+            {overviewAnalytics && (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Card className="bg-background shadow-none">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium text-muted-foreground uppercase">
+                      {t("analytics_total_problems")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {overviewAnalytics.submitted_problems}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-background shadow-none">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium text-muted-foreground uppercase">
+                      {t("problem_solve")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                      {overviewAnalytics.solved_problems}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-background shadow-none">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium text-muted-foreground uppercase">
+                      {t("nav_projects")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {overviewAnalytics.active_projects}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-background shadow-none">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium text-muted-foreground uppercase">
+                      Claim/Solve Rate
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {Math.round(overviewAnalytics.claim_to_solved_rate * 100)}
+                      %
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Sector Breakdown */}
+              <Card className="bg-background shadow-none">
+                <CardHeader className="border-b">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <PieChart className="size-4" />
+                    {t("analytics_sector_breakdown")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  {sectorAnalytics && sectorAnalytics.length > 0 ? (
+                    <div className="space-y-4">
+                      {sectorAnalytics.map((sect) => {
+                        const total = sectorAnalytics.reduce(
+                          (acc, curr) => acc + curr.problem_count,
+                          0,
+                        )
+                        const pct =
+                          total > 0
+                            ? Math.round((sect.problem_count / total) * 100)
+                            : 0
+                        return (
+                          <div key={sect.sector_id} className="space-y-1">
+                            <div className="flex justify-between text-xs font-medium">
+                              <span>{sect.name_uz}</span>
+                              <span className="text-muted-foreground">
+                                {sect.problem_count} ({pct}%)
+                              </span>
+                            </div>
+                            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary rounded-full transition-all duration-500"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-sm text-muted-foreground">
+                      {t("analytics_no_data")}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Trend dynamics */}
+              <Card className="bg-background shadow-none">
+                <CardHeader className="border-b">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <BarChart3 className="size-4" />
+                    {t("analytics_trend")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  {trendAnalytics && trendAnalytics.length > 0 ? (
+                    <div className="flex items-end justify-between gap-1 h-48 pt-6">
+                      {trendAnalytics.map((trend, idx) => {
+                        const maxCount = Math.max(
+                          ...trendAnalytics.map((t) => t.count),
+                          1,
+                        )
+                        const heightPct = Math.min(
+                          Math.max((trend.count / maxCount) * 100, 4),
+                          100,
+                        )
+                        return (
+                          <div
+                            key={trend.date || idx}
+                            className="flex-1 flex flex-col items-center group relative h-full justify-end"
+                          >
+                            <div className="absolute bottom-full mb-1 hidden group-hover:block bg-popover border text-popover-foreground text-[10px] rounded px-1.5 py-0.5 whitespace-nowrap shadow-sm z-10">
+                              {trend.date}: <strong>{trend.count}</strong>
+                            </div>
+                            <div
+                              className="w-full bg-primary/70 hover:bg-primary rounded-t-sm transition-all duration-300 cursor-pointer"
+                              style={{ height: `${heightPct}%` }}
+                            />
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-sm text-muted-foreground">
+                      {t("analytics_no_data")}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </main>

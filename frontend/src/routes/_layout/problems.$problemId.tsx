@@ -5,11 +5,14 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  CornerDownRight,
+  CornerUpLeft,
   MessageSquare,
   RefreshCcw,
   Rocket,
   ThumbsUp,
   Volume2,
+  X,
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -68,6 +71,7 @@ function ProblemDetail() {
   const [sectors, setSectors] = useState<Sector[]>([])
   const [regions, setRegions] = useState<Region[]>([])
   const [commentText, setCommentText] = useState("")
+  const [replyTo, setReplyTo] = useState<Comment | null>(null)
   const [projectTitle, setProjectTitle] = useState("")
   const [projectPitch, setProjectPitch] = useState("")
   const [claiming, setClaiming] = useState(false)
@@ -128,8 +132,10 @@ function ProblemDetail() {
     try {
       await apiMutation(`/problems/${problemId}/comments`, {
         text: commentText.trim(),
+        parent_id: replyTo?.id || null,
       })
       setCommentText("")
+      setReplyTo(null)
       await loadProblem()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("error_comment_add"))
@@ -165,6 +171,58 @@ function ProblemDetail() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t("error_generic"))
     }
+  }
+
+  const rootComments = comments.filter(
+    (c) => !c.parent_id || !comments.some((p) => p.id === c.parent_id),
+  )
+  const getReplies = (parentId: string) =>
+    comments.filter((c) => c.parent_id === parentId)
+
+  const renderComment = (comment: Comment, isReply = false) => {
+    const replies = getReplies(comment.id)
+    return (
+      <div
+        key={comment.id}
+        className={`p-4 ${
+          isReply
+            ? "bg-muted/40 rounded-lg border-l-2 border-primary/45 pl-4 ml-6 mt-3"
+            : ""
+        }`}
+      >
+        <div className="flex justify-between items-start gap-2">
+          <div className="grid gap-1">
+            <p className="text-sm text-foreground whitespace-pre-wrap">
+              {comment.text}
+            </p>
+            <p className="text-muted-foreground mt-1 text-xs">
+              {shortDate(comment.created_at)}
+            </p>
+          </div>
+          {!isReply && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs flex items-center gap-1 text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setReplyTo(comment)
+                const el = document.getElementById("comment-input")
+                el?.focus()
+              }}
+            >
+              <CornerUpLeft className="h-3.5 w-3.5" />
+              {t("comment_reply")}
+            </Button>
+          )}
+        </div>
+
+        {replies.length > 0 && (
+          <div className="space-y-1">
+            {replies.map((reply) => renderComment(reply, true))}
+          </div>
+        )}
+      </div>
+    )
   }
 
   if (!problem) {
@@ -321,7 +379,26 @@ function ProblemDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
+            {replyTo && (
+              <div className="flex items-center justify-between rounded bg-muted/65 px-3 py-1.5 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5 truncate">
+                  <CornerDownRight className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="truncate">
+                    {t("comment_replying_to")} <strong>"{replyTo.text}"</strong>
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 hover:bg-transparent"
+                  onClick={() => setReplyTo(null)}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
             <Textarea
+              id="comment-input"
               value={commentText}
               onChange={(event) => setCommentText(event.target.value)}
               placeholder={t("problem_comment_placeholder")}
@@ -330,19 +407,12 @@ function ProblemDetail() {
               <Button onClick={addComment}>{t("problem_send")}</Button>
             </div>
             <div className="divide-y rounded-md border">
-              {comments.length === 0 ? (
+              {rootComments.length === 0 ? (
                 <div className="p-4">
                   <EmptyState />
                 </div>
               ) : (
-                comments.map((comment) => (
-                  <div key={comment.id} className="p-4">
-                    <p className="text-sm">{comment.text}</p>
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      {shortDate(comment.created_at)}
-                    </p>
-                  </div>
-                ))
+                rootComments.map((comment) => renderComment(comment))
               )}
             </div>
           </CardContent>

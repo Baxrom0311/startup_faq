@@ -1,10 +1,16 @@
 import uuid
+import asyncio
+import json
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlmodel import func, select
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import CurrentUser, CurrentUserFromQuery, SessionDep
+from app.core.db import engine
+from sqlmodel import Session
+
 from app.models import (
     Message,
     Notification,
@@ -84,3 +90,41 @@ def mark_notifications_read(
         mark_notification_read(session=session, notification=notification)
     session.commit()
     return Message(message=f"{len(notifications)} notifications marked as read")
+
+
+@router.get("/stream")
+async def stream_notifications(
+    current_user: CurrentUserFromQuery,
+    test_once: bool = False,
+) -> StreamingResponse:
+    async def event_generator():
+        last_unread_count = -1
+        while True:
+            try:
+                with Session(engine) as session:
+                    unread_count = session.exec(
+                        select(func.count())
+                        .select_from(Notification)
+                        .where(Notification.user_id == current_user.id, Notification.read_at.is_(None))  # type: ignore[attr-defined]
+                    ).one()
+
+                    if unread_count != last_unread_count:
+                        last_unread_count = unread_count
+                        data = json.dumps({"unread_count": unread_count})
+                        yield f"data: {data}\n\n"
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+            if test_once:
+                break
+            await asyncio.sleep(2.5)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )

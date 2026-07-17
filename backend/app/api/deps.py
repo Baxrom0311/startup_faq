@@ -27,7 +27,7 @@ SessionDep = Annotated[Session, Depends(get_db)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
-def get_current_user(session: SessionDep, token: TokenDep) -> User:
+def decode_token_user(session: Session, token: str) -> User:
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
@@ -46,7 +46,18 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
     return user
 
 
+def get_current_user(session: SessionDep, token: TokenDep) -> User:
+    return decode_token_user(session, token)
+
+
+def get_current_user_from_token_query(session: SessionDep, token: str | None = None) -> User:
+    if not token:
+        raise HTTPException(status_code=401, detail="Token required")
+    return decode_token_user(session, token)
+
+
 CurrentUser = Annotated[User, Depends(get_current_user)]
+CurrentUserFromQuery = Annotated[User, Depends(get_current_user_from_token_query)]
 
 
 def get_current_active_superuser(current_user: CurrentUser) -> User:

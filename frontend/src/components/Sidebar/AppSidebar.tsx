@@ -22,9 +22,37 @@ export function AppSidebar() {
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
+    const token = localStorage.getItem("access_token")
+    if (!token) return
+
+    // Get initial unread count
     apiJson<NotificationsResponse>("/notifications?limit=1")
       .then((r) => setUnreadCount(r.unread_count))
       .catch(() => {})
+
+    // Establish Server-Sent Events stream for real-time notifications
+    const apiBase = import.meta.env.VITE_API_URL || ""
+    const sseUrl = `${apiBase}/notifications/stream?token=${token}`
+    const eventSource = new EventSource(sseUrl)
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        if (typeof data.unread_count === "number") {
+          setUnreadCount(data.unread_count)
+        }
+      } catch (err) {
+        console.error("SSE parse error:", err)
+      }
+    }
+
+    eventSource.onerror = (err) => {
+      console.error("SSE connection issue:", err)
+    }
+
+    return () => {
+      eventSource.close()
+    }
   }, [])
 
   useEffect(() => {

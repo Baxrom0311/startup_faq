@@ -1,7 +1,10 @@
 import uuid
+import csv
+import io
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
+from fastapi.responses import StreamingResponse
 from sqlmodel import func, select
 
 from app.core.limiter import limiter
@@ -109,6 +112,46 @@ def _attach_owned_media(
             )
         media.problem_id = problem_id
         session.add(media)
+
+
+@router.get("/export/csv")
+def export_problems_csv(
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> StreamingResponse:
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    problems = session.exec(select(Problem).order_by(Problem.created_at.desc())).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "ID", "Author ID", "Sector ID", "Region ID", "Title",
+        "Raw Text", "Status", "Severity Score", "Vote Count", "Created At"
+    ])
+
+    for p in problems:
+        writer.writerow([
+            str(p.id),
+            str(p.author_id),
+            str(p.sector_id) if p.sector_id else "",
+            str(p.region_id) if p.region_id else "",
+            p.title or "",
+            p.raw_text or "",
+            p.status,
+            str(p.severity_score) if p.severity_score is not None else "",
+            str(p.vote_count),
+            p.created_at.isoformat() if p.created_at else ""
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        io.BytesIO(output.getvalue().encode("utf-8")),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=problems.csv"}
+    )
 
 
 @router.post("/", response_model=ProblemPublic, status_code=201)

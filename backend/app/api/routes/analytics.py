@@ -1,8 +1,9 @@
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Problem, Project
+from app.models import Problem, Project, Sector
 from app.modules.analytics.schemas import AnalyticsOverview
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
@@ -55,3 +56,63 @@ def read_analytics_overview(
         if claimed + piloting + solved
         else 0,
     )
+
+
+@router.get("/by-sector")
+def read_analytics_by_sector(
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> list[dict]:
+    _ = current_user
+    stmt = (
+        select(
+            Sector.id,
+            Sector.name_uz,
+            Sector.name_ru,
+            Sector.name_en,
+            func.count(Problem.id).label("problem_count"),
+        )
+        .join(Problem, Problem.sector_id == Sector.id, isouter=True)
+        .group_by(Sector.id)
+        .order_by(func.count(Problem.id).desc())
+    )
+    results = session.exec(stmt).all()
+    return [
+        {
+            "sector_id": r[0],
+            "name_uz": r[1],
+            "name_ru": r[2],
+            "name_en": r[3],
+            "problem_count": r[4],
+        }
+        for r in results
+    ]
+
+
+@router.get("/trend")
+def read_analytics_trend(
+    session: SessionDep,
+    current_user: CurrentUser,
+    days: int = 30,
+) -> list[dict]:
+    _ = current_user
+    now = datetime.now(timezone.utc)
+    start_date = now - timedelta(days=days)
+
+    stmt = (
+        select(
+            func.date(Problem.created_at).label("day"),
+            func.count(Problem.id).label("count"),
+        )
+        .where(Problem.created_at >= start_date)
+        .group_by(func.date(Problem.created_at))
+        .order_by(func.date(Problem.created_at).asc())
+    )
+    results = session.exec(stmt).all()
+    return [
+        {
+            "date": str(r[0]),
+            "count": r[1],
+        }
+        for r in results
+    ]
