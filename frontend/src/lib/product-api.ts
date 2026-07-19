@@ -8,6 +8,8 @@ export type Sector = {
   id: number
   slug: string
   name_uz: string
+  name_ru: string | null
+  name_en: string | null
   icon: string | null
 }
 
@@ -145,6 +147,38 @@ export type Review = {
 
 export type ReviewsResponse = {
   data: Review[]
+  count: number
+}
+
+export type ProjectIssue = {
+  id: string
+  project_id: string
+  author_id: string
+  title: string
+  body?: string | null
+  kind: "bug" | "feature" | "task" | "question" | string
+  status: "open" | "closed" | string
+  comment_count: number
+  created_at: string
+  updated_at: string
+  closed_at?: string | null
+}
+
+export type ProjectIssuesResponse = {
+  data: ProjectIssue[]
+  count: number
+}
+
+export type IssueComment = {
+  id: string
+  issue_id: string
+  author_id: string
+  text: string
+  created_at: string
+}
+
+export type IssueCommentsResponse = {
+  data: IssueComment[]
   count: number
 }
 

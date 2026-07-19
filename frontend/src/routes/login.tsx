@@ -32,7 +32,7 @@ export const Route = createFileRoute("/login")({
     }
   },
   head: () => ({
-    meta: [{ title: "Login - SignalHub" }],
+    meta: [{ title: "Login - SolutionLab" }],
   }),
 })
 
@@ -71,7 +71,7 @@ function Login() {
       const data = (await response.json()) as TelegramStartResponse
       setSession(data)
       setStatus("pending")
-      window.location.href = data.deep_link
+      window.open(data.deep_link, "_blank", "noopener,noreferrer")
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t("error_generic"))
     } finally {
@@ -176,18 +176,26 @@ function Login() {
           )}
 
           {session && !isTerminal && (
-            <a
-              className="text-center text-sm underline underline-offset-4"
-              href={session.deep_link}
-            >
-              {t("login_open_telegram")}
-            </a>
+            <div className="flex flex-col items-center gap-3 rounded-lg border bg-muted/30 p-4 text-center">
+              <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
+                <Send className="size-5 text-primary" />
+              </div>
+              <p className="text-sm font-medium">{t("login_status_pending")}</p>
+              <p className="text-xs text-muted-foreground">{t("login_tg_instruction")}</p>
+              <a
+                href={session.deep_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+              >
+                <Send className="size-4" />
+                {t("login_open_telegram")}
+              </a>
+            </div>
           )}
 
-          {status !== "idle" && (
-            <p
-              className={`text-center text-sm ${isTerminal ? "text-destructive" : "text-muted-foreground"}`}
-            >
+          {status !== "idle" && isTerminal && (
+            <p className="text-center text-sm text-destructive">
               {t(`login_status_${status}` as never) || status}
             </p>
           )}

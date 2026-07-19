@@ -9,10 +9,19 @@ from app.core.limiter import limiter
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
+    IssueComment,
+    IssueCommentCreate,
+    IssueCommentPublic,
+    IssueCommentsPublic,
     Problem,
     ProblemMedia,
     Project,
     ProjectCreate,
+    ProjectIssue,
+    ProjectIssueCreate,
+    ProjectIssuePublic,
+    ProjectIssuesPublic,
+    ProjectIssueUpdate,
     ProjectMilestone,
     ProjectMilestoneCreate,
     ProjectMilestonePublic,
@@ -30,6 +39,7 @@ from app.models import (
     ReviewPublic,
     ReviewsPublic,
     User,
+    get_datetime_utc,
 )
 from app.modules.media.service import create_presigned_read_url
 from app.modules.notifications.queue import enqueue_notification_delivery_best_effort
@@ -256,6 +266,150 @@ def complete_project_endpoint(
     enqueue_notification_delivery_best_effort(notification.id)
     session.refresh(review)
     return review
+
+
+# ─── Issues ────────────────────────────────────────────────────────────────
+
+@router.get("/projects/{project_id}/issues", response_model=ProjectIssuesPublic)
+def list_issues(
+    session: SessionDep,
+    current_user: CurrentUser,
+    project_id: uuid.UUID,
+    status: str | None = None,
+    kind: str | None = None,
+    skip: int = 0,
+    limit: int = 50,
+) -> Any:
+    project = session.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    filters = [ProjectIssue.project_id == project_id]
+    if status:
+        filters.append(ProjectIssue.status == status)
+    if kind:
+        filters.append(ProjectIssue.kind == kind)
+    count = session.exec(select(func.count()).select_from(ProjectIssue).where(*filters)).one()
+    issues = session.exec(
+        select(ProjectIssue).where(*filters)
+        .order_by(ProjectIssue.created_at.desc())
+        .offset(skip).limit(limit)
+    ).all()
+    return ProjectIssuesPublic(data=issues, count=count)
+
+
+@router.post("/projects/{project_id}/issues", response_model=ProjectIssuePublic)
+def create_issue(
+    session: SessionDep,
+    current_user: CurrentUser,
+    project_id: uuid.UUID,
+    body: ProjectIssueCreate,
+) -> Any:
+    project = session.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    issue = ProjectIssue(
+        **body.model_dump(),
+        project_id=project_id,
+        author_id=current_user.id,
+    )
+    session.add(issue)
+    session.commit()
+    session.refresh(issue)
+    return issue
+
+
+@router.get("/projects/{project_id}/issues/{issue_id}", response_model=ProjectIssuePublic)
+def get_issue(
+    session: SessionDep,
+    current_user: CurrentUser,
+    project_id: uuid.UUID,
+    issue_id: uuid.UUID,
+) -> Any:
+    issue = session.exec(
+        select(ProjectIssue).where(
+            ProjectIssue.id == issue_id,
+            ProjectIssue.project_id == project_id,
+        )
+    ).first()
+    if not issue:
+        raise HTTPException(status_code=404, detail="Issue not found")
+    return issue
+
+
+@router.patch("/projects/{project_id}/issues/{issue_id}", response_model=ProjectIssuePublic)
+def update_issue(
+    session: SessionDep,
+    current_user: CurrentUser,
+    project_id: uuid.UUID,
+    issue_id: uuid.UUID,
+    body: ProjectIssueUpdate,
+) -> Any:
+    issue = session.exec(
+        select(ProjectIssue).where(
+            ProjectIssue.id == issue_id,
+            ProjectIssue.project_id == project_id,
+        )
+    ).first()
+    if not issue:
+        raise HTTPException(status_code=404, detail="Issue not found")
+    is_lead = session.exec(select(Project).where(Project.id == project_id)).first()
+    if issue.author_id != current_user.id and is_lead.lead_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not allowed")
+    data = body.model_dump(exclude_unset=True)
+    if "status" in data and data["status"] == "closed" and issue.status != "closed":
+        from datetime import datetime, timezone
+        data["closed_at"] = datetime.now(timezone.utc)
+    elif "status" in data and data["status"] == "open":
+        data["closed_at"] = None
+    for k, v in data.items():
+        setattr(issue, k, v)
+    issue.updated_at = get_datetime_utc()
+    session.add(issue)
+    session.commit()
+    session.refresh(issue)
+    return issue
+
+
+@router.get("/projects/{project_id}/issues/{issue_id}/comments", response_model=IssueCommentsPublic)
+def list_issue_comments(
+    session: SessionDep,
+    current_user: CurrentUser,
+    project_id: uuid.UUID,
+    issue_id: uuid.UUID,
+) -> Any:
+    issue = session.exec(select(ProjectIssue).where(ProjectIssue.id == issue_id, ProjectIssue.project_id == project_id)).first()
+    if not issue:
+        raise HTTPException(status_code=404, detail="Issue not found")
+    comments = session.exec(
+        select(IssueComment).where(IssueComment.issue_id == issue_id)
+        .order_by(IssueComment.created_at.asc())
+    ).all()
+    return IssueCommentsPublic(data=comments, count=len(comments))
+
+
+@router.post("/projects/{project_id}/issues/{issue_id}/comments", response_model=IssueCommentPublic)
+def create_issue_comment(
+    session: SessionDep,
+    current_user: CurrentUser,
+    project_id: uuid.UUID,
+    issue_id: uuid.UUID,
+    body: IssueCommentCreate,
+) -> Any:
+    issue = session.exec(select(ProjectIssue).where(ProjectIssue.id == issue_id, ProjectIssue.project_id == project_id)).first()
+    if not issue:
+        raise HTTPException(status_code=404, detail="Issue not found")
+    comment = IssueComment(
+        text=body.text,
+        issue_id=issue_id,
+        author_id=current_user.id,
+    )
+    session.add(comment)
+    issue.comment_count += 1
+    issue.updated_at = get_datetime_utc()
+    session.add(issue)
+    session.commit()
+    session.refresh(comment)
+    return comment
 
 
 @router.get("/projects/{project_id}/reviews", response_model=ReviewsPublic)

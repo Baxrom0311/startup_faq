@@ -55,7 +55,7 @@ import {
 export const Route = createFileRoute("/_layout/problems/$problemId")({
   component: ProblemDetail,
   head: () => ({
-    meta: [{ title: "Problem detail - SignalHub" }],
+    meta: [{ title: "Problem detail - SolutionLab" }],
   }),
 })
 

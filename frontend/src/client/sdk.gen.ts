@@ -176,7 +176,7 @@ export class HealthService {
 export class LoginService {
     /**
      * Login Access Token
-     * Disabled: SignalHub uses Telegram contact verification for login.
+     * Disabled: SolutionLab uses Telegram contact verification for login.
      * @returns Token Successful Response
      * @throws ApiError
      */
@@ -202,7 +202,7 @@ export class LoginService {
     
     /**
      * Recover Password
-     * Disabled: SignalHub uses Telegram contact verification for login.
+     * Disabled: SolutionLab uses Telegram contact verification for login.
      * @param data The data for the request.
      * @param data.email
      * @returns Message Successful Response
@@ -223,7 +223,7 @@ export class LoginService {
     
     /**
      * Reset Password
-     * Disabled: SignalHub uses Telegram contact verification for login.
+     * Disabled: SolutionLab uses Telegram contact verification for login.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns Message Successful Response
@@ -1226,7 +1226,7 @@ export class UsersService {
     
     /**
      * Update Password Me
-     * Disabled: SignalHub uses Telegram contact verification for login.
+     * Disabled: SolutionLab uses Telegram contact verification for login.
      * @returns Message Successful Response
      * @throws ApiError
      */
@@ -1239,7 +1239,7 @@ export class UsersService {
     
     /**
      * Register User
-     * Disabled: SignalHub uses Telegram contact verification for registration.
+     * Disabled: SolutionLab uses Telegram contact verification for registration.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns UserPublic Successful Response

@@ -135,7 +135,7 @@ services:
       dockerfile: frontend/Dockerfile
       args:
         - VITE_API_URL=http://localhost:8001
-        - NODE_ENV=development
+        - NODE_ENV=production
 
   playwright:
     build:

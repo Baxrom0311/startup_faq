@@ -1,12 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
+  AlertCircle,
   ArrowLeft,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Circle,
   GitBranch,
+  GitMerge,
   ImagePlus,
+  Lock,
+  MessageSquare,
+  Plus,
   Send,
   Star,
+  Users,
   XCircle,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -18,16 +26,28 @@ import {
   LoadingState,
   StatusBadge,
 } from "@/components/Product/StatusBadge"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import useAuth from "@/hooks/useAuth"
 import {
   apiJson,
   apiMutation,
+  type IssueComment,
+  type IssueCommentsResponse,
   type Problem,
   type Project,
+  type ProjectIssue,
+  type ProjectIssuesResponse,
   type ProjectMilestone,
   type ProjectMilestonesResponse,
   type ProjectUpdate,
@@ -42,10 +62,403 @@ import {
 export const Route = createFileRoute("/_layout/projects/$projectId")({
   component: ProjectDetail,
   head: () => ({
-    meta: [{ title: "Project detail - SignalHub" }],
+    meta: [{ title: "Project detail - SolutionLab" }],
   }),
 })
 
+const OPEN_STATUSES = new Set(["proposed", "approved", "in_progress", "piloting"])
+
+type IssueFilter = "all" | "open" | "closed" | "bug" | "feature" | "task" | "question"
+
+function kindBadgeClass(kind: string): string {
+  const map: Record<string, string> = {
+    bug: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    feature: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    task: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+    question: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  }
+  return map[kind] ?? "bg-muted text-muted-foreground"
+}
+
+// ─── Issue Detail Panel ──────────────────────────────────────────────────────
+interface IssueDetailProps {
+  issue: ProjectIssue
+  projectId: string
+  currentUserId: string | undefined
+  isLead: boolean
+  onUpdated: () => void
+}
+
+function IssueDetail({ issue, projectId, currentUserId, isLead, onUpdated }: IssueDetailProps) {
+  const { t } = useTranslation()
+  const [comments, setComments] = useState<IssueComment[]>([])
+  const [commentText, setCommentText] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const loadComments = useCallback(async () => {
+    try {
+      const res = await apiJson<IssueCommentsResponse>(
+        `/projects/${projectId}/issues/${issue.id}/comments`
+      )
+      setComments(res.data)
+    } catch {
+      // ignore
+    }
+  }, [projectId, issue.id])
+
+  useEffect(() => {
+    loadComments().catch(() => undefined)
+  }, [loadComments])
+
+  const submitComment = async () => {
+    if (!commentText.trim()) return
+    setIsSubmitting(true)
+    try {
+      await apiMutation(`/projects/${projectId}/issues/${issue.id}/comments`, {
+        text: commentText.trim(),
+      })
+      setCommentText("")
+      await loadComments()
+      onUpdated()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("error_comment_add"))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const toggleStatus = async () => {
+    const newStatus = issue.status === "open" ? "closed" : "open"
+    try {
+      await apiMutation(
+        `/projects/${projectId}/issues/${issue.id}`,
+        { status: newStatus },
+        "PATCH"
+      )
+      onUpdated()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("error_action"))
+    }
+  }
+
+  const canToggle = currentUserId === issue.author_id || isLead
+
+  return (
+    <div className="border-t bg-muted/20 p-4 grid gap-4">
+      {issue.body && (
+        <p className="text-sm whitespace-pre-wrap leading-relaxed text-foreground/80">
+          {issue.body}
+        </p>
+      )}
+
+      {/* Comments */}
+      {comments.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {comments.map((c) => (
+            <div key={c.id} className="flex items-start gap-2.5">
+              <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                C
+              </div>
+              <div className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2">
+                <p className="text-sm whitespace-pre-wrap">{c.text}</p>
+                <p className="text-xs text-muted-foreground mt-1">{shortDate(c.created_at)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add comment + status toggle */}
+      {currentUserId && (
+        <div className="flex flex-col gap-2">
+          <Textarea
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            placeholder={t("issue_comment_placeholder")}
+            className="min-h-[70px] resize-none text-sm"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submitComment()
+            }}
+          />
+          <div className="flex items-center justify-between gap-2">
+            {canToggle && (
+              <Button variant="outline" size="sm" onClick={toggleStatus}>
+                {issue.status === "open" ? (
+                  <><XCircle className="size-3.5" /> {t("issue_close")}</>
+                ) : (
+                  <><CheckCircle2 className="size-3.5" /> {t("issue_reopen")}</>
+                )}
+              </Button>
+            )}
+            <Button
+              size="sm"
+              className="ml-auto"
+              onClick={submitComment}
+              disabled={isSubmitting || !commentText.trim()}
+            >
+              <Send className="size-3.5" />
+              {t("issue_add_comment")}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── New Issue Dialog ─────────────────────────────────────────────────────────
+interface NewIssueFormProps {
+  projectId: string
+  onCreated: () => void
+  onCancel: () => void
+}
+
+function NewIssueForm({ projectId, onCreated, onCancel }: NewIssueFormProps) {
+  const { t } = useTranslation()
+  const [title, setTitle] = useState("")
+  const [body, setBody] = useState("")
+  const [kind, setKind] = useState("task")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const submit = async () => {
+    if (!title.trim()) return
+    setIsSubmitting(true)
+    try {
+      await apiMutation(`/projects/${projectId}/issues`, { title: title.trim(), body: body.trim() || null, kind })
+      onCreated()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("error_action"))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <Card className="bg-background shadow-none">
+      <CardContent className="p-4 grid gap-3">
+        <div className="grid gap-1.5">
+          <label className="text-xs font-medium text-muted-foreground">{t("issue_title_label")}</label>
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={t("issue_title_label")}
+            onKeyDown={(e) => { if (e.key === "Enter") submit() }}
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <label className="text-xs font-medium text-muted-foreground">{t("issue_body_label")}</label>
+          <Textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder={t("issue_body_label")}
+            className="min-h-[80px] resize-none"
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <label className="text-xs font-medium text-muted-foreground">{t("issue_kind_label")}</label>
+          <Select value={kind} onValueChange={setKind}>
+            <SelectTrigger className="h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="bug">{t("issue_kind_bug")}</SelectItem>
+              <SelectItem value="feature">{t("issue_kind_feature")}</SelectItem>
+              <SelectItem value="task">{t("issue_kind_task")}</SelectItem>
+              <SelectItem value="question">{t("issue_kind_question")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <Button variant="outline" size="sm" onClick={onCancel}>{t("cancel")}</Button>
+          <Button size="sm" onClick={submit} disabled={isSubmitting || !title.trim()}>
+            {t("issue_submit")}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ─── Issues Tab ───────────────────────────────────────────────────────────────
+interface IssuesTabProps {
+  projectId: string
+  currentUserId: string | undefined
+  isLead: boolean
+}
+
+function IssuesTab({ projectId, currentUserId, isLead }: IssuesTabProps) {
+  const { t } = useTranslation()
+  const [issues, setIssues] = useState<ProjectIssue[]>([])
+  const [filter, setFilter] = useState<IssueFilter>("all")
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [showNew, setShowNew] = useState(false)
+
+  const loadIssues = useCallback(async () => {
+    try {
+      const res = await apiJson<ProjectIssuesResponse>(`/projects/${projectId}/issues`)
+      setIssues(res.data)
+    } catch {
+      // ignore
+    }
+  }, [projectId])
+
+  useEffect(() => {
+    loadIssues().catch(() => undefined)
+  }, [loadIssues])
+
+  const filtered = useMemo(() => {
+    if (filter === "all") return issues
+    if (filter === "open") return issues.filter((i) => i.status === "open")
+    if (filter === "closed") return issues.filter((i) => i.status === "closed")
+    return issues.filter((i) => i.kind === filter)
+  }, [issues, filter])
+
+  const kindLabel = (kind: string) => {
+    const map: Record<string, string> = {
+      bug: t("issue_kind_bug"),
+      feature: t("issue_kind_feature"),
+      task: t("issue_kind_task"),
+      question: t("issue_kind_question"),
+    }
+    return map[kind] ?? kind
+  }
+
+  const filterButtons: { key: IssueFilter; label: string }[] = [
+    { key: "all", label: t("issue_all") },
+    { key: "open", label: t("issue_open") },
+    { key: "closed", label: t("issue_closed") },
+    { key: "bug", label: t("issue_kind_bug") },
+    { key: "feature", label: t("issue_kind_feature") },
+    { key: "task", label: t("issue_kind_task") },
+    { key: "question", label: t("issue_kind_question") },
+  ]
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex flex-wrap gap-1">
+          {filterButtons.map((fb) => (
+            <button
+              key={fb.key}
+              type="button"
+              onClick={() => setFilter(fb.key)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                filter === fb.key
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+              }`}
+            >
+              {fb.label}
+            </button>
+          ))}
+        </div>
+        {currentUserId && !showNew && (
+          <Button size="sm" variant="outline" onClick={() => setShowNew(true)}>
+            <Plus className="size-3.5" />
+            {t("issue_new")}
+          </Button>
+        )}
+      </div>
+
+      {/* New issue form */}
+      {showNew && (
+        <NewIssueForm
+          projectId={projectId}
+          onCreated={async () => {
+            setShowNew(false)
+            await loadIssues()
+          }}
+          onCancel={() => setShowNew(false)}
+        />
+      )}
+
+      {/* Issue list */}
+      {filtered.length === 0 ? (
+        <Card className="bg-background shadow-none">
+          <CardContent className="p-8">
+            <EmptyState message={t("issue_no_items")} />
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="rounded-lg border bg-background overflow-hidden">
+          {filtered.map((issue, idx) => (
+            <div key={issue.id}>
+              {/* Issue row */}
+              <div
+                className={`flex items-start gap-3 p-3 cursor-pointer hover:bg-muted/30 transition-colors ${
+                  idx < filtered.length - 1 && expandedId !== issue.id ? "border-b" : ""
+                }`}
+                onClick={() =>
+                  setExpandedId(expandedId === issue.id ? null : issue.id)
+                }
+              >
+                {/* Status icon */}
+                <div className="mt-0.5 shrink-0">
+                  {issue.status === "open" ? (
+                    <AlertCircle className="size-4 text-green-600" />
+                  ) : (
+                    <CheckCircle2 className="size-4 text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${kindBadgeClass(issue.kind)}`}
+                    >
+                      {kindLabel(issue.kind)}
+                    </span>
+                    <span className="text-sm font-medium truncate">{issue.title}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {shortDate(issue.created_at)}
+                  </p>
+                </div>
+
+                {/* Comment count */}
+                {issue.comment_count > 0 && (
+                  <div className="flex items-center gap-1 shrink-0 text-xs text-muted-foreground">
+                    <MessageSquare className="size-3.5" />
+                    {issue.comment_count}
+                  </div>
+                )}
+
+                {/* Expand indicator */}
+                <div className="shrink-0 text-muted-foreground">
+                  {expandedId === issue.id ? (
+                    <ChevronDown className="size-4" />
+                  ) : (
+                    <ChevronRight className="size-4" />
+                  )}
+                </div>
+              </div>
+
+              {/* Expanded detail */}
+              {expandedId === issue.id && (
+                <IssueDetail
+                  issue={issue}
+                  projectId={projectId}
+                  currentUserId={currentUserId}
+                  isLead={isLead}
+                  onUpdated={loadIssues}
+                />
+              )}
+
+              {/* Bottom border after expanded block */}
+              {expandedId === issue.id && idx < filtered.length - 1 && (
+                <div className="border-b" />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Main Component ──────────────────────────────────────────────────────────
 function ProjectDetail() {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -61,6 +474,8 @@ function ProjectDetail() {
   const [isSendingUpdate, setIsSendingUpdate] = useState(false)
   const [reviewRating, setReviewRating] = useState("5")
   const [reviewText, setReviewText] = useState("")
+  const [tab, setTab] = useState<"overview" | "issues" | "milestones" | "activity">("overview")
+
   const updatePhotoPreviews = useMemo(
     () =>
       updatePhotos.map((file) => ({
@@ -128,16 +543,12 @@ function ProjectDetail() {
     try {
       await apiMutation(
         `/milestones/${milestone.id}`,
-        {
-          status: milestone.status === "done" ? "todo" : "done",
-        },
+        { status: milestone.status === "done" ? "todo" : "done" },
         "PATCH",
       )
       await loadProject()
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : t("error_milestone_toggle"),
-      )
+      toast.error(err instanceof Error ? err.message : t("error_milestone_toggle"))
     }
   }
 
@@ -173,318 +584,372 @@ function ProjectDetail() {
     }
   }
 
-  if (!project) {
-    return <LoadingState />
-  }
+  if (!project) return <LoadingState />
 
   const isLead = user?.id === project.lead_id || !!user?.is_superuser
   const isOwner = user?.id === problem?.author_id || !!user?.is_superuser
+  const isOpen = OPEN_STATUSES.has(project.status)
+
   const canReview = isOwner && project.status === "proposed"
-  const canPilot =
-    isLead && ["approved", "in_progress"].includes(project.status)
-  const canManage =
-    isLead && ["approved", "in_progress", "piloting"].includes(project.status)
+  const canPilot = isLead && ["approved", "in_progress"].includes(project.status)
+  const canManage = isLead && ["approved", "in_progress", "piloting"].includes(project.status)
   const canSolve = isOwner && project.status === "piloting"
+  const canPostUpdate = (isLead || isOwner) && isOpen
+
+  const doneCount = milestones.filter((m) => m.status === "done").length
+  const progressPct = milestones.length > 0 ? Math.round((doneCount / milestones.length) * 100) : 0
+
+  const tabs: { key: typeof tab; label: string }[] = [
+    { key: "overview", label: t("project_tab_overview") },
+    { key: "issues", label: t("project_tab_issues") },
+    { key: "milestones", label: t("project_tab_milestones") },
+    { key: "activity", label: t("project_tab_activity") },
+  ]
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
       <main className="flex flex-col gap-4">
         <Button variant="ghost" className="w-fit" asChild>
-          <Link to="/">
+          <Link to="/projects">
             <ArrowLeft />
-            {t("project_back")}
+            {t("nav_projects")}
           </Link>
         </Button>
 
+        {/* Header card */}
         <Card className="bg-background shadow-none">
-          <CardHeader className="border-b">
-            <div className="mb-3 flex items-center gap-2">
-              <StatusBadge status={project.status} />
-              <span className="text-muted-foreground text-xs">
-                {shortDate(project.created_at)}
-              </span>
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <div className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full ${isOpen ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-muted text-muted-foreground"}`}>
+                {isOpen ? <GitBranch className="size-4" /> : <GitMerge className="size-4" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-xl font-semibold">{project.title}</h1>
+                  <StatusBadge status={project.status} />
+                  <Badge variant="outline" className="gap-1 text-xs">
+                    {isOpen ? <GitBranch className="size-3" /> : <Lock className="size-3" />}
+                    {isOpen ? t("project_open") : t("project_closed")}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {t("project_created")} {shortDate(project.created_at)}
+                </p>
+              </div>
             </div>
-            <CardTitle className="break-words text-2xl">
-              {project.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-5 p-5">
+
             {project.pitch && (
-              <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-6">
+              <p className="text-muted-foreground mt-4 whitespace-pre-wrap text-sm leading-6 border-t pt-4">
                 {project.pitch}
               </p>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Tabs */}
+        <div className="flex gap-1 border-b">
+          {tabs.map((tb) => (
+            <button
+              key={tb.key}
+              type="button"
+              onClick={() => setTab(tb.key)}
+              className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                tab === tb.key
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tb.label}
+              {tb.key === "activity" && updates.length > 0 && (
+                <Badge variant="secondary" className="ml-1.5 text-xs">{updates.length}</Badge>
+              )}
+              {tb.key === "milestones" && milestones.length > 0 && (
+                <Badge variant="secondary" className="ml-1.5 text-xs">{doneCount}/{milestones.length}</Badge>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Overview tab ── */}
+        {tab === "overview" && (
+          <div className="flex flex-col gap-4">
+            {/* Linked signal */}
             {problem && (
               <Link
                 to="/problems/$problemId"
                 params={{ problemId: problem.id }}
-                className="rounded-md border bg-muted/30 p-4 hover:bg-muted/50"
+                className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3 transition-colors hover:bg-muted/60"
               >
-                <span className="block text-sm font-medium">
-                  {t("project_problem_label")}
-                </span>
-                <span className="text-muted-foreground mt-1 block truncate text-sm">
-                  {problem.title || problem.raw_text || t("unnamed_problem")}
-                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground">{t("project_problem_label")}</p>
+                  <p className="mt-0.5 truncate text-sm font-medium">
+                    {problem.title || problem.raw_text || t("unnamed_problem")}
+                  </p>
+                </div>
               </Link>
             )}
-            {(canReview || canPilot) && (
-              <div className="flex flex-wrap gap-2">
-                {canReview && (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        mutateProject(`/projects/${projectId}/approve`)
-                      }
-                    >
-                      <CheckCircle2 />
-                      {t("project_approve")}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        mutateProject(`/projects/${projectId}/reject`)
-                      }
-                    >
-                      <XCircle />
-                      {t("project_reject")}
-                    </Button>
-                  </>
-                )}
-                {canPilot && (
-                  <Button
-                    onClick={() =>
-                      mutateProject(`/projects/${projectId}/start-piloting`)
-                    }
-                  >
-                    <GitBranch />
-                    {t("project_start_pilot")}
-                  </Button>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
-        <Card className="bg-background shadow-none">
-          <CardHeader>
-            <CardTitle className="text-base">
-              {t("project_updates_title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-            {canManage && (
-              <>
-                <Textarea
-                  value={updateText}
-                  onChange={(event) => setUpdateText(event.target.value)}
-                  placeholder={t("project_update_placeholder")}
-                />
-                {updatePhotos.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                    {updatePhotoPreviews.map((preview) => (
-                      <img
-                        key={preview.id}
-                        src={preview.url}
-                        alt=""
-                        className="aspect-square rounded-md border object-cover"
-                      />
-                    ))}
-                  </div>
-                )}
-                <div className="flex items-center justify-between gap-2">
-                  <Button variant="outline" asChild>
-                    <label>
-                      <ImagePlus />
-                      {t("project_photo")}
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        multiple
-                        className="hidden"
-                        onChange={(event) =>
-                          setUpdatePhotos(
-                            Array.from(event.target.files || []).slice(0, 5),
-                          )
-                        }
-                      />
-                    </label>
-                  </Button>
-                  <Button onClick={addUpdate} disabled={isSendingUpdate}>
-                    <Send />
-                    {t("project_send")}
-                  </Button>
-                </div>
-              </>
-            )}
-            <div className="divide-y rounded-md border">
-              {updates.length === 0 ? (
-                <div className="p-4">
-                  <EmptyState />
-                </div>
-              ) : (
-                updates.map((update) => (
-                  <div key={update.id} className="p-4">
-                    <p className="text-sm">{update.text}</p>
-                    {update.media && update.media.length > 0 && (
-                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                        {update.media.map((media) =>
-                          media.kind === "photo" ? (
-                            <img
-                              key={media.object_key}
-                              src={media.url}
-                              alt=""
-                              className="aspect-square rounded-md border object-cover"
-                            />
-                          ) : null,
-                        )}
+            {/* Action buttons */}
+            {(canReview || canPilot || canSolve) && (
+              <Card className="bg-background shadow-none">
+                <CardContent className="p-4 flex flex-wrap gap-2">
+                  {canReview && (
+                    <>
+                      <Button variant="outline" onClick={() => mutateProject(`/projects/${projectId}/approve`)}>
+                        <CheckCircle2 className="size-4" />
+                        {t("project_approve")}
+                      </Button>
+                      <Button variant="outline" onClick={() => mutateProject(`/projects/${projectId}/reject`)}>
+                        <XCircle className="size-4" />
+                        {t("project_reject")}
+                      </Button>
+                    </>
+                  )}
+                  {canPilot && (
+                    <Button onClick={() => mutateProject(`/projects/${projectId}/start-piloting`)}>
+                      <GitBranch className="size-4" />
+                      {t("project_start_pilot")}
+                    </Button>
+                  )}
+                  {canSolve && (
+                    <div className="w-full grid gap-3">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-muted-foreground mr-1">{t("project_rating")}:</span>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button key={star} type="button" onClick={() => setReviewRating(String(star))}>
+                            <Star className={`size-5 transition-colors cursor-pointer ${star <= Number(reviewRating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground hover:text-amber-300"}`} />
+                          </button>
+                        ))}
                       </div>
-                    )}
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      {shortDate(update.created_at)}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </main>
-
-      <aside className="flex flex-col gap-4">
-        <Card className="bg-background shadow-none">
-          <CardHeader>
-            <CardTitle className="text-base">
-              {t("project_plan_title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-            {canManage && (
-              <div className="grid gap-2">
-                <Input
-                  value={milestoneTitle}
-                  onChange={(event) => setMilestoneTitle(event.target.value)}
-                  placeholder={t("project_milestone_placeholder")}
-                />
-                <Button variant="outline" onClick={addMilestone}>
-                  {t("project_milestone_add")}
-                </Button>
-              </div>
+                      <Textarea
+                        value={reviewText}
+                        onChange={(e) => setReviewText(e.target.value)}
+                        placeholder={t("project_review_placeholder")}
+                      />
+                      <Button onClick={complete}>{t("project_mark_solved")}</Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             )}
-            <div className="grid gap-2">
+
+            {/* Reviews */}
+            {reviews.length > 0 && (
+              <Card className="bg-background shadow-none">
+                <CardHeader>
+                  <CardTitle className="text-sm">{t("project_reviews_title")}</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-3">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="rounded-md border p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star key={star} className={`size-3.5 ${star <= review.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+                          ))}
+                        </div>
+                        <span className="text-muted-foreground text-xs">{shortDate(review.created_at)}</span>
+                      </div>
+                      {review.text && (
+                        <p className="text-muted-foreground mt-2 whitespace-pre-wrap text-sm">{review.text}</p>
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* ── Issues tab ── */}
+        {tab === "issues" && (
+          <IssuesTab
+            projectId={projectId}
+            currentUserId={user?.id}
+            isLead={isLead}
+          />
+        )}
+
+        {/* ── Milestones tab ── */}
+        {tab === "milestones" && (
+          <Card className="bg-background shadow-none">
+            <CardContent className="p-4 grid gap-4">
+              {milestones.length > 0 && (
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{t("project_progress")}</span>
+                    <span>{progressPct}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+              {canManage && (
+                <div className="flex gap-2">
+                  <Input
+                    value={milestoneTitle}
+                    onChange={(e) => setMilestoneTitle(e.target.value)}
+                    placeholder={t("project_milestone_placeholder")}
+                    onKeyDown={(e) => { if (e.key === "Enter") addMilestone() }}
+                  />
+                  <Button variant="outline" onClick={addMilestone} className="shrink-0">
+                    {t("project_milestone_add")}
+                  </Button>
+                </div>
+              )}
               {milestones.length === 0 ? (
                 <EmptyState />
               ) : (
-                milestones.map((milestone) => (
-                  <div
-                    key={milestone.id}
-                    className="flex items-center gap-2 rounded-md border px-3 py-2"
-                  >
-                    {canManage && (
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => toggleMilestone(milestone)}
+                <div className="grid gap-2">
+                  {milestones.map((milestone) => (
+                    <div
+                      key={milestone.id}
+                      className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors ${
+                        milestone.status === "done" ? "bg-muted/40" : "bg-background"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => canManage && toggleMilestone(milestone)}
+                        className={canManage ? "cursor-pointer text-primary" : "cursor-default text-muted-foreground"}
                       >
                         {milestone.status === "done" ? (
-                          <CheckCircle2 />
+                          <CheckCircle2 className="size-4 text-green-600" />
                         ) : (
-                          <Circle />
+                          <Circle className="size-4" />
                         )}
-                      </Button>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">
-                        {milestone.title}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        {statusLabel(milestone.status)}
-                      </p>
+                      </button>
+                      <div className="min-w-0 flex-1">
+                        <p className={`truncate text-sm ${milestone.status === "done" ? "line-through text-muted-foreground" : "font-medium"}`}>
+                          {milestone.title}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-xs text-muted-foreground">{statusLabel(milestone.status)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Activity tab ── */}
+        {tab === "activity" && (
+          <div className="flex flex-col gap-3">
+            {canPostUpdate && (
+              <Card className="bg-background shadow-none">
+                <CardContent className="p-4 grid gap-3">
+                  <Textarea
+                    value={updateText}
+                    onChange={(e) => setUpdateText(e.target.value)}
+                    placeholder={t("project_update_placeholder")}
+                    className="min-h-[80px] resize-none"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addUpdate()
+                    }}
+                  />
+                  {updatePhotos.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2">
+                      {updatePhotoPreviews.map((p) => (
+                        <img key={p.id} src={p.url} alt="" className="aspect-square rounded-md border object-cover" />
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <label className="cursor-pointer">
+                        <ImagePlus className="size-4" />
+                        {t("project_photo")}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => setUpdatePhotos(Array.from(e.target.files || []).slice(0, 5))}
+                        />
+                      </label>
+                    </Button>
+                    <Button size="sm" onClick={addUpdate} disabled={isSendingUpdate || !updateText.trim()}>
+                      <Send className="size-4" />
+                      {t("project_send")}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {updates.length === 0 ? (
+              <Card className="bg-background shadow-none">
+                <CardContent className="p-8">
+                  <EmptyState message={t("project_no_updates")} />
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="flex flex-col gap-0 rounded-lg border bg-background overflow-hidden">
+                {updates.map((update, idx) => (
+                  <div key={update.id} className={`p-4 ${idx < updates.length - 1 ? "border-b" : ""}`}>
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                        U
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{update.text}</p>
+                        {update.media && update.media.length > 0 && (
+                          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            {update.media.map((media) =>
+                              media.kind === "photo" ? (
+                                <img
+                                  key={media.object_key}
+                                  src={media.url}
+                                  alt=""
+                                  className="aspect-square rounded-md border object-cover"
+                                />
+                              ) : null,
+                            )}
+                          </div>
+                        )}
+                        <p className="text-muted-foreground mt-2 text-xs">{shortDate(update.created_at)}</p>
+                      </div>
                     </div>
                   </div>
-                ))
-              )}
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Sidebar */}
+      <aside className="flex flex-col gap-4">
+        <Card className="bg-background shadow-none">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Users className="size-4" />
+              {t("project_team")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{t("project_status_label")}</span>
+              <StatusBadge status={project.status} />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{t("project_visibility")}</span>
+              <Badge variant="outline" className="gap-1 text-xs">
+                {isOpen ? <GitBranch className="size-3" /> : <Lock className="size-3" />}
+                {isOpen ? t("project_open") : t("project_closed")}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">{t("project_created")}</span>
+              <span className="text-xs">{shortDate(project.created_at)}</span>
             </div>
           </CardContent>
         </Card>
-
-        {canSolve && (
-          <Card className="bg-background shadow-none">
-            <CardHeader>
-              <CardTitle className="text-base">
-                {t("project_complete_title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-3">
-              <div className="flex items-center gap-1.5 py-1">
-                <span className="text-sm font-medium text-muted-foreground mr-1">
-                  {t("project_rating")}:
-                </span>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setReviewRating(String(star))}
-                    className="focus:outline-none cursor-pointer"
-                  >
-                    <Star
-                      className={`size-5 transition-colors ${
-                        star <= Number(reviewRating)
-                          ? "fill-amber-400 text-amber-400"
-                          : "text-muted-foreground hover:text-amber-300"
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
-              <Textarea
-                value={reviewText}
-                onChange={(event) => setReviewText(event.target.value)}
-                placeholder={t("project_review_placeholder")}
-              />
-              <Button onClick={complete}>{t("project_mark_solved")}</Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {reviews.length > 0 && (
-          <Card className="bg-background shadow-none">
-            <CardHeader>
-              <CardTitle className="text-base">
-                {t("project_reviews_title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-3">
-              {reviews.map((review) => (
-                <div key={review.id} className="rounded-md border p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`size-3.5 ${
-                            star <= review.rating
-                              ? "fill-amber-400 text-amber-400"
-                              : "text-muted-foreground/30"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-muted-foreground text-xs">
-                      {shortDate(review.created_at)}
-                    </span>
-                  </div>
-                  {review.text && (
-                    <p className="text-muted-foreground mt-2 whitespace-pre-wrap text-sm">
-                      {review.text}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
       </aside>
     </div>
   )

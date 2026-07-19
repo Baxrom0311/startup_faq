@@ -2,12 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import {
   Bell,
   CheckCheck,
+  ChevronDown,
   CircleDot,
   GitBranch,
   MessageSquare,
   Plus,
   Search,
   ThumbsUp,
+  X,
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -22,6 +24,11 @@ import { SubmitProblemDialog } from "@/components/Product/SubmitProblemDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   type AnalyticsOverview,
@@ -47,12 +54,12 @@ import {
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
   head: () => ({
-    meta: [{ title: "Signal board - SignalHub" }],
+    meta: [{ title: "Signal board - SolutionLab" }],
   }),
 })
 
 function Dashboard() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [problems, setProblems] = useState<Problem[]>([])
   const [incomingProjects, setIncomingProjects] = useState<Project[]>([])
   const [myProjects, setMyProjects] = useState<Project[]>([])
@@ -156,13 +163,19 @@ function Dashboard() {
     }
   }
 
+  const lang = i18n.language?.slice(0, 2) as "uz" | "ru" | "en"
+  const sectorName = (s: Sector) =>
+    (lang === "ru" ? s.name_ru : lang === "en" ? s.name_en : null) ??
+    t(`sector_${s.slug}` as any, s.name_uz)
+
+  const activeSectorObj = activeSector != null ? sectorMap.get(activeSector) : null
+  const activeRegionObj = activeRegion != null ? regions.find((r) => r.id === activeRegion) : null
+  const hasActiveFilters = activeSector != null || activeRegion != null
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 border-b pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
-          <div className="mb-3 flex items-center gap-2">
-            <Badge variant="secondary">Beta</Badge>
-          </div>
           <h1 className="text-3xl font-semibold tracking-tight">
             {t("dashboard_title")}
           </h1>
@@ -211,76 +224,147 @@ function Dashboard() {
             />
           </div>
 
-          {sectors.length > 0 && (
-            <div className="-mx-1 overflow-x-auto px-1 pb-1">
-              <div className="flex gap-2" style={{ width: "max-content" }}>
-                <button
-                  type="button"
-                  onClick={() => setActiveSector(null)}
-                  className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                    activeSector === null
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background hover:bg-muted/50"
-                  }`}
-                >
-                  {t("dashboard_all_sectors")}
-                </button>
-                {sectors.map((sector) => (
-                  <button
-                    type="button"
-                    key={sector.id}
-                    onClick={() =>
-                      setActiveSector(
-                        activeSector === sector.id ? null : sector.id,
-                      )
-                    }
-                    className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                      activeSector === sector.id
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background hover:bg-muted/50"
-                    }`}
+          {/* Telegram-style compact filter bar */}
+          {(sectors.length > 0 || regions.length > 0) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Sector filter dropdown */}
+              {sectors.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors ${
+                        activeSectorObj
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background hover:bg-muted/50"
+                      }`}
+                    >
+                      <span>{activeSectorObj?.icon ?? "🗂️"}</span>
+                      <span className="max-w-[110px] truncate">
+                        {activeSectorObj
+                          ? sectorName(activeSectorObj)
+                          : t("dashboard_all_sectors")}
+                      </span>
+                      <ChevronDown className="size-3 shrink-0 opacity-60" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-[320px] p-2"
+                    align="start"
+                    sideOffset={6}
                   >
-                    {sector.icon}{" "}
-                    {t(`sector_${sector.slug}` as any, sector.name_uz)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+                    <div className="grid grid-cols-3 gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setActiveSector(null)}
+                        className={`col-span-3 flex items-center gap-1.5 rounded px-2 py-1.5 text-left text-xs font-medium transition-colors ${
+                          activeSector === null
+                            ? "bg-primary text-primary-foreground"
+                            : "hover:bg-muted"
+                        }`}
+                      >
+                        <span>🗂️</span>
+                        <span>{t("dashboard_all_sectors")}</span>
+                      </button>
+                      {sectors.map((sector) => (
+                        <button
+                          type="button"
+                          key={sector.id}
+                          onClick={() =>
+                            setActiveSector(
+                              activeSector === sector.id ? null : sector.id,
+                            )
+                          }
+                          className={`flex items-center gap-1 rounded px-2 py-1.5 text-left text-xs transition-colors ${
+                            activeSector === sector.id
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-muted"
+                          }`}
+                        >
+                          <span className="shrink-0">{sector.icon}</span>
+                          <span className="truncate">{sectorName(sector)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
-          {regions.length > 0 && (
-            <div className="-mx-1 overflow-x-auto px-1 pb-1">
-              <div className="flex gap-2" style={{ width: "max-content" }}>
+              {/* Region filter dropdown */}
+              {regions.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors ${
+                        activeRegionObj
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background hover:bg-muted/50"
+                      }`}
+                    >
+                      <span>📍</span>
+                      <span className="max-w-[110px] truncate">
+                        {activeRegionObj?.name ?? t("dashboard_all_regions")}
+                      </span>
+                      <ChevronDown className="size-3 shrink-0 opacity-60" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-[280px] p-2"
+                    align="start"
+                    sideOffset={6}
+                  >
+                    <div className="grid grid-cols-2 gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setActiveRegion(null)}
+                        className={`col-span-2 flex items-center gap-1.5 rounded px-2 py-1.5 text-left text-xs font-medium transition-colors ${
+                          activeRegion === null
+                            ? "bg-primary text-primary-foreground"
+                            : "hover:bg-muted"
+                        }`}
+                      >
+                        <span>📍</span>
+                        <span>{t("dashboard_all_regions")}</span>
+                      </button>
+                      {regions.map((region) => (
+                        <button
+                          type="button"
+                          key={region.id}
+                          onClick={() =>
+                            setActiveRegion(
+                              activeRegion === region.id ? null : region.id,
+                            )
+                          }
+                          className={`flex items-center gap-1.5 rounded px-2 py-1.5 text-left text-xs transition-colors ${
+                            activeRegion === region.id
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-muted"
+                          }`}
+                        >
+                          <span>📍</span>
+                          <span className="truncate">{region.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
+              {/* Clear filters */}
+              {hasActiveFilters && (
                 <button
                   type="button"
-                  onClick={() => setActiveRegion(null)}
-                  className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                    activeRegion === null
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background hover:bg-muted/50"
-                  }`}
+                  onClick={() => {
+                    setActiveSector(null)
+                    setActiveRegion(null)
+                  }}
+                  className="inline-flex h-8 items-center gap-1 rounded-full border border-dashed px-3 text-xs text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
                 >
-                  📍 {t("dashboard_all_regions")}
+                  <X className="size-3" />
+                  {t("clear_filters")}
                 </button>
-                {regions.map((region) => (
-                  <button
-                    type="button"
-                    key={region.id}
-                    onClick={() =>
-                      setActiveRegion(
-                        activeRegion === region.id ? null : region.id,
-                      )
-                    }
-                    className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                      activeRegion === region.id
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background hover:bg-muted/50"
-                    }`}
-                  >
-                    📍 {region.name}
-                  </button>
-                ))}
-              </div>
+              )}
             </div>
           )}
 
@@ -373,9 +457,15 @@ function ProblemFeedRow({
   problem: Problem
   sectorMap: Map<number, Sector>
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const sector =
     problem.sector_id != null ? sectorMap.get(problem.sector_id) : null
+  const lang = i18n.language?.slice(0, 2) as "uz" | "ru" | "en"
+  const sectorLabel = sector
+    ? (lang === "ru" ? sector.name_ru : lang === "en" ? sector.name_en : null) ??
+      t(`sector_${sector.slug}` as any, sector.name_uz)
+    : null
+
   return (
     <Link
       to="/problems/$problemId"
@@ -389,9 +479,9 @@ function ProblemFeedRow({
       <div className="min-w-0">
         <div className="mb-2 flex flex-wrap items-center gap-2">
           <StatusBadge status={problem.status} />
-          {sector && (
+          {sector && sectorLabel && (
             <span className="text-muted-foreground text-xs">
-              {sector.icon} {t(`sector_${sector.slug}` as any, sector.name_uz)}
+              {sector.icon} {sectorLabel}
             </span>
           )}
         </div>

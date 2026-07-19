@@ -26,7 +26,7 @@ import { fetchRegions, type Region } from "@/lib/product-api"
 export const Route = createFileRoute("/_layout/settings")({
   component: Settings,
   head: () => ({
-    meta: [{ title: "Settings - SignalHub" }],
+    meta: [{ title: "Settings - SolutionLab" }],
   }),
 })
 

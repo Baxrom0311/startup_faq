@@ -21,7 +21,7 @@ export function Logo({
           <Network className="size-4" />
         </span>
         <span className="min-w-0 font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
-          SignalHub
+          SolutionLab
         </span>
       </div>
     ) : (
@@ -29,7 +29,7 @@ export function Logo({
         <span className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
           <Network className="size-4" />
         </span>
-        {variant === "full" && <span className="font-semibold">SignalHub</span>}
+        {variant === "full" && <span className="font-semibold">SolutionLab</span>}
       </div>
     )
 

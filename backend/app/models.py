@@ -491,6 +491,92 @@ class ReviewsPublic(SQLModel):
     count: int
 
 
+# ─── Project Issues ─────────────────────────────────────────────────────────
+
+class ProjectIssueBase(SQLModel):
+    title: str = Field(min_length=1, max_length=255)
+    body: str | None = Field(default=None, max_length=10000)
+    kind: str = Field(default="task", max_length=32)  # bug | feature | task | question
+    status: str = Field(default="open", max_length=32)  # open | closed
+
+
+class ProjectIssueCreate(ProjectIssueBase):
+    pass
+
+
+class ProjectIssueUpdate(SQLModel):
+    title: str | None = Field(default=None, min_length=1, max_length=255)
+    body: str | None = Field(default=None, max_length=10000)
+    kind: str | None = Field(default=None, max_length=32)
+    status: str | None = Field(default=None, max_length=32)
+
+
+class ProjectIssue(ProjectIssueBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    project_id: uuid.UUID = Field(foreign_key="project.id", nullable=False, index=True)
+    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    comment_count: int = Field(default=0)
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),
+    )
+    updated_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),
+    )
+    closed_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),
+    )
+
+
+class ProjectIssuePublic(ProjectIssueBase):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    author_id: uuid.UUID
+    comment_count: int
+    created_at: datetime
+    updated_at: datetime
+    closed_at: datetime | None = None
+
+
+class ProjectIssuesPublic(SQLModel):
+    data: list[ProjectIssuePublic]
+    count: int
+
+
+# ─── Issue Comments ────────────────────────────────────────────────────────
+
+class IssueCommentBase(SQLModel):
+    text: str = Field(min_length=1, max_length=5000)
+
+
+class IssueCommentCreate(IssueCommentBase):
+    pass
+
+
+class IssueComment(IssueCommentBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    issue_id: uuid.UUID = Field(foreign_key="projectissue.id", nullable=False, index=True)
+    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),
+    )
+
+
+class IssueCommentPublic(IssueCommentBase):
+    id: uuid.UUID
+    issue_id: uuid.UUID
+    author_id: uuid.UUID
+    created_at: datetime
+
+
+class IssueCommentsPublic(SQLModel):
+    data: list[IssueCommentPublic]
+    count: int
+
+
 class Notification(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, index=True, ondelete="CASCADE")

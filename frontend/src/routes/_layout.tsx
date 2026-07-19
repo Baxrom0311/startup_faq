@@ -3,7 +3,6 @@ import { AlertCircle, Search } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
 import AppSidebar from "@/components/Sidebar/AppSidebar"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   SidebarInset,
@@ -57,9 +56,6 @@ function Layout() {
             <Search className="size-4 shrink-0" />
             <span className="truncate">{t("layout_search")}</span>
           </div>
-          <Badge variant="secondary" className="ml-auto hidden sm:inline-flex">
-            Beta
-          </Badge>
         </header>
         <main className="bg-muted/20 flex-1 p-4 md:p-8">
           <div className="mx-auto max-w-7xl">
