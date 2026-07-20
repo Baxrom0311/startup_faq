@@ -74,6 +74,7 @@ function ProblemDetail() {
   const [replyTo, setReplyTo] = useState<Comment | null>(null)
   const [projectTitle, setProjectTitle] = useState("")
   const [projectPitch, setProjectPitch] = useState("")
+  const [projectRepoUrl, setProjectRepoUrl] = useState("")
   const [claiming, setClaiming] = useState(false)
 
   useEffect(() => {
@@ -149,9 +150,11 @@ function ProblemDetail() {
       await apiMutation(`/problems/${problemId}/claim`, {
         title: projectTitle.trim(),
         pitch: projectPitch.trim() || null,
+        repo_url: projectRepoUrl.trim() || null,
       })
       setProjectTitle("")
       setProjectPitch("")
+      setProjectRepoUrl("")
       toast.success(t("problem_proposal_sent"))
       await loadProblem()
     } catch (err) {
@@ -485,6 +488,11 @@ function ProblemDetail() {
                 value={projectPitch}
                 onChange={(event) => setProjectPitch(event.target.value)}
                 placeholder={t("problem_claim_pitch")}
+              />
+              <Input
+                value={projectRepoUrl}
+                onChange={(event) => setProjectRepoUrl(event.target.value)}
+                placeholder="GitHub / Repository URL (https://github.com/...)"
               />
               <LoadingButton
                 loading={claiming}

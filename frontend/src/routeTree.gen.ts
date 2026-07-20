@@ -19,7 +19,8 @@ import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutProjectsRouteImport } from './routes/_layout/projects'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
-import { Route as LayoutProjectsProjectIdRouteImport } from './routes/_layout/projects.$projectId'
+import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects/index'
+import { Route as LayoutProjectsProjectIdRouteImport } from './routes/_layout/projects/$projectId'
 import { Route as LayoutProblemsProblemIdRouteImport } from './routes/_layout/problems.$problemId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -71,6 +72,11 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutProjectsIndexRoute = LayoutProjectsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutProjectsRoute,
+} as any)
 const LayoutProjectsProjectIdRoute = LayoutProjectsProjectIdRouteImport.update({
   id: '/$projectId',
   path: '/$projectId',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof LayoutSettingsRoute
   '/problems/$problemId': typeof LayoutProblemsProblemIdRoute
   '/projects/$projectId': typeof LayoutProjectsProjectIdRoute
+  '/projects/': typeof LayoutProjectsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -102,11 +109,11 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/items': typeof LayoutItemsRoute
-  '/projects': typeof LayoutProjectsRouteWithChildren
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
   '/problems/$problemId': typeof LayoutProblemsProblemIdRoute
   '/projects/$projectId': typeof LayoutProjectsProjectIdRoute
+  '/projects': typeof LayoutProjectsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -122,6 +129,7 @@ export interface FileRoutesById {
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/problems/$problemId': typeof LayoutProblemsProblemIdRoute
   '/_layout/projects/$projectId': typeof LayoutProjectsProjectIdRoute
+  '/_layout/projects/': typeof LayoutProjectsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,6 +145,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/problems/$problemId'
     | '/projects/$projectId'
+    | '/projects/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -145,11 +154,11 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/items'
-    | '/projects'
     | '/settings'
     | '/'
     | '/problems/$problemId'
     | '/projects/$projectId'
+    | '/projects'
   id:
     | '__root__'
     | '/_layout'
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/_layout/'
     | '/_layout/problems/$problemId'
     | '/_layout/projects/$projectId'
+    | '/_layout/projects/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -246,6 +256,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/projects/': {
+      id: '/_layout/projects/'
+      path: '/'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof LayoutProjectsIndexRouteImport
+      parentRoute: typeof LayoutProjectsRoute
+    }
     '/_layout/projects/$projectId': {
       id: '/_layout/projects/$projectId'
       path: '/$projectId'
@@ -265,10 +282,12 @@ declare module '@tanstack/react-router' {
 
 interface LayoutProjectsRouteChildren {
   LayoutProjectsProjectIdRoute: typeof LayoutProjectsProjectIdRoute
+  LayoutProjectsIndexRoute: typeof LayoutProjectsIndexRoute
 }
 
 const LayoutProjectsRouteChildren: LayoutProjectsRouteChildren = {
   LayoutProjectsProjectIdRoute: LayoutProjectsProjectIdRoute,
+  LayoutProjectsIndexRoute: LayoutProjectsIndexRoute,
 }
 
 const LayoutProjectsRouteWithChildren = LayoutProjectsRoute._addFileChildren(

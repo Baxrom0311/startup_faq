@@ -163,9 +163,10 @@ def seed():
         total_issues = 0
         total_comments = 0
 
-        for project in projects:
-            pid = str(project.id)
-            data = PROJECT_DATA.get(pid)
+        # Assign data by position — UUIDs in PROJECT_DATA are local dev IDs
+        data_list = list(PROJECT_DATA.values())
+        for idx, project in enumerate(projects):
+            data = data_list[idx] if idx < len(data_list) else None
             if not data:
                 continue
 

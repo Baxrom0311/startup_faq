@@ -6,6 +6,9 @@ import {
   ChevronDown,
   ChevronRight,
   Circle,
+  Code2,
+  Edit3,
+  ExternalLink,
   GitBranch,
   GitMerge,
   ImagePlus,
@@ -29,6 +32,12 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -458,6 +467,132 @@ function IssuesTab({ projectId, currentUserId, isLead }: IssuesTabProps) {
   )
 }
 
+// ─── Project Chat & Discussions Tab ──────────────────────────────────────────
+interface ProjectChatTabProps {
+  projectId: string
+  currentUserId: string | undefined
+}
+
+function ProjectChatTab({ projectId, currentUserId }: ProjectChatTabProps) {
+  const { t } = useTranslation()
+  const [messages, setMessages] = useState<ProjectIssue[]>([])
+  const [text, setText] = useState("")
+  const [isSending, setIsSending] = useState(false)
+
+  const loadChat = useCallback(async () => {
+    try {
+      const res = await apiJson<ProjectIssuesResponse>(`/projects/${projectId}/issues`)
+      setMessages(res.data)
+    } catch {
+      // ignore
+    }
+  }, [projectId])
+
+  useEffect(() => {
+    loadChat().catch(() => undefined)
+  }, [loadChat])
+
+  const sendChatMessage = async () => {
+    if (!text.trim()) return
+    setIsSending(true)
+    try {
+      await apiMutation(`/projects/${projectId}/issues`, {
+        title: text.trim().slice(0, 100),
+        body: text.trim(),
+        kind: "question",
+      })
+      setText("")
+      await loadChat()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("error_action"))
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Card className="bg-background shadow-none border">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <MessageSquare className="size-5 text-primary" />
+            Loyiha Muhokamasi va Chat
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Loyiha bo'yicha jamoa va foydalanuvchilar bilan muloqot va takliflar
+          </p>
+        </CardHeader>
+        <CardContent className="p-4 grid gap-4">
+          {/* Messages list */}
+          {messages.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground text-sm border rounded-lg bg-muted/20">
+              <MessageSquare className="size-8 mx-auto mb-2 opacity-50" />
+              Hali muhokamalar yo'q. Birinchi xabarni qoldiring!
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1">
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+                    msg.author_id === currentUserId
+                      ? "bg-primary/5 border-primary/20 ml-4"
+                      : "bg-muted/30 mr-4"
+                  }`}
+                >
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
+                    {msg.author_id === currentUserId ? "Siz" : "U"}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold text-foreground">
+                        {msg.author_id === currentUserId ? "Siz" : "Foydalanuvchi"}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {shortDate(msg.created_at)}
+                      </span>
+                    </div>
+                    <p className="text-sm mt-1 whitespace-pre-wrap text-foreground/90">
+                      {msg.body || msg.title}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Send Box */}
+          {currentUserId ? (
+            <div className="flex gap-2 pt-2 border-t">
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Loyiha, kod va rivojlantirish bo'yicha fikr yozing..."
+                className="min-h-[60px] resize-none text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) sendChatMessage()
+                }}
+              />
+              <Button
+                className="self-end shrink-0"
+                onClick={sendChatMessage}
+                disabled={isSending || !text.trim()}
+              >
+                <Send className="size-4" />
+                Yuborish
+              </Button>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground text-center">
+              Muloqotda qatnashish uchun tizimga kiring
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 function ProjectDetail() {
   const { t } = useTranslation()
@@ -474,7 +609,12 @@ function ProjectDetail() {
   const [isSendingUpdate, setIsSendingUpdate] = useState(false)
   const [reviewRating, setReviewRating] = useState("5")
   const [reviewText, setReviewText] = useState("")
-  const [tab, setTab] = useState<"overview" | "issues" | "milestones" | "activity">("overview")
+  const [tab, setTab] = useState<"overview" | "chat" | "issues" | "milestones" | "activity">("overview")
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [editTitle, setEditTitle] = useState("")
+  const [editPitch, setEditPitch] = useState("")
+  const [editRepoUrl, setEditRepoUrl] = useState("")
+  const [isUpdating, setIsUpdating] = useState(false)
 
   const updatePhotoPreviews = useMemo(
     () =>
@@ -514,6 +654,37 @@ function ProjectDetail() {
       }
     }
   }, [updatePhotoPreviews])
+
+  const openEditModal = () => {
+    if (!project) return
+    setEditTitle(project.title)
+    setEditPitch(project.pitch || "")
+    setEditRepoUrl(project.repo_url || "")
+    setShowEditDialog(true)
+  }
+
+  const handleSaveProject = async () => {
+    if (!editTitle.trim()) return
+    setIsUpdating(true)
+    try {
+      await apiMutation(
+        `/projects/${projectId}`,
+        {
+          title: editTitle.trim(),
+          pitch: editPitch.trim() || null,
+          repo_url: editRepoUrl.trim() || null,
+        },
+        "PATCH",
+      )
+      toast.success(t("project_done_toast"))
+      setShowEditDialog(false)
+      await loadProject()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("error_action"))
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   const mutateProject = async (path: string) => {
     try {
@@ -599,11 +770,12 @@ function ProjectDetail() {
   const doneCount = milestones.filter((m) => m.status === "done").length
   const progressPct = milestones.length > 0 ? Math.round((doneCount / milestones.length) * 100) : 0
 
-  const tabs: { key: typeof tab; label: string }[] = [
-    { key: "overview", label: t("project_tab_overview") },
-    { key: "issues", label: t("project_tab_issues") },
-    { key: "milestones", label: t("project_tab_milestones") },
-    { key: "activity", label: t("project_tab_activity") },
+  const tabs: { key: typeof tab; label: string; icon?: React.ReactNode }[] = [
+    { key: "overview", label: t("project_tab_overview"), icon: <Code2 className="size-3.5" /> },
+    { key: "chat", label: "Chat & Muloqot", icon: <MessageSquare className="size-3.5" /> },
+    { key: "issues", label: t("project_tab_issues"), icon: <AlertCircle className="size-3.5" /> },
+    { key: "milestones", label: t("project_tab_milestones"), icon: <CheckCircle2 className="size-3.5" /> },
+    { key: "activity", label: t("project_tab_activity"), icon: <GitBranch className="size-3.5" /> },
   ]
 
   return (
@@ -619,22 +791,43 @@ function ProjectDetail() {
         {/* Header card */}
         <Card className="bg-background shadow-none">
           <CardContent className="p-5">
-            <div className="flex items-start gap-3">
-              <div className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full ${isOpen ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-muted text-muted-foreground"}`}>
-                {isOpen ? <GitBranch className="size-4" /> : <GitMerge className="size-4" />}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl font-semibold">{project.title}</h1>
-                  <StatusBadge status={project.status} />
-                  <Badge variant="outline" className="gap-1 text-xs">
-                    {isOpen ? <GitBranch className="size-3" /> : <Lock className="size-3" />}
-                    {isOpen ? t("project_open") : t("project_closed")}
-                  </Badge>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 min-w-0 flex-1">
+                <div className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full ${isOpen ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-muted text-muted-foreground"}`}>
+                  {isOpen ? <GitBranch className="size-4" /> : <GitMerge className="size-4" />}
                 </div>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  {t("project_created")} {shortDate(project.created_at)}
-                </p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-xl font-semibold">{project.title}</h1>
+                    <StatusBadge status={project.status} />
+                    <Badge variant="outline" className="gap-1 text-xs">
+                      {isOpen ? <GitBranch className="size-3" /> : <Lock className="size-3" />}
+                      {isOpen ? t("project_open") : t("project_closed")}
+                    </Badge>
+                  </div>
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    {t("project_created")} {shortDate(project.created_at)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Edit / GitHub header actions */}
+              <div className="flex items-center gap-2 shrink-0">
+                {project.repo_url && (
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={project.repo_url} target="_blank" rel="noopener noreferrer" className="gap-1.5">
+                      <Code2 className="size-4 text-primary" />
+                      <span className="hidden sm:inline">GitHub</span>
+                      <ExternalLink className="size-3 text-muted-foreground" />
+                    </a>
+                  </Button>
+                )}
+                {isLead && (
+                  <Button variant="outline" size="sm" onClick={openEditModal} className="gap-1.5">
+                    <Edit3 className="size-3.5" />
+                    <span className="hidden sm:inline">Tahrirlash</span>
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -647,24 +840,25 @@ function ProjectDetail() {
         </Card>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b">
+        <div className="flex gap-1 border-b overflow-x-auto">
           {tabs.map((tb) => (
             <button
               key={tb.key}
               type="button"
               onClick={() => setTab(tb.key)}
-              className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors shrink-0 ${
                 tab === tb.key
                   ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
+              {tb.icon}
               {tb.label}
               {tb.key === "activity" && updates.length > 0 && (
-                <Badge variant="secondary" className="ml-1.5 text-xs">{updates.length}</Badge>
+                <Badge variant="secondary" className="ml-1 text-xs">{updates.length}</Badge>
               )}
               {tb.key === "milestones" && milestones.length > 0 && (
-                <Badge variant="secondary" className="ml-1.5 text-xs">{doneCount}/{milestones.length}</Badge>
+                <Badge variant="secondary" className="ml-1 text-xs">{doneCount}/{milestones.length}</Badge>
               )}
             </button>
           ))}
@@ -673,6 +867,51 @@ function ProjectDetail() {
         {/* ── Overview tab ── */}
         {tab === "overview" && (
           <div className="flex flex-col gap-4">
+            {/* GitHub Repo Card */}
+            {project.repo_url ? (
+              <Card className="bg-background shadow-none border-primary/20">
+                <CardContent className="p-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Code2 className="size-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-muted-foreground">GitHub / Kod Ombori</p>
+                      <a
+                        href={project.repo_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="truncate text-sm font-semibold text-primary hover:underline flex items-center gap-1 mt-0.5"
+                      >
+                        {project.repo_url}
+                        <ExternalLink className="size-3 shrink-0" />
+                      </a>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" asChild>
+                    <a href={project.repo_url} target="_blank" rel="noopener noreferrer">
+                      Ochish
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : isLead ? (
+              <Card className="bg-muted/30 border-dashed shadow-none">
+                <CardContent className="p-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <Code2 className="size-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">GitHub havolasi biriktirilmagan</p>
+                      <p className="text-xs text-muted-foreground">Loyihaning manba kodini ulashingiz mumkin</p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={openEditModal}>
+                    <Plus className="size-3.5" /> Link qo'shish
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : null}
+
             {/* Linked signal */}
             {problem && (
               <Link
@@ -688,6 +927,43 @@ function ProjectDetail() {
                 </div>
               </Link>
             )}
+
+            {/* Summary Progress Card */}
+            <Card className="bg-background shadow-none">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Loyiha Bajarilgan Ishlar Umumiy Ko'rinishi</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                {/* Milestones progress */}
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{t("project_progress")} ({doneCount}/{milestones.length} bosqich)</span>
+                    <span>{progressPct}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 pt-2 text-center border-t">
+                  <div className="rounded-lg bg-muted/30 p-2.5">
+                    <p className="text-xl font-bold text-primary">{milestones.length}</p>
+                    <p className="text-xs text-muted-foreground">Bosqichlar</p>
+                  </div>
+                  <div className="rounded-lg bg-muted/30 p-2.5">
+                    <p className="text-xl font-bold text-primary">{updates.length}</p>
+                    <p className="text-xs text-muted-foreground">Faoliyat yangiliklari</p>
+                  </div>
+                  <div className="rounded-lg bg-muted/30 p-2.5">
+                    <p className="text-xl font-bold text-primary">{reviews.length}</p>
+                    <p className="text-xs text-muted-foreground">Baholashlar</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Action buttons */}
             {(canReview || canPilot || canSolve) && (
@@ -759,6 +1035,14 @@ function ProjectDetail() {
               </Card>
             )}
           </div>
+        )}
+
+        {/* ── Chat tab ── */}
+        {tab === "chat" && (
+          <ProjectChatTab
+            projectId={projectId}
+            currentUserId={user?.id}
+          />
         )}
 
         {/* ── Issues tab ── */}
@@ -925,6 +1209,42 @@ function ProjectDetail() {
 
       {/* Sidebar */}
       <aside className="flex flex-col gap-4">
+        {/* GitHub / Repo Sidebar Card */}
+        <Card className="bg-background shadow-none">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center justify-between gap-2 text-sm">
+              <span className="flex items-center gap-2">
+                <Code2 className="size-4 text-primary" />
+                Kod Ombori
+              </span>
+              {isLead && (
+                <button
+                  type="button"
+                  onClick={openEditModal}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Tahrirlash
+                </button>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-2 text-sm">
+            {project.repo_url ? (
+              <a
+                href={project.repo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-xs font-medium text-primary hover:underline break-all"
+              >
+                <ExternalLink className="size-3 shrink-0" />
+                {project.repo_url}
+              </a>
+            ) : (
+              <p className="text-xs text-muted-foreground">GitHub havolasi kiritilmagan.</p>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="bg-background shadow-none">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
@@ -951,6 +1271,50 @@ function ProjectDetail() {
           </CardContent>
         </Card>
       </aside>
+
+      {/* Edit Project Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Loyihani Tahrirlash</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Loyiha Nomi</label>
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="Loyiha nomi"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Pitch / Tavsif</label>
+              <Textarea
+                value={editPitch}
+                onChange={(e) => setEditPitch(e.target.value)}
+                placeholder="Loyiha tavsifi va maqsadi"
+                className="min-h-[100px] resize-none"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <label className="text-xs font-medium text-muted-foreground">GitHub / Repository URL</label>
+              <Input
+                value={editRepoUrl}
+                onChange={(e) => setEditRepoUrl(e.target.value)}
+                placeholder="https://github.com/org/repo"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" size="sm" onClick={() => setShowEditDialog(false)}>
+                {t("cancel")}
+              </Button>
+              <Button size="sm" onClick={handleSaveProject} disabled={isUpdating || !editTitle.trim()}>
+                Saqlash
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

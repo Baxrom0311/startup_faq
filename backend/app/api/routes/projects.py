@@ -29,6 +29,7 @@ from app.models import (
     ProjectMilestoneUpdate,
     ProjectPublic,
     ProjectsPublic,
+    ProjectUpdate,
     ProjectUpdateCreate,
     ProjectUpdateLog,
     ProjectUpdateMediaPublic,
@@ -199,6 +200,33 @@ def read_project(session: SessionDep, current_user: CurrentUser, project_id: uui
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
+
+
+@router.patch("/projects/{project_id}", response_model=ProjectPublic)
+def update_project_endpoint(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    project_id: uuid.UUID,
+    project_in: ProjectUpdate,
+) -> Any:
+    project = session.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if project.lead_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    update_data = project_in.model_dump(exclude_unset=True)
+    if not update_data:
+        return project
+    
+    project.sqlmodel_update(update_data)
+    project.updated_at = get_datetime_utc()
+    session.add(project)
+    session.commit()
+    session.refresh(project)
+    return project
+
 
 
 @router.post("/projects/{project_id}/approve", response_model=ProjectPublic)
