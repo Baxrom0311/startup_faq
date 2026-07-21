@@ -45,6 +45,7 @@ const uz = {
 
   // Problem detail
   problem_back: "Signallar",
+  problem_needs_review_note: "Muammoyingiz moderator tomonidan ko'rib chiqilmoqda. Nashr qilinganda xabardor qilinasiz.",
   problem_merged_note: "Bu muammo birlashtirilib arxivlandi",
   problem_merged_link: "Asl muammo",
   problem_discuss: "Muhokama",
@@ -356,6 +357,7 @@ const ru: typeof uz = {
   submit_duplicate_view: "Открыть",
 
   problem_back: "Сигналы",
+  problem_needs_review_note: "Ваша проблема рассматривается модератором. Вы получите уведомление после публикации.",
   problem_merged_note: "Эта проблема объединена и заархивирована",
   problem_merged_link: "Исходная проблема",
   problem_discuss: "Обсуждение",
@@ -660,6 +662,7 @@ const en: typeof uz = {
   submit_duplicate_view: "View",
 
   problem_back: "Signals",
+  problem_needs_review_note: "Your problem is being reviewed by a moderator. You'll be notified once it's published.",
   problem_merged_note: "This problem was merged and archived",
   problem_merged_link: "Original problem",
   problem_discuss: "Discussion",

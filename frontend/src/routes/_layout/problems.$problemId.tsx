@@ -269,6 +269,12 @@ function ProblemDetail() {
           </Link>
         </Button>
 
+        {problem.status === "needs_review" && user?.id === problem.author_id && (
+          <div className="flex items-center gap-3 rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm dark:border-yellow-800 dark:bg-yellow-950">
+            <p className="text-yellow-800 dark:text-yellow-200">{t("problem_needs_review_note")}</p>
+          </div>
+        )}
+
         {problem.duplicate_of && (
           <div className="flex items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm dark:border-amber-800 dark:bg-amber-950">
             <p className="font-medium">{t("problem_merged_note")}</p>
