@@ -166,11 +166,14 @@ function IssueDetail({ issue, projectId, currentUserId, isLead, onUpdated }: Iss
           {comments.map((c) => (
             <div key={c.id} className="flex items-start gap-2.5">
               <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
-                C
+                {c.author_name?.charAt(0).toUpperCase() ?? "?"}
               </div>
               <div className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2">
                 <p className="text-sm whitespace-pre-wrap">{c.text}</p>
-                <p className="text-xs text-muted-foreground mt-1">{shortDate(c.created_at)}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {c.author_name && <span className="font-medium text-foreground/70">{c.author_name} · </span>}
+                  {shortDate(c.created_at)}
+                </p>
               </div>
             </div>
           ))}
@@ -931,13 +934,13 @@ function ProjectDetail() {
             {/* Summary Progress Card */}
             <Card className="bg-background shadow-none">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold">Loyiha Bajarilgan Ishlar Umumiy Ko'rinishi</CardTitle>
+                <CardTitle className="text-sm font-semibold">{t("project_overview_title")}</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
                 {/* Milestones progress */}
                 <div>
                   <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{t("project_progress")} ({doneCount}/{milestones.length} bosqich)</span>
+                    <span>{t("project_progress")} ({doneCount}/{milestones.length} {t("project_milestones_count")})</span>
                     <span>{progressPct}%</span>
                   </div>
                   <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -951,15 +954,15 @@ function ProjectDetail() {
                 <div className="grid grid-cols-3 gap-3 pt-2 text-center border-t">
                   <div className="rounded-lg bg-muted/30 p-2.5">
                     <p className="text-xl font-bold text-primary">{milestones.length}</p>
-                    <p className="text-xs text-muted-foreground">Bosqichlar</p>
+                    <p className="text-xs text-muted-foreground">{t("project_tab_milestones")}</p>
                   </div>
                   <div className="rounded-lg bg-muted/30 p-2.5">
                     <p className="text-xl font-bold text-primary">{updates.length}</p>
-                    <p className="text-xs text-muted-foreground">Faoliyat yangiliklari</p>
+                    <p className="text-xs text-muted-foreground">{t("project_activity_count")}</p>
                   </div>
                   <div className="rounded-lg bg-muted/30 p-2.5">
                     <p className="text-xl font-bold text-primary">{reviews.length}</p>
-                    <p className="text-xs text-muted-foreground">Baholashlar</p>
+                    <p className="text-xs text-muted-foreground">{t("project_reviews_count")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -1178,7 +1181,7 @@ function ProjectDetail() {
                   <div key={update.id} className={`p-4 ${idx < updates.length - 1 ? "border-b" : ""}`}>
                     <div className="flex items-start gap-3">
                       <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
-                        U
+                        {update.author_name?.charAt(0).toUpperCase() ?? "?"}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm leading-relaxed whitespace-pre-wrap">{update.text}</p>
@@ -1196,7 +1199,10 @@ function ProjectDetail() {
                             )}
                           </div>
                         )}
-                        <p className="text-muted-foreground mt-2 text-xs">{shortDate(update.created_at)}</p>
+                        <p className="text-muted-foreground mt-2 text-xs">
+                          {update.author_name && <span className="font-medium text-foreground/70">{update.author_name} · </span>}
+                          {shortDate(update.created_at)}
+                        </p>
                       </div>
                     </div>
                   </div>

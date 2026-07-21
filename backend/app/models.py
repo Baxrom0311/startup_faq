@@ -454,6 +454,7 @@ class ProjectUpdatePublic(ProjectUpdateBase):
     id: uuid.UUID
     project_id: uuid.UUID
     author_id: uuid.UUID
+    author_name: str | None = None
     created_at: datetime
     media: list[ProjectUpdateMediaPublic] = Field(default_factory=list)
 
@@ -572,6 +573,7 @@ class IssueCommentPublic(IssueCommentBase):
     id: uuid.UUID
     issue_id: uuid.UUID
     author_id: uuid.UUID
+    author_name: str | None = None
     created_at: datetime
 
 

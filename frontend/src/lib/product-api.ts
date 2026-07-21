@@ -123,6 +123,7 @@ export type ProjectUpdate = {
   id: string
   project_id: string
   author_id: string
+  author_name?: string | null
   text: string
   media_keys: string[]
   media?: {
@@ -175,6 +176,7 @@ export type IssueComment = {
   id: string
   issue_id: string
   author_id: string
+  author_name?: string | null
   text: string
   created_at: string
 }

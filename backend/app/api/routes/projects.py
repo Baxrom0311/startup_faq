@@ -59,7 +59,7 @@ router = APIRouter(tags=["projects"])
 
 
 def _serialize_project_update(
-    *, session: SessionDep, update: ProjectUpdateLog
+    *, session: SessionDep, update: ProjectUpdateLog, author_name: str | None = None
 ) -> ProjectUpdatePublic:
     media_rows = []
     if update.media_keys:
@@ -81,7 +81,7 @@ def _serialize_project_update(
         for key in update.media_keys
         if key in media_by_key
     ]
-    return ProjectUpdatePublic.model_validate(update, update={"media": media})
+    return ProjectUpdatePublic.model_validate(update, update={"media": media, "author_name": author_name})
 
 
 def _get_owned_update_media(
@@ -414,7 +414,17 @@ def list_issue_comments(
         select(IssueComment).where(IssueComment.issue_id == issue_id)
         .order_by(IssueComment.created_at.asc())
     ).all()
-    return IssueCommentsPublic(data=comments, count=len(comments))
+    author_ids = list({c.author_id for c in comments})
+    authors = session.exec(select(User).where(User.id.in_(author_ids))).all() if author_ids else []
+    author_names = {u.id: u.full_name for u in authors}
+    public_comments = [
+        IssueCommentPublic(
+            **c.model_dump(),
+            author_name=author_names.get(c.author_id),
+        )
+        for c in comments
+    ]
+    return IssueCommentsPublic(data=public_comments, count=len(public_comments))
 
 
 @router.post("/projects/{project_id}/issues/{issue_id}/comments", response_model=IssueCommentPublic)
@@ -532,9 +542,12 @@ def read_project_updates(session: SessionDep, current_user: CurrentUser, project
         .order_by(ProjectUpdateLog.created_at.desc())
     )
     updates = session.exec(statement).all()
+    author_ids = list({u.author_id for u in updates})
+    authors = session.exec(select(User).where(User.id.in_(author_ids))).all() if author_ids else []
+    author_names = {u.id: u.full_name for u in authors}
     return ProjectUpdatesPublic(
         data=[
-            _serialize_project_update(session=session, update=update)
+            _serialize_project_update(session=session, update=update, author_name=author_names.get(update.author_id))
             for update in updates
         ],
         count=len(updates),
