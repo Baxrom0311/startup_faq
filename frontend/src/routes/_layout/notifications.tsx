@@ -172,6 +172,7 @@ function NotificationsPage() {
                       key={notification.id}
                       to={link.to as string}
                       params={link.params}
+                      hash={link.hash}
                       className={`block transition-colors hover:bg-muted/40 ${!notification.read_at ? "bg-primary/5" : ""}`}
                     >
                       {inner}

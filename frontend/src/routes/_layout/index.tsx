@@ -600,6 +600,7 @@ function InboxCard({
                 key={notification.id}
                 to={link.to as string}
                 params={link.params}
+                hash={link.hash}
                 className="flex items-start justify-between gap-3 rounded-md border px-3 py-2 transition-colors hover:bg-muted/50"
               >
                 {inner}

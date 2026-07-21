@@ -357,7 +357,15 @@ export function notificationLabel(notification: NotificationItem) {
     typeof notification.payload.title === "string"
       ? notification.payload.title
       : "—"
+  const commenterName =
+    typeof notification.payload.commenter_name === "string" &&
+    notification.payload.commenter_name
+      ? notification.payload.commenter_name
+      : null
   const t = _t()
+  const commentedLabel = commenterName
+    ? `${commenterName} — ${t("notif_commented")}`
+    : `"${problemTitle}" — ${t("notif_commented")}`
   const labels: Record<string, string> = {
     "project.proposed": `${projectTitle} — ${t("notif_proposed")}`,
     "project.approved": `${projectTitle} — ${t("notif_approved")}`,
@@ -367,17 +375,21 @@ export function notificationLabel(notification: NotificationItem) {
     "problem.published": `"${problemTitle}" — ${t("notif_published")}`,
     "problem.archived": `"${problemTitle}" — ${t("notif_archived")}`,
     "problem.merged": `"${problemTitle}" — ${t("notif_merged")}`,
-    "problem.commented": `"${problemTitle}" — ${t("notif_commented")}`,
+    "problem.commented": commentedLabel,
   }
   return labels[notification.type] || notification.type
 }
 
 export function notificationLink(
   notification: NotificationItem,
-): { to: string; params?: Record<string, string> } | null {
+): { to: string; params?: Record<string, string>; hash?: string } | null {
   const problemId =
     typeof notification.payload.problem_id === "string"
       ? notification.payload.problem_id
+      : null
+  const commentId =
+    typeof notification.payload.comment_id === "string"
+      ? notification.payload.comment_id
       : null
   const targetProblemId =
     typeof notification.payload.target_problem_id === "string"
@@ -394,10 +406,16 @@ export function notificationLink(
       params: { problemId: targetProblemId },
     }
   }
+  if (notification.type === "problem.commented" && problemId) {
+    return {
+      to: "/problems/$problemId",
+      params: { problemId },
+      hash: commentId ? `comment-${commentId}` : undefined,
+    }
+  }
   if (
     notification.type === "problem.published" ||
-    notification.type === "problem.archived" ||
-    notification.type === "problem.commented"
+    notification.type === "problem.archived"
   ) {
     if (problemId) return { to: "/problems/$problemId", params: { problemId } }
   }

@@ -130,9 +130,22 @@ function ProblemDetail() {
   }, [problemId, user?.is_superuser])
 
   useEffect(() => {
-    loadProblem().catch((err: unknown) =>
-      toast.error(err instanceof Error ? err.message : t("error_load_problem")),
-    )
+    loadProblem()
+      .then(() => {
+        // Scroll to a specific comment if the URL hash references one
+        const hash = window.location.hash
+        if (hash.startsWith("#comment-")) {
+          setTimeout(() => {
+            document.getElementById(hash.slice(1))?.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            })
+          }, 100)
+        }
+      })
+      .catch((err: unknown) =>
+        toast.error(err instanceof Error ? err.message : t("error_load_problem")),
+      )
   }, [loadProblem, t])
 
   const vote = async () => {
@@ -237,7 +250,8 @@ function ProblemDetail() {
     return (
       <div
         key={comment.id}
-        className={`p-4 ${
+        id={`comment-${comment.id}`}
+        className={`p-4 scroll-mt-20 ${
           isReply
             ? "bg-muted/40 rounded-lg border-l-2 border-primary/45 pl-4 ml-6 mt-3"
             : ""
