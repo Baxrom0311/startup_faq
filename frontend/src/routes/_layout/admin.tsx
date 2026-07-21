@@ -9,6 +9,7 @@ import {
   GitMerge,
   PieChart,
   RefreshCcw,
+  Search,
   Users,
 } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -50,6 +51,7 @@ export const Route = createFileRoute("/_layout/admin")({
 function Admin() {
   const { t, i18n } = useTranslation()
   const [users, setUsers] = useState<UserPublic[] | null>(null)
+  const [userQuery, setUserQuery] = useState("")
   const [problems, setProblems] = useState<Problem[] | null>(null)
   const [analyses, setAnalyses] = useState<Record<string, AIAnalysis | null>>(
     {},
@@ -438,12 +440,21 @@ function Admin() {
 
       <aside>
         <Card className="bg-background shadow-none">
-          <CardHeader className="border-b">
+          <CardHeader className="border-b pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <Users className="size-4" />
               {t("admin_users_title")}
               <Badge variant="secondary">{users.length}</Badge>
             </CardTitle>
+            <div className="relative mt-2">
+              <Search className="text-muted-foreground absolute top-1/2 left-3 size-3.5 -translate-y-1/2" />
+              <Input
+                className="h-8 pl-8 text-xs"
+                placeholder={t("dashboard_search")}
+                value={userQuery}
+                onChange={(e) => setUserQuery(e.target.value)}
+              />
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             {users.length === 0 ? (
@@ -451,24 +462,40 @@ function Admin() {
                 <EmptyState />
               </div>
             ) : (
-              <div className="divide-y">
-                {users.map((user) => (
-                  <div key={user.id} className="grid gap-2 px-4 py-3">
-                    <p className="truncate text-sm font-medium">
-                      {user.full_name || user.phone || user.email}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {user.is_superuser && (
-                        <Badge variant="outline">{t("settings_admin")}</Badge>
-                      )}
-                      <Badge variant={user.is_active ? "secondary" : "outline"}>
-                        {user.is_active
-                          ? t("settings_active")
-                          : t("settings_inactive")}
-                      </Badge>
+              <div className="divide-y max-h-[60vh] overflow-y-auto">
+                {users
+                  .filter((u) => {
+                    if (!userQuery.trim()) return true
+                    const q = userQuery.toLowerCase()
+                    return (
+                      u.full_name?.toLowerCase().includes(q) ||
+                      u.phone?.toLowerCase().includes(q) ||
+                      u.email?.toLowerCase().includes(q) ||
+                      u.telegram_username?.toLowerCase().includes(q)
+                    )
+                  })
+                  .map((user) => (
+                    <div key={user.id} className="grid gap-2 px-4 py-3">
+                      <p className="truncate text-sm font-medium">
+                        {user.full_name || user.phone || user.email}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {user.is_superuser && (
+                          <Badge variant="outline">{t("settings_admin")}</Badge>
+                        )}
+                        <Badge variant={user.is_active ? "secondary" : "outline"}>
+                          {user.is_active
+                            ? t("settings_active")
+                            : t("settings_inactive")}
+                        </Badge>
+                        {user.telegram_username && (
+                          <span className="text-muted-foreground text-xs">
+                            @{user.telegram_username}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </CardContent>
