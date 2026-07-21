@@ -525,11 +525,10 @@ function ProblemFeedRow({
             {structuredSummary(problem) || problem.raw_text}
           </p>
         )}
-        {problem.author_name && (
-          <p className="text-muted-foreground mt-1 text-xs">
-            {problem.author_name}
-          </p>
-        )}
+        <p className="text-muted-foreground mt-1 text-xs">
+          {problem.author_name && <span>{problem.author_name} · </span>}
+          {shortDate(problem.created_at)}
+        </p>
       </div>
       <div className="text-muted-foreground flex items-center gap-4 text-sm">
         <span className="inline-flex items-center gap-1 sm:hidden">
