@@ -63,7 +63,7 @@ import {
   type Sector,
   shortDate,
   statusLabel,
-  structuredSummary,
+
 } from "@/lib/product-api"
 
 export const Route = createFileRoute("/_layout/problems/$problemId")({
@@ -433,15 +433,8 @@ function ProblemDetail() {
                 )}
               </div>
             )}
-            {structuredSummary(problem) && (
-              <div className="rounded-md border bg-muted/30 p-4">
-                <h3 className="mb-2 text-sm font-medium">
-                  {t("ai_panel_title")}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  {structuredSummary(problem)}
-                </p>
-              </div>
+            {problem.structured_desc && (
+              <StructuredInsights desc={problem.structured_desc} />
             )}
             <div className="flex flex-wrap items-center gap-2">
               <Button
@@ -686,6 +679,82 @@ function ProblemDetail() {
           </CardContent>
         </Card>
       </aside>
+    </div>
+  )
+}
+
+function StructuredInsights({ desc }: { desc: Record<string, unknown> }) {
+  const { t } = useTranslation()
+
+  const summary = typeof desc.summary === "string" && desc.summary ? desc.summary : null
+  const whoAffected = typeof desc.who_affected === "string" && desc.who_affected ? desc.who_affected : null
+  const urgency = typeof desc.urgency === "string" && desc.urgency ? desc.urgency : null
+  const impactScope = typeof desc.impact_scope === "string" && desc.impact_scope ? desc.impact_scope : null
+  const painLevel = typeof desc.pain_level === "number" ? desc.pain_level : null
+  const workaround = typeof desc.current_workaround === "string" && desc.current_workaround ? desc.current_workaround : null
+  const tags = Array.isArray(desc.tags) ? (desc.tags as string[]).filter(Boolean) : []
+
+  const urgencyLabel = urgency
+    ? (t(`urgency_${urgency}` as any, urgency))
+    : null
+  const scopeLabel = impactScope
+    ? (t(`scope_${impactScope}` as any, impactScope))
+    : null
+
+  const urgencyColor: Record<string, string> = {
+    low: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800",
+    medium: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800",
+    high: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-800",
+    critical: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800",
+  }
+
+  if (!summary && !whoAffected && !urgency && !impactScope && !painLevel && tags.length === 0 && !workaround) {
+    return null
+  }
+
+  return (
+    <div className="rounded-md border bg-muted/20 p-4 grid gap-3">
+      {summary && (
+        <p className="text-sm text-foreground/80 leading-relaxed">{summary}</p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        {urgency && urgencyLabel && (
+          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${urgencyColor[urgency] ?? "bg-muted text-muted-foreground"}`}>
+            {t("problem_urgency")}: {urgencyLabel}
+          </span>
+        )}
+        {impactScope && scopeLabel && (
+          <span className="inline-flex items-center rounded-full border bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+            {t("problem_impact_scope")}: {scopeLabel}
+          </span>
+        )}
+        {painLevel !== null && (
+          <span className="inline-flex items-center rounded-full border bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+            {t("problem_pain_level")}: {"●".repeat(painLevel)}{"○".repeat(5 - painLevel)}
+          </span>
+        )}
+      </div>
+      {whoAffected && (
+        <div>
+          <span className="text-xs text-muted-foreground">{t("problem_who_affected")}: </span>
+          <span className="text-xs">{whoAffected}</span>
+        </div>
+      )}
+      {workaround && (
+        <div>
+          <span className="text-xs text-muted-foreground">{t("problem_workaround")}: </span>
+          <span className="text-xs">{workaround}</span>
+        </div>
+      )}
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {tags.map((tag) => (
+            <span key={tag} className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -271,6 +271,22 @@ const uz = {
   ai_label_duplicate: "Dublikat",
   ai_label_reason: "Sabab",
 
+  // Structured description fields (shown to all users)
+  problem_who_affected: "Kim ta'sirlangan",
+  problem_urgency: "Shoshilinchlik",
+  problem_impact_scope: "Ta'sir darajasi",
+  problem_pain_level: "Og'irlik darajasi",
+  problem_tags: "Teglar",
+  problem_workaround: "Muqobil yechim",
+  urgency_low: "Past",
+  urgency_medium: "O'rta",
+  urgency_high: "Yuqori",
+  urgency_critical: "Kritik",
+  scope_individual: "Shaxsiy",
+  scope_local: "Mahalliy",
+  scope_regional: "Mintaqaviy",
+  scope_national: "Milliy",
+
   // ErrorComponent
   error_page_title: "Xato",
   error_page_subtitle: "Voy!",
@@ -612,6 +628,22 @@ const ru: typeof uz = {
   ai_label_scope: "Охват",
   ai_label_duplicate: "Дубликат",
   ai_label_reason: "Причина",
+
+  // Structured description fields
+  problem_who_affected: "Кто пострадал",
+  problem_urgency: "Срочность",
+  problem_impact_scope: "Масштаб",
+  problem_pain_level: "Уровень боли",
+  problem_tags: "Теги",
+  problem_workaround: "Текущий обходной путь",
+  urgency_low: "Низкая",
+  urgency_medium: "Средняя",
+  urgency_high: "Высокая",
+  urgency_critical: "Критическая",
+  scope_individual: "Личный",
+  scope_local: "Местный",
+  scope_regional: "Региональный",
+  scope_national: "Национальный",
 
   // ErrorComponent
   error_page_title: "Ошибка",
@@ -955,6 +987,22 @@ const en: typeof uz = {
   ai_label_scope: "Scope",
   ai_label_duplicate: "Duplicate",
   ai_label_reason: "Reason",
+
+  // Structured description fields
+  problem_who_affected: "Who is affected",
+  problem_urgency: "Urgency",
+  problem_impact_scope: "Impact scope",
+  problem_pain_level: "Pain level",
+  problem_tags: "Tags",
+  problem_workaround: "Current workaround",
+  urgency_low: "Low",
+  urgency_medium: "Medium",
+  urgency_high: "High",
+  urgency_critical: "Critical",
+  scope_individual: "Individual",
+  scope_local: "Local",
+  scope_regional: "Regional",
+  scope_national: "National",
 
   // ErrorComponent
   error_page_title: "Error",
