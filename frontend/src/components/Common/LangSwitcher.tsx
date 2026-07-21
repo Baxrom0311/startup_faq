@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 
 import {
@@ -18,11 +19,18 @@ const LANGS = [
 export function LangSwitcher() {
   const { i18n } = useTranslation()
   const { state } = useSidebar()
+  const queryClient = useQueryClient()
   const current = i18n.language?.slice(0, 2)
   const currentLang = LANGS.find((l) => l.code === current) ?? LANGS[0]
 
   const handleChange = async (code: string) => {
+    // Update i18n immediately so UI responds at once
     await i18n.changeLanguage(code)
+    // Optimistically patch the cached user so AppSidebar's useEffect doesn't revert
+    queryClient.setQueryData(["currentUser"], (old: any) =>
+      old ? { ...old, language: code } : old,
+    )
+    // Persist to backend (fire-and-forget)
     apiMutation("/users/me", { language: code }, "PATCH").catch(() => undefined)
   }
 

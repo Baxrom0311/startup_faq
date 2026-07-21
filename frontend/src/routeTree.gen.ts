@@ -23,6 +23,7 @@ import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifi
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects/index'
 import { Route as LayoutProjectsProjectIdRouteImport } from './routes/_layout/projects/$projectId'
 import { Route as LayoutProblemsProblemIdRouteImport } from './routes/_layout/problems.$problemId'
+import { Route as LayoutUsersUserIdRouteImport } from './routes/_layout/users.$userId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -93,6 +94,11 @@ const LayoutProblemsProblemIdRoute = LayoutProblemsProblemIdRouteImport.update({
   path: '/problems/$problemId',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutUsersUserIdRoute = LayoutUsersUserIdRouteImport.update({
+  id: '/users/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/projects': typeof LayoutProjectsRouteWithChildren
   '/settings': typeof LayoutSettingsRoute
   '/problems/$problemId': typeof LayoutProblemsProblemIdRoute
+  '/users/$userId': typeof LayoutUsersUserIdRoute
   '/projects/$projectId': typeof LayoutProjectsProjectIdRoute
   '/projects/': typeof LayoutProjectsIndexRoute
 }
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
   '/problems/$problemId': typeof LayoutProblemsProblemIdRoute
+  '/users/$userId': typeof LayoutUsersUserIdRoute
   '/projects/$projectId': typeof LayoutProjectsProjectIdRoute
   '/projects': typeof LayoutProjectsIndexRoute
 }
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/problems/$problemId': typeof LayoutProblemsProblemIdRoute
+  '/_layout/users/$userId': typeof LayoutUsersUserIdRoute
   '/_layout/projects/$projectId': typeof LayoutProjectsProjectIdRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
 }
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/settings'
     | '/problems/$problemId'
+    | '/users/$userId'
     | '/projects/$projectId'
     | '/projects/'
   fileRoutesByTo: FileRoutesByTo
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/'
     | '/problems/$problemId'
+    | '/users/$userId'
     | '/projects/$projectId'
     | '/projects'
   id:
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/_layout/settings'
     | '/_layout/'
     | '/_layout/problems/$problemId'
+    | '/_layout/users/$userId'
     | '/_layout/projects/$projectId'
     | '/_layout/projects/'
   fileRoutesById: FileRoutesById
@@ -296,6 +308,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProblemsProblemIdRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/users/$userId': {
+      id: '/_layout/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/users/$userId'
+      preLoaderRoute: typeof LayoutUsersUserIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
@@ -321,6 +340,7 @@ interface LayoutRouteChildren {
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutProblemsProblemIdRoute: typeof LayoutProblemsProblemIdRoute
+  LayoutUsersUserIdRoute: typeof LayoutUsersUserIdRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -331,6 +351,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutProblemsProblemIdRoute: LayoutProblemsProblemIdRoute,
+  LayoutUsersUserIdRoute: LayoutUsersUserIdRoute,
 }
 
 const LayoutRouteWithChildren =
