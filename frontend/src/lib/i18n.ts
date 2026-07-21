@@ -182,6 +182,7 @@ const uz = {
   notif_published: "nashr qilindi",
   notif_archived: "arxivlandi",
   notif_merged: "birlashtirildi",
+  notif_commented: "yangi izoh",
 
   // Login
   login_title: "Kirish",
@@ -488,6 +489,7 @@ const ru: typeof uz = {
   notif_published: "опубликовано",
   notif_archived: "архивировано",
   notif_merged: "объединено",
+  notif_commented: "новый комментарий",
 
   login_title: "Войти",
   login_phone_label: "Номер телефона",
@@ -793,6 +795,7 @@ const en: typeof uz = {
   notif_published: "published",
   notif_archived: "archived",
   notif_merged: "merged",
+  notif_commented: "new comment",
 
   login_title: "Sign in",
   login_phone_label: "Phone number",

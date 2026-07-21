@@ -717,10 +717,25 @@ def create_comment(
         update={"problem_id": problem_id, "user_id": current_user.id},
     )
     session.add(comment)
-    
+
     current_user.reputation = max(current_user.reputation + 2, 0)
     session.add(current_user)
 
+    # Notify problem author (skip if commenter is the author)
+    notification = None
+    if problem.author_id != current_user.id:
+        notification = create_notification(
+            session=session,
+            user_id=problem.author_id,
+            type="problem.commented",
+            payload={
+                "problem_id": str(problem.id),
+                "title": problem.title or problem.raw_text or "",
+            },
+        )
+
     session.commit()
     session.refresh(comment)
+    if notification:
+        enqueue_notification_delivery_best_effort(notification.id)
     return comment

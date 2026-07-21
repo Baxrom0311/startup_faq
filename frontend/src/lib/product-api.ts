@@ -366,6 +366,7 @@ export function notificationLabel(notification: NotificationItem) {
     "problem.published": `"${problemTitle}" — ${t("notif_published")}`,
     "problem.archived": `"${problemTitle}" — ${t("notif_archived")}`,
     "problem.merged": `"${problemTitle}" — ${t("notif_merged")}`,
+    "problem.commented": `"${problemTitle}" — ${t("notif_commented")}`,
   }
   return labels[notification.type] || notification.type
 }
@@ -394,7 +395,8 @@ export function notificationLink(
   }
   if (
     notification.type === "problem.published" ||
-    notification.type === "problem.archived"
+    notification.type === "problem.archived" ||
+    notification.type === "problem.commented"
   ) {
     if (problemId) return { to: "/problems/$problemId", params: { problemId } }
   }

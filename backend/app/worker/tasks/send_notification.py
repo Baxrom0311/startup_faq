@@ -19,6 +19,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "problem.published": '"{problem}" muammongiz nashr qilindi.',
         "problem.archived": '"{problem}" muammongiz arxivlandi.',
         "problem.merged": '"{problem}" muammongiz mavjud muammoga birlashtirildi.',
+        "problem.commented": '"{problem}" muammongizga yangi izoh qoldirildi.',
     },
     "ru": {
         "project.proposed": "Поступило новое предложение по проекту «{project}».",
@@ -29,6 +30,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "problem.published": 'Ваша проблема «{problem}» опубликована.',
         "problem.archived": 'Ваша проблема «{problem}» архивирована.',
         "problem.merged": 'Ваша проблема «{problem}» объединена с существующей.',
+        "problem.commented": 'К вашей проблеме «{problem}» оставлен новый комментарий.',
     },
     "en": {
         "project.proposed": "A new proposal for «{project}» has been submitted.",
@@ -39,6 +41,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "problem.published": 'Your problem "{problem}" has been published.',
         "problem.archived": 'Your problem "{problem}" has been archived.',
         "problem.merged": 'Your problem "{problem}" has been merged with an existing one.',
+        "problem.commented": 'A new comment was left on your problem "{problem}".',
     },
 }
 
@@ -63,6 +66,8 @@ def _render_notification_text(notification: Notification, lang: str = "uz") -> s
 
     if notification.type == "problem.merged" and target_problem_id:
         text += f"\n\n{base}/problems/{target_problem_id}"
+    elif notification.type in ("problem.commented",) and problem_id:
+        text += f"\n\n{base}/problems/{problem_id}"
     elif project_id:
         text += f"\n\n{base}/projects/{project_id}"
     elif problem_id:
