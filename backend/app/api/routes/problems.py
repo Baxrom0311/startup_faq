@@ -302,6 +302,8 @@ async def read_problems(
     q: str | None = None,
     sort: str = "newest",
 ) -> Any:
+    if q and len(q) > 500:
+        raise HTTPException(status_code=422, detail="Search query too long (max 500 characters)")
     filters = []
     if status != "all":
         if status not in _PUBLIC_STATUSES and not current_user.is_superuser and not mine:

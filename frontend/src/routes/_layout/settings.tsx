@@ -254,6 +254,10 @@ function Settings() {
               label={t("settings_roles")}
               value={user.roles?.join(", ") || t("settings_user")}
             />
+            <Info
+              label={t("settings_reputation")}
+              value={String(user.reputation ?? 0)}
+            />
             <div className="pt-2">
               <DeleteConfirmation />
             </div>

@@ -149,6 +149,8 @@ def read_projects(
     problem_id: uuid.UUID | None = None,
     q: str | None = None,
 ) -> Any:
+    if q and len(q) > 500:
+        raise HTTPException(status_code=422, detail="Search query too long (max 500 characters)")
     filters = []
     if mine:
         filters.append(Project.lead_id == current_user.id)

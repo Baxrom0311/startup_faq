@@ -157,6 +157,16 @@ const uz = {
   settings_save: "Saqlash",
   settings_cancel: "Bekor qilish",
   settings_success_update: "Profil muvaffaqiyatli yangilandi!",
+  settings_reputation: "Obro'",
+
+  // Project chat
+  project_chat_title: "Muhokama",
+  project_chat_subtitle: "Jamoa va foydalanuvchilar bilan muloqot",
+  project_chat_empty: "Hali muhokamalar yo'q. Birinchi xabarni qoldiring!",
+  project_chat_me: "Siz",
+  project_chat_user: "Foydalanuvchi",
+  project_chat_placeholder: "Loyiha bo'yicha fikr yozing...",
+  project_chat_login_hint: "Muloqotda qatnashish uchun tizimga kiring",
 
   // Projects list
   projects_all: "Barcha",
@@ -474,6 +484,16 @@ const ru: typeof uz = {
   settings_save: "Сохранить",
   settings_cancel: "Отмена",
   settings_success_update: "Профиль успешно обновлен!",
+  settings_reputation: "Репутация",
+
+  // Project chat
+  project_chat_title: "Обсуждение",
+  project_chat_subtitle: "Общение с командой и пользователями",
+  project_chat_empty: "Обсуждений пока нет. Оставьте первое сообщение!",
+  project_chat_me: "Вы",
+  project_chat_user: "Пользователь",
+  project_chat_placeholder: "Напишите мнение о проекте...",
+  project_chat_login_hint: "Войдите, чтобы участвовать в обсуждении",
 
   projects_all: "Все",
   projects_inbox: "Входящие",
@@ -787,6 +807,16 @@ const en: typeof uz = {
   settings_save: "Save",
   settings_cancel: "Cancel",
   settings_success_update: "Profile updated successfully!",
+  settings_reputation: "Reputation",
+
+  // Project chat
+  project_chat_title: "Discussion",
+  project_chat_subtitle: "Chat with team and users",
+  project_chat_empty: "No discussions yet. Leave the first message!",
+  project_chat_me: "You",
+  project_chat_user: "User",
+  project_chat_placeholder: "Write your thoughts about the project...",
+  project_chat_login_hint: "Sign in to join the discussion",
 
   projects_all: "All",
   projects_inbox: "Inbox",

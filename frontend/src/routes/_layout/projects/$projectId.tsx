@@ -516,10 +516,10 @@ function ProjectChatTab({ projectId, currentUserId }: ProjectChatTabProps) {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <MessageSquare className="size-5 text-primary" />
-            Loyiha Muhokamasi va Chat
+            {t("project_chat_title")}
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Loyiha bo'yicha jamoa va foydalanuvchilar bilan muloqot va takliflar
+            {t("project_chat_subtitle")}
           </p>
         </CardHeader>
         <CardContent className="p-4 grid gap-4">
@@ -527,7 +527,7 @@ function ProjectChatTab({ projectId, currentUserId }: ProjectChatTabProps) {
           {messages.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground text-sm border rounded-lg bg-muted/20">
               <MessageSquare className="size-8 mx-auto mb-2 opacity-50" />
-              Hali muhokamalar yo'q. Birinchi xabarni qoldiring!
+              {t("project_chat_empty")}
             </div>
           ) : (
             <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1">
@@ -541,12 +541,12 @@ function ProjectChatTab({ projectId, currentUserId }: ProjectChatTabProps) {
                   }`}
                 >
                   <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
-                    {msg.author_id === currentUserId ? "Siz" : "U"}
+                    {msg.author_id === currentUserId ? t("project_chat_me")[0] : "U"}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-semibold text-foreground">
-                        {msg.author_id === currentUserId ? "Siz" : "Foydalanuvchi"}
+                        {msg.author_id === currentUserId ? t("project_chat_me") : t("project_chat_user")}
                       </span>
                       <span className="text-[11px] text-muted-foreground">
                         {shortDate(msg.created_at)}
@@ -567,7 +567,7 @@ function ProjectChatTab({ projectId, currentUserId }: ProjectChatTabProps) {
               <Textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="Loyiha, kod va rivojlantirish bo'yicha fikr yozing..."
+                placeholder={t("project_chat_placeholder")}
                 className="min-h-[60px] resize-none text-sm"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) sendChatMessage()
@@ -579,12 +579,12 @@ function ProjectChatTab({ projectId, currentUserId }: ProjectChatTabProps) {
                 disabled={isSending || !text.trim()}
               >
                 <Send className="size-4" />
-                Yuborish
+                {t("project_send")}
               </Button>
             </div>
           ) : (
             <p className="text-xs text-muted-foreground text-center">
-              Muloqotda qatnashish uchun tizimga kiring
+              {t("project_chat_login_hint")}
             </p>
           )}
         </CardContent>
