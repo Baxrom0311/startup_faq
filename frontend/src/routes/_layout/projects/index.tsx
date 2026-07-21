@@ -28,15 +28,21 @@ function Projects() {
   const [incoming, setIncoming] = useState<Project[] | null>(null)
   const [mine, setMine] = useState<Project[] | null>(null)
   const [query, setQuery] = useState("")
+  const [debouncedQuery, setDebouncedQuery] = useState("")
   const [tab, setTab] = useState<Tab>("all")
   const abortRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 350)
+    return () => clearTimeout(timer)
+  }, [query])
 
   useEffect(() => {
     // Cancel previous inflight requests
     abortRef.current?.abort()
     abortRef.current = new AbortController()
 
-    const q = query.trim() ? `&q=${encodeURIComponent(query.trim())}` : ""
+    const q = debouncedQuery.trim() ? `&q=${encodeURIComponent(debouncedQuery.trim())}` : ""
 
     async function load() {
       try {
@@ -60,7 +66,7 @@ function Projects() {
     }
 
     load()
-  }, [query])
+  }, [debouncedQuery])
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode; count: number | null }[] = [
     {

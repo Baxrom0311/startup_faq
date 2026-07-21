@@ -73,10 +73,16 @@ function Dashboard() {
   const [mineOnly, setMineOnly] = useState(false)
   const [submitOpen, setSubmitOpen] = useState(false)
   const [query, setQuery] = useState("")
+  const [debouncedQuery, setDebouncedQuery] = useState("")
   const [initialLoading, setInitialLoading] = useState(true)
   const [skip, setSkip] = useState(0)
   const [totalCount, setTotalCount] = useState(0)
   const [loadingMore, setLoadingMore] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 350)
+    return () => clearTimeout(timer)
+  }, [query])
 
   useEffect(() => {
     fetchSectors()
@@ -89,8 +95,8 @@ function Dashboard() {
 
   const loadDashboard = useCallback(
     async (currentSkip = 0) => {
-      const searchParam = query.trim()
-        ? `&q=${encodeURIComponent(query.trim())}`
+      const searchParam = debouncedQuery.trim()
+        ? `&q=${encodeURIComponent(debouncedQuery.trim())}`
         : ""
       const sectorParam =
         activeSector != null ? `&sector_id=${activeSector}` : ""
@@ -129,7 +135,7 @@ function Dashboard() {
       setNotifications(notificationsData.data)
       setUnreadNotifications(notificationsData.unread_count)
     },
-    [query, activeSector, activeRegion, mineOnly],
+    [debouncedQuery, activeSector, activeRegion, mineOnly],
   )
 
   useEffect(() => {
