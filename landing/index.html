@@ -442,6 +442,43 @@ footer{
 footer a{color:var(--mu);text-decoration:none;transition:color var(--ease)}
 footer a:hover{color:var(--tx)}
 .flinks{display:flex;gap:1.5rem}
+
+/* ── DARK MODE: galaxy shows through all sections ── */
+[data-theme="dark"] .alt-bg{background:transparent;border-color:rgba(255,255,255,.06)}
+[data-theme="dark"] .stats-strip{background:transparent;border-color:rgba(255,255,255,.06)}
+[data-theme="dark"] .stats-inner{
+  background:rgba(13,13,31,.6);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+}
+[data-theme="dark"] .stt{border-right-color:rgba(255,255,255,.06)}
+[data-theme="dark"] .step{
+  background:rgba(13,13,31,.55);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
+}
+[data-theme="dark"] .ben{
+  background:rgba(13,13,31,.55);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
+}
+[data-theme="dark"] .wc{
+  background:rgba(13,13,31,.55);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
+}
+[data-theme="dark"] .oc{
+  background:rgba(13,13,31,.55);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
+}
+[data-theme="dark"] .float-badge{
+  background:rgba(13,13,31,.7);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+}
+[data-theme="dark"] .chip{background:rgba(13,13,31,.6)}
+[data-theme="dark"] footer{background:transparent}
+[data-theme="dark"] .mock-frame{
+  background:rgba(13,13,31,.7);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+}
+[data-theme="dark"] .mock-bar{background:rgba(19,19,40,.8)}
+[data-theme="dark"] .pcard{background:rgba(19,19,40,.7)}
   </style>
 </head>
 <body>
