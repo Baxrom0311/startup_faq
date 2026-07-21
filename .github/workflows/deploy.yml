@@ -1,0 +1,66 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 67.205.171.93
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          timeout: 600s
+          script: |
+            export PATH=$PATH:/usr/bin:/usr/local/bin
+            set -e
+
+            REPO=https://github.com/Baxrom0311/startup_faq.git
+            DIR=/root/solutionlab
+
+            # Initialize git repo if not already done
+            if [ ! -d "$DIR/.git" ]; then
+              echo "==> Initializing git repo..."
+              cd "$DIR"
+              git init
+              git remote add origin "$REPO"
+            fi
+
+            cd "$DIR"
+
+            # Backup production .env before any git operations
+            cp .env /tmp/.env.prod.bak
+
+            # Pull latest code from main
+            echo "==> Fetching latest code..."
+            git fetch origin main
+            git checkout main 2>/dev/null || git checkout -b main --track origin/main
+            git reset --hard origin/main
+
+            # Restore production .env (git must not overwrite it)
+            cp /tmp/.env.prod.bak .env
+
+            # Rebuild images and restart containers
+            echo "==> Building images..."
+            docker compose -f compose.yml build --no-cache backend frontend bot
+
+            echo "==> Restarting services..."
+            docker compose -f compose.yml up -d --force-recreate backend frontend bot worker prestart
+
+            echo "==> Waiting for backend health..."
+            for i in $(seq 1 30); do
+              if docker compose -f compose.yml exec -T backend curl -sf http://localhost:8000/api/v1/health > /dev/null 2>&1; then
+                echo "Backend healthy!"
+                break
+              fi
+              echo "Waiting... ($i/30)"
+              sleep 5
+            done
+
+            echo "==> Deploy complete!"
