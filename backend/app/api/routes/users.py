@@ -35,15 +35,28 @@ def _telegram_auth_only() -> None:
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UsersPublic,
 )
-def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+def read_users(session: SessionDep, skip: int = 0, limit: int = 100, q: str | None = None) -> Any:
     """
-    Retrieve users.
+    Retrieve users. Supports optional search by name, phone, email, or Telegram username.
     """
+    from sqlalchemy import or_
 
-    count_statement = select(func.count()).select_from(User)
+    filters = []
+    if q and q.strip():
+        pattern = f"%{q.strip()}%"
+        filters.append(
+            or_(
+                User.full_name.ilike(pattern),
+                User.phone.ilike(pattern),
+                User.email.ilike(pattern),
+                User.telegram_username.ilike(pattern),
+            )
+        )
+
+    count_statement = select(func.count()).select_from(User).where(*filters)
     count = session.exec(count_statement).one()
 
-    statement = select(User).order_by(User.created_at.desc()).offset(skip).limit(limit)
+    statement = select(User).where(*filters).order_by(User.created_at.desc()).offset(skip).limit(limit)
     users = session.exec(statement).all()
 
     return UsersPublic(data=users, count=count)

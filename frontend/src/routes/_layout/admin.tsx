@@ -97,10 +97,22 @@ function Admin() {
     }
   }, [])
 
+  // Debounce user search query for server-side filtering
+  const [debouncedUserQuery, setDebouncedUserQuery] = useState("")
   useEffect(() => {
-    UsersService.readUsers({ skip: 0, limit: 100 })
-      .then((response) => setUsers(response.data))
+    const timer = setTimeout(() => setDebouncedUserQuery(userQuery), 350)
+    return () => clearTimeout(timer)
+  }, [userQuery])
+
+  useEffect(() => {
+    const q = debouncedUserQuery.trim()
+    const url = q ? `/users/?q=${encodeURIComponent(q)}&limit=100` : "/users/?limit=100"
+    apiJson<{ data: UserPublic[]; count: number }>(url)
+      .then((res) => setUsers(res.data))
       .catch(() => setUsers([]))
+  }, [debouncedUserQuery])
+
+  useEffect(() => {
     loadReview().catch(() => {
       toast.error(t("error_generic"))
       setProblems([])
@@ -463,18 +475,7 @@ function Admin() {
               </div>
             ) : (
               <div className="divide-y max-h-[60vh] overflow-y-auto">
-                {users
-                  .filter((u) => {
-                    if (!userQuery.trim()) return true
-                    const q = userQuery.toLowerCase()
-                    return (
-                      u.full_name?.toLowerCase().includes(q) ||
-                      u.phone?.toLowerCase().includes(q) ||
-                      u.email?.toLowerCase().includes(q) ||
-                      u.telegram_username?.toLowerCase().includes(q)
-                    )
-                  })
-                  .map((user) => (
+                {users.map((user) => (
                     <div key={user.id} className="grid gap-2 px-4 py-3">
                       <p className="truncate text-sm font-medium">
                         {user.full_name || user.phone || user.email}
