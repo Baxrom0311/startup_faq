@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Briefcase, Inbox, LayoutGrid, Search } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import {
@@ -9,6 +9,7 @@ import {
   StatusBadge,
 } from "@/components/Product/StatusBadge"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { apiJson, shortDate, type Project, type ProjectsResponse } from "@/lib/product-api"
@@ -21,10 +22,14 @@ export const Route = createFileRoute("/_layout/projects/")({
 })
 
 type Tab = "all" | "mine" | "inbox"
+const PAGE_SIZE = 20
 
 function Projects() {
   const { t } = useTranslation()
   const [all, setAll] = useState<Project[] | null>(null)
+  const [allTotal, setAllTotal] = useState(0)
+  const [allSkip, setAllSkip] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [incoming, setIncoming] = useState<Project[] | null>(null)
   const [mine, setMine] = useState<Project[] | null>(null)
   const [query, setQuery] = useState("")
@@ -37,17 +42,32 @@ function Projects() {
     return () => clearTimeout(timer)
   }, [query])
 
+  const loadAll = useCallback(
+    async (currentSkip = 0) => {
+      const q = debouncedQuery.trim() ? `&q=${encodeURIComponent(debouncedQuery.trim())}` : ""
+      const res = await apiJson<ProjectsResponse>(`/projects?limit=${PAGE_SIZE}&skip=${currentSkip}${q}`)
+      if (currentSkip === 0) {
+        setAll(res.data)
+      } else {
+        setAll((prev) => [...(prev ?? []), ...res.data])
+      }
+      setAllTotal(res.count)
+    },
+    [debouncedQuery],
+  )
+
   useEffect(() => {
-    // Cancel previous inflight requests
     abortRef.current?.abort()
     abortRef.current = new AbortController()
 
     const q = debouncedQuery.trim() ? `&q=${encodeURIComponent(debouncedQuery.trim())}` : ""
 
+    setAllSkip(0)
+    setAll(null)
+
     async function load() {
       try {
-        const res = await apiJson<ProjectsResponse>(`/projects?limit=100${q}`)
-        setAll(res.data)
+        await loadAll(0)
       } catch {
         setAll([])
       }
@@ -66,14 +86,25 @@ function Projects() {
     }
 
     load()
-  }, [debouncedQuery])
+  }, [debouncedQuery, loadAll])
+
+  const handleLoadMore = async () => {
+    const nextSkip = allSkip + PAGE_SIZE
+    setAllSkip(nextSkip)
+    setLoadingMore(true)
+    try {
+      await loadAll(nextSkip)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode; count: number | null }[] = [
     {
       id: "all",
       label: t("projects_all"),
       icon: <LayoutGrid className="size-4" />,
-      count: all?.length ?? null,
+      count: allTotal > 0 ? allTotal : (all?.length ?? null),
     },
     {
       id: "mine",
@@ -146,36 +177,49 @@ function Projects() {
               <EmptyState />
             </div>
           ) : (
-            <div className="divide-y">
-              {activeProjects.map((project) => (
-                <Link
-                  key={project.id}
-                  to="/projects/$projectId"
-                  params={{ projectId: project.id }}
-                  className="flex items-start gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
-                >
-                  <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10">
-                    <Briefcase className="size-4 text-primary" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="truncate text-sm font-semibold">
-                        {project.title}
-                      </span>
-                      <StatusBadge status={project.status} />
+            <>
+              <div className="divide-y">
+                {activeProjects.map((project) => (
+                  <Link
+                    key={project.id}
+                    to="/projects/$projectId"
+                    params={{ projectId: project.id }}
+                    className="flex items-start gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
+                  >
+                    <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                      <Briefcase className="size-4 text-primary" />
                     </div>
-                    {project.pitch && (
-                      <p className="text-muted-foreground mt-0.5 line-clamp-1 text-xs">
-                        {project.pitch}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="truncate text-sm font-semibold">
+                          {project.title}
+                        </span>
+                        <StatusBadge status={project.status} />
+                      </div>
+                      {project.pitch && (
+                        <p className="text-muted-foreground mt-0.5 line-clamp-1 text-xs">
+                          {project.pitch}
+                        </p>
+                      )}
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        {shortDate(project.created_at)}
                       </p>
-                    )}
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      {shortDate(project.created_at)}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              {tab === "all" && all !== null && all.length < allTotal && (
+                <div className="flex justify-center border-t p-4">
+                  <Button
+                    variant="outline"
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? t("loading") : t("load_more")}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
