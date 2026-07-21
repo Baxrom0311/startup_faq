@@ -65,16 +65,18 @@ body{
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
 
-/* ── AMBIENT ── */
+/* ── AMBIENT (light mode only) ── */
 .ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .amb{position:absolute;border-radius:50%;filter:blur(120px)}
-[data-theme="dark"] .amb{opacity:.07}
+[data-theme="dark"] .ambient{display:none}
 [data-theme="light"] .amb{opacity:.1}
 .a1{width:900px;height:900px;background:var(--p);top:-350px;left:-200px;animation:drift1 18s ease-in-out infinite}
 .a2{width:600px;height:600px;background:var(--cy);top:40%;right:-150px;animation:drift2 22s ease-in-out infinite}
 .a3{width:700px;height:700px;background:var(--am);bottom:-200px;left:30%;animation:drift1 26s ease-in-out infinite reverse}
 @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,-30px) scale(1.05)}}
 @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,40px) scale(1.08)}}
+/* ── GALAXY CANVAS ── */
+#gx{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity 1.8s ease}
 
 .page{position:relative;z-index:1}
 .w{max-width:1200px;margin:0 auto;padding:0 clamp(1rem,4vw,2.5rem)}
@@ -443,6 +445,7 @@ footer a:hover{color:var(--tx)}
   </style>
 </head>
 <body>
+<canvas id="gx" aria-hidden="true"></canvas>
 <div class="ambient" aria-hidden="true">
   <div class="amb a1"></div><div class="amb a2"></div><div class="amb a3"></div>
 </div>
@@ -855,6 +858,7 @@ function setTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   document.getElementById('iS').style.display=t==='dark'?'block':'none';
   document.getElementById('iM').style.display=t==='light'?'block':'none';
+  document.getElementById('gx').style.opacity=t==='dark'?'1':'0';
 }
 
 document.querySelectorAll('.lb').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
@@ -872,6 +876,118 @@ window.addEventListener('scroll',()=>{
 });
 
 setTheme('dark');
+
+/* ── GALAXY STARFIELD ── */
+(function(){
+  const cvs=document.getElementById('gx');
+  const ctx=cvs.getContext('2d');
+  const bg=document.createElement('canvas');
+  const bgx=bg.getContext('2d');
+  const COLS=[
+    {h:'#ffffff',r:255,g:255,b:255},
+    {h:'#c4b5fd',r:196,g:181,b:253}, // violet
+    {h:'#a5f3fc',r:165,g:243,b:252}, // cyan
+    {h:'#fde68a',r:253,g:230,b:138}, // amber
+  ];
+  let W=0,H=0,stars=[],shooter=null,shootT=0,t=0,lastF=0;
+
+  function resize(){
+    W=cvs.width=bg.width=innerWidth;
+    H=cvs.height=bg.height=innerHeight;
+    buildBg();buildStars();
+  }
+
+  function buildBg(){
+    bgx.clearRect(0,0,W,H);
+    // Milky way band diagonal
+    const mw=bgx.createLinearGradient(0,H*.05,W,H*.95);
+    mw.addColorStop(0,'transparent');
+    mw.addColorStop(.3,'rgba(80,30,160,.05)');
+    mw.addColorStop(.5,'rgba(100,40,200,.07)');
+    mw.addColorStop(.7,'rgba(80,30,160,.05)');
+    mw.addColorStop(1,'transparent');
+    bgx.fillStyle=mw;bgx.fillRect(0,0,W,H);
+    // Nebulae
+    [
+      {x:.12,y:.2,r:.28,c:'rgba(130,60,255,.06)'},
+      {x:.82,y:.5,r:.22,c:'rgba(20,180,230,.05)'},
+      {x:.5,y:.85,r:.18,c:'rgba(180,60,255,.045)'},
+      {x:.95,y:.1,r:.15,c:'rgba(40,120,255,.04)'},
+      {x:.35,y:.55,r:.14,c:'rgba(255,80,180,.03)'},
+    ].forEach(({x,y,r,c})=>{
+      const g=bgx.createRadialGradient(W*x,H*y,0,W*x,H*y,Math.min(W,H)*r);
+      g.addColorStop(0,c);g.addColorStop(1,'transparent');
+      bgx.fillStyle=g;bgx.fillRect(0,0,W,H);
+    });
+  }
+
+  function buildStars(){
+    stars=[];
+    const mob=W<768;
+    // Tiny (300/180)
+    for(let i=0;i<(mob?180:300);i++) stars.push({x:rnd(W),y:rnd(H),r:rnd(.6)+.2,a:rnd(.3)+.1,tw:rnd(Math.PI*2),ts:rnd(.003)+.001,ci:0,big:false,grd:null});
+    // Medium (100/60)
+    for(let i=0;i<(mob?60:100);i++) stars.push({x:rnd(W),y:rnd(H),r:rnd(.9)+.7,a:rnd(.25)+.55,tw:rnd(Math.PI*2),ts:rnd(.002)+.001,ci:Math.random()<.25?(Math.random()<.5?1:2):0,big:false,grd:null});
+    // Large glowing (22/12)
+    for(let i=0;i<(mob?12:22);i++){
+      const s={x:rnd(W),y:rnd(H),r:rnd(1.5)+1.8,a:.85,tw:rnd(Math.PI*2),ts:rnd(.0015)+.0005,ci:Math.floor(Math.random()*4),big:true,grd:null};
+      // Pre-build glow gradient (static position)
+      const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*5);
+      const c=COLS[s.ci];
+      g.addColorStop(0,`rgba(${c.r},${c.g},${c.b},.5)`);
+      g.addColorStop(.5,`rgba(${c.r},${c.g},${c.b},.08)`);
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      s.grd=g;
+      stars.push(s);
+    }
+  }
+
+  function rnd(n){return Math.random()*n}
+
+  function spawnShooter(){
+    const angle=Math.PI*.72+rnd(.25);
+    shooter={x:W*(.4+rnd(.7)),y:H*rnd(.35),dx:Math.cos(angle)*9,dy:Math.sin(angle)*9,life:1,len:W*.1+rnd(W*.08)};
+  }
+
+  function drawShooter(){
+    if(!shooter)return;
+    shooter.x+=shooter.dx;shooter.y+=shooter.dy;shooter.life-=.022;
+    if(shooter.life<=0){shooter=null;return;}
+    const a=Math.atan2(shooter.dy,shooter.dx);
+    const tx=shooter.x-Math.cos(a)*shooter.len,ty=shooter.y-Math.sin(a)*shooter.len;
+    const g=ctx.createLinearGradient(tx,ty,shooter.x,shooter.y);
+    g.addColorStop(0,'transparent');g.addColorStop(1,`rgba(255,255,255,${shooter.life*.75})`);
+    ctx.strokeStyle=g;ctx.lineWidth=shooter.life*1.8;
+    ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(shooter.x,shooter.y);ctx.stroke();
+  }
+
+  function frame(now){
+    if(now-lastF<28){requestAnimationFrame(frame);return;}
+    lastF=now;t+=.02;
+    ctx.clearRect(0,0,W,H);
+    ctx.drawImage(bg,0,0);
+    for(const s of stars){
+      const tw=.5+.5*Math.sin(s.tw+t*s.ts*200);
+      const a=s.a*(s.big?(.6+.4*tw):(.72+.28*tw));
+      if(s.big&&s.grd){
+        ctx.globalAlpha=a*.7;ctx.fillStyle=s.grd;
+        ctx.beginPath();ctx.arc(s.x,s.y,s.r*5,0,Math.PI*2);ctx.fill();
+      }
+      ctx.globalAlpha=a;
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=COLS[s.ci].h;ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    drawShooter();
+    shootT+=28;
+    if(!shooter&&shootT>10000+rnd(8000)){spawnShooter();shootT=0;}
+    requestAnimationFrame(frame);
+  }
+
+  resize();
+  window.addEventListener('resize',()=>{setTimeout(resize,100)});
+  requestAnimationFrame(frame);
+})();
 
 (async()=>{
   try{
