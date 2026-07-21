@@ -412,31 +412,37 @@ function Admin() {
                 </CardHeader>
                 <CardContent className="pt-4">
                   {trendAnalytics && trendAnalytics.length > 0 ? (
-                    <div className="flex items-end justify-between gap-1 h-48 pt-6">
-                      {trendAnalytics.map((trend, idx) => {
-                        const maxCount = Math.max(
-                          ...trendAnalytics.map((t) => t.count),
-                          1,
-                        )
-                        const heightPct = Math.min(
-                          Math.max((trend.count / maxCount) * 100, 4),
-                          100,
-                        )
-                        return (
-                          <div
-                            key={trend.date || idx}
-                            className="flex-1 flex flex-col items-center group relative h-full justify-end"
-                          >
-                            <div className="absolute bottom-full mb-1 hidden group-hover:block bg-popover border text-popover-foreground text-[10px] rounded px-1.5 py-0.5 whitespace-nowrap shadow-sm z-10">
-                              {trend.date}: <strong>{trend.count}</strong>
-                            </div>
+                    <div className="space-y-1">
+                      <div className="flex items-end justify-between gap-1 h-48 pt-6">
+                        {trendAnalytics.map((trend, idx) => {
+                          const maxCount = Math.max(
+                            ...trendAnalytics.map((t) => t.count),
+                            1,
+                          )
+                          const heightPct = Math.min(
+                            Math.max((trend.count / maxCount) * 100, 4),
+                            100,
+                          )
+                          return (
                             <div
-                              className="w-full bg-primary/70 hover:bg-primary rounded-t-sm transition-all duration-300 cursor-pointer"
-                              style={{ height: `${heightPct}%` }}
-                            />
-                          </div>
-                        )
-                      })}
+                              key={trend.date || idx}
+                              className="flex-1 flex flex-col items-center group relative h-full justify-end"
+                            >
+                              <div className="absolute bottom-full mb-1 hidden group-hover:block bg-popover border text-popover-foreground text-[10px] rounded px-1.5 py-0.5 whitespace-nowrap shadow-sm z-10">
+                                {trend.date}: <strong>{trend.count}</strong>
+                              </div>
+                              <div
+                                className="w-full bg-primary/70 hover:bg-primary rounded-t-sm transition-all duration-300 cursor-pointer"
+                                style={{ height: `${heightPct}%` }}
+                              />
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <div className="flex justify-between text-[10px] text-muted-foreground px-0.5">
+                        <span>{trendAnalytics[0]?.date}</span>
+                        <span>{trendAnalytics[trendAnalytics.length - 1]?.date}</span>
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-6 text-sm text-muted-foreground">
