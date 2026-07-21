@@ -20,6 +20,7 @@ export function AppSidebar() {
   const { t, i18n } = useTranslation()
   const { user: currentUser } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
+  const [needsReviewCount, setNeedsReviewCount] = useState(0)
 
   useEffect(() => {
     const token = localStorage.getItem("access_token")
@@ -40,6 +41,9 @@ export function AppSidebar() {
         const data = JSON.parse(event.data)
         if (typeof data.unread_count === "number") {
           setUnreadCount(data.unread_count)
+        }
+        if (typeof data.needs_review_count === "number") {
+          setNeedsReviewCount(data.needs_review_count)
         }
       } catch (err) {
         console.error("SSE parse error:", err)
@@ -73,7 +77,15 @@ export function AppSidebar() {
   ]
 
   const items = currentUser?.is_superuser
-    ? [...baseItems, { icon: Shield, title: t("nav_admin"), path: "/admin" }]
+    ? [
+        ...baseItems,
+        {
+          icon: Shield,
+          title: t("nav_admin"),
+          path: "/admin",
+          badge: needsReviewCount > 0 ? needsReviewCount : undefined,
+        },
+      ]
     : baseItems
 
   return (

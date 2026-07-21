@@ -17,6 +17,7 @@ from app.models import (
     NotificationPublic,
     NotificationReadRequest,
     NotificationsPublic,
+    Problem,
 )
 from app.modules.notifications.service import mark_notification_read
 
@@ -99,6 +100,7 @@ async def stream_notifications(
 ) -> StreamingResponse:
     async def event_generator():
         last_unread_count = -1
+        last_needs_review_count = -1
         while True:
             try:
                 with Session(engine) as session:
@@ -108,9 +110,21 @@ async def stream_notifications(
                         .where(Notification.user_id == current_user.id, Notification.read_at.is_(None))  # type: ignore[attr-defined]
                     ).one()
 
-                    if unread_count != last_unread_count:
+                    needs_review_count = 0
+                    if current_user.is_superuser:
+                        needs_review_count = session.exec(
+                            select(func.count())
+                            .select_from(Problem)
+                            .where(Problem.status == "needs_review")
+                        ).one()
+
+                    if unread_count != last_unread_count or needs_review_count != last_needs_review_count:
                         last_unread_count = unread_count
-                        data = json.dumps({"unread_count": unread_count})
+                        last_needs_review_count = needs_review_count
+                        payload: dict = {"unread_count": unread_count}
+                        if current_user.is_superuser:
+                            payload["needs_review_count"] = needs_review_count
+                        data = json.dumps(payload)
                         yield f"data: {data}\n\n"
             except Exception as e:
                 yield f"data: {json.dumps({'error': str(e)})}\n\n"
