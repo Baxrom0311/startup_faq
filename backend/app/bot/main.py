@@ -164,7 +164,7 @@ async def verify_contact(message: Message) -> None:
 
     frontend = settings.FRONTEND_HOST.rstrip("/")
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="▶️ Platformaga kirish", url=frontend)],
+        [InlineKeyboardButton(text="▶️ Platformaga kirish", url=f"{frontend}/login")],
     ])
     await message.answer(
         "✅ Muvaffaqiyatli kirdingiz! Platformaga qayting.",
