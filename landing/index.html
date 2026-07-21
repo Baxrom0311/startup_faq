@@ -6,865 +6,879 @@
   <title>SolutionLab — Muammolarni startaplarga bog'laymiz</title>
   <meta name="description" content="Fuqarolar muammo e'lon qiladi. Startaplar yechim taklif qiladi. AI tahlil qiladi." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --radius: 14px;
-      --transition: 0.22s cubic-bezier(.4,0,.2,1);
-    }
+    :root { --r: 16px; --t: .22s cubic-bezier(.4,0,.2,1); }
 
     [data-theme="dark"] {
-      --bg:      #0c0c14;
-      --bg2:     #12121e;
-      --bg3:     #1a1a2e;
-      --border:  rgba(255,255,255,0.07);
-      --border2: rgba(255,255,255,0.13);
-      --text:    #f0f0fa;
-      --muted:   #7878a0;
-      --muted2:  #a0a0c0;
-      --p:       #8b5cf6;
-      --p2:      #7c3aed;
-      --cyan:    #22d3ee;
-      --amber:   #f59e0b;
-      --green:   #10b981;
-      --card-shadow: 0 4px 32px rgba(0,0,0,0.4);
+      --bg:    #080812;
+      --bg2:   #0f0f1e;
+      --bg3:   #16162a;
+      --bg4:   #1e1e38;
+      --bd:    rgba(255,255,255,0.06);
+      --bd2:   rgba(255,255,255,0.12);
+      --bd3:   rgba(255,255,255,0.2);
+      --tx:    #eeeef8;
+      --tx2:   #c0c0d8;
+      --mu:    #6868a0;
+      --mu2:   #9898c0;
+      --p:     #8b5cf6;
+      --p2:    #7c3aed;
+      --p3:    #6d28d9;
+      --cy:    #22d3ee;
+      --cy2:   #06b6d4;
+      --am:    #f59e0b;
+      --gn:    #10b981;
+      --sh:    0 8px 48px rgba(0,0,0,.6);
+      --glow:  0 0 40px rgba(139,92,246,.18);
     }
-
     [data-theme="light"] {
-      --bg:      #f6f6fb;
-      --bg2:     #ffffff;
-      --bg3:     #eeeef8;
-      --border:  rgba(0,0,0,0.08);
-      --border2: rgba(0,0,0,0.15);
-      --text:    #0f0f1a;
-      --muted:   #6b6b8a;
-      --muted2:  #4a4a6a;
-      --p:       #7c3aed;
-      --p2:      #6d28d9;
-      --cyan:    #0891b2;
-      --amber:   #d97706;
-      --green:   #059669;
-      --card-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      --bg:    #f4f4fb;
+      --bg2:   #ffffff;
+      --bg3:   #eaeaf6;
+      --bg4:   #e0e0f0;
+      --bd:    rgba(0,0,0,0.07);
+      --bd2:   rgba(0,0,0,0.12);
+      --bd3:   rgba(0,0,0,0.2);
+      --tx:    #0c0c1a;
+      --tx2:   #2a2a48;
+      --mu:    #6464a0;
+      --mu2:   #4a4a78;
+      --p:     #7c3aed;
+      --p2:    #6d28d9;
+      --p3:    #5b21b6;
+      --cy:    #0891b2;
+      --cy2:   #0e7490;
+      --am:    #d97706;
+      --gn:    #059669;
+      --sh:    0 8px 32px rgba(0,0,0,.1);
+      --glow:  0 0 40px rgba(124,58,237,.12);
     }
 
     html { scroll-behavior: smooth; }
-
     body {
-      font-family: 'Geist', 'Inter', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      overflow-x: hidden;
-      transition: background var(--transition), color var(--transition);
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg); color: var(--tx);
+      line-height: 1.6; overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
-
-    /* ─── SCROLLBAR ─── */
-    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: var(--bd2); border-radius: 3px; }
 
-    /* ─── MESH BG ─── */
-    .mesh {
-      position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    /* ── Noise texture overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.022; background-size: 256px;
     }
-    .mesh-circle {
+
+    /* ── Ambient blobs ── */
+    .blobs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .blob {
       position: absolute; border-radius: 50%;
-      filter: blur(80px); opacity: 0.12;
+      filter: blur(100px);
     }
-    [data-theme="dark"] .mesh-circle { opacity: 0.1; }
-    .mesh-1 { width: 600px; height: 600px; background: var(--p); top: -200px; left: -150px; }
-    .mesh-2 { width: 500px; height: 500px; background: var(--cyan); top: 200px; right: -100px; }
-    .mesh-3 { width: 400px; height: 400px; background: var(--amber); bottom: 100px; left: 30%; }
+    [data-theme="dark"] .blob { opacity: 0.07; }
+    [data-theme="light"] .blob { opacity: 0.09; }
+    .b1 { width: 700px; height: 700px; background: var(--p); top: -250px; left: -180px; }
+    .b2 { width: 500px; height: 500px; background: var(--cy); top: 30vh; right: -120px; }
+    .b3 { width: 600px; height: 600px; background: var(--am); bottom: -100px; left: 25%; }
 
     .page { position: relative; z-index: 1; }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 1.5rem; }
 
     /* ─── NAV ─── */
     nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+      height: 64px;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 clamp(1rem, 4vw, 2.5rem); height: 64px;
-      background: var(--bg2);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(16px);
-      transition: background var(--transition);
+      padding: 0 clamp(1rem, 4vw, 2.5rem);
+      background: rgba(8,8,18,0.7);
+      backdrop-filter: blur(24px) saturate(160%);
+      border-bottom: 1px solid var(--bd);
+      transition: background var(--t), border-color var(--t);
     }
+    [data-theme="light"] nav { background: rgba(255,255,255,0.75); }
     .nav-logo {
       display: flex; align-items: center; gap: 10px;
-      text-decoration: none; color: var(--text);
+      text-decoration: none; color: var(--tx); flex-shrink: 0;
     }
-    .logo-mark {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: linear-gradient(135deg, var(--p), var(--cyan));
+    .logo-icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--p) 0%, var(--cy) 100%);
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 20px rgba(139,92,246,0.35);
+      box-shadow: 0 0 24px rgba(139,92,246,.4);
+      flex-shrink: 0;
     }
-    .logo-mark svg { color: #fff; }
-    .logo-text { font-weight: 800; font-size: 1.05rem; letter-spacing: -0.02em; }
+    .logo-icon svg { color: #fff; }
+    .logo-name { font-weight: 800; font-size: 1rem; letter-spacing: -.03em; }
 
-    .nav-center { display: flex; align-items: center; gap: 0.25rem; }
+    .nav-links { display: flex; align-items: center; gap: .15rem; }
     .nav-link {
-      padding: 0.4rem 0.85rem; border-radius: 8px;
-      color: var(--muted); font-size: 0.875rem; text-decoration: none; font-weight: 500;
-      transition: color var(--transition), background var(--transition);
+      padding: .38rem .8rem; border-radius: 8px;
+      color: var(--mu2); font-size: .85rem; font-weight: 500;
+      text-decoration: none;
+      transition: color var(--t), background var(--t);
     }
-    .nav-link:hover { color: var(--text); background: var(--bg3); }
+    .nav-link:hover { color: var(--tx); background: var(--bg3); }
 
-    .nav-right { display: flex; align-items: center; gap: 0.5rem; }
-
-    /* Lang switcher */
-    .lang-switcher {
-      display: flex; border: 1px solid var(--border2); border-radius: 8px; overflow: hidden;
-    }
+    .nav-end { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
+    .lang-group { display: flex; border: 1px solid var(--bd2); border-radius: 8px; overflow: hidden; }
     .lang-btn {
-      padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 600;
+      padding: .28rem .55rem; font-size: .72rem; font-weight: 700;
       background: transparent; border: none; cursor: pointer;
-      color: var(--muted); transition: all var(--transition);
+      color: var(--mu); transition: all var(--t);
     }
-    .lang-btn.active { background: var(--p); color: #fff; }
-    .lang-btn:not(.active):hover { color: var(--text); background: var(--bg3); }
-
-    /* Theme toggle */
+    .lang-btn.on { background: var(--p); color: #fff; }
+    .lang-btn:not(.on):hover { color: var(--tx); background: var(--bg3); }
     .theme-btn {
-      width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border2);
-      background: transparent; cursor: pointer; color: var(--muted);
+      width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--bd2);
+      background: transparent; cursor: pointer; color: var(--mu2);
       display: flex; align-items: center; justify-content: center;
-      transition: all var(--transition);
+      transition: all var(--t);
     }
-    .theme-btn:hover { color: var(--text); background: var(--bg3); }
+    .theme-btn:hover { color: var(--tx); background: var(--bg3); }
 
-    .btn {
+    .cta-nav {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 0.5rem 1.1rem; border-radius: 10px;
-      font-size: 0.875rem; font-weight: 600;
-      text-decoration: none; border: none; cursor: pointer;
-      transition: all var(--transition);
-    }
-    .btn-primary {
+      padding: .42rem 1.1rem; border-radius: 9px;
+      font-size: .85rem; font-weight: 700; text-decoration: none; border: none; cursor: pointer;
       background: linear-gradient(135deg, var(--p), var(--p2));
-      color: #fff;
-      box-shadow: 0 0 20px rgba(139,92,246,0.25);
+      color: #fff; box-shadow: 0 0 24px rgba(139,92,246,.3);
+      transition: all var(--t);
     }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 24px rgba(139,92,246,0.45); }
-    .btn-ghost { background: var(--bg3); color: var(--text); border: 1px solid var(--border2); }
-    .btn-ghost:hover { border-color: var(--p); color: var(--p); }
-    .btn-lg { padding: 0.75rem 1.75rem; font-size: 1rem; border-radius: 12px; }
+    .cta-nav:hover { transform: translateY(-1px); box-shadow: 0 4px 28px rgba(139,92,246,.5); }
 
-    @media(max-width: 768px) {
-      .nav-center { display: none; }
+    @media(max-width:768px){ .nav-links { display: none; } }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: .65rem 1.4rem; border-radius: 12px;
+      font-size: .9rem; font-weight: 600;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: all var(--t); white-space: nowrap;
     }
+    .btn-prim {
+      background: linear-gradient(135deg, var(--p) 0%, var(--p2) 100%);
+      color: #fff; box-shadow: 0 0 32px rgba(139,92,246,.3);
+    }
+    .btn-prim:hover { transform: translateY(-2px); box-shadow: 0 8px 36px rgba(139,92,246,.5); }
+    .btn-sec {
+      background: var(--bg3); color: var(--tx2);
+      border: 1px solid var(--bd2);
+    }
+    .btn-sec:hover { border-color: var(--p); color: var(--p); background: rgba(139,92,246,.07); }
+    .btn-lg { padding: .8rem 1.8rem; font-size: 1rem; border-radius: 14px; }
 
     /* ─── HERO ─── */
     .hero {
       min-height: 100vh;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 7rem 1.5rem 4rem;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 8rem 1.5rem 5rem;
       text-align: center;
     }
-
-    .hero-eyebrow {
+    .eyebrow {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 14px; border-radius: 999px;
-      background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25);
-      font-size: 0.8rem; font-weight: 600; color: var(--p);
+      padding: 5px 14px; border-radius: 999px;
+      background: rgba(139,92,246,.1); border: 1px solid rgba(139,92,246,.25);
+      font-size: .78rem; font-weight: 700; color: var(--p);
+      letter-spacing: .04em; text-transform: uppercase;
       margin-bottom: 2rem;
     }
-    .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--p); animation: pulse-anim 2s infinite; }
-    @keyframes pulse-anim { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
-
-    h1 {
-      font-size: clamp(2.6rem, 7vw, 5rem);
-      font-weight: 900; line-height: 1.08;
-      letter-spacing: -0.04em; margin-bottom: 1.5rem; max-width: 840px;
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--p); flex-shrink: 0;
+      box-shadow: 0 0 8px var(--p);
+      animation: blink 2.2s ease-in-out infinite;
     }
-    .grad {
-      background: linear-gradient(135deg, var(--p) 0%, var(--cyan) 60%, var(--amber) 100%);
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    .hero h1 {
+      font-size: clamp(2.8rem, 7.5vw, 5.4rem);
+      font-weight: 900; line-height: 1.06;
+      letter-spacing: -.04em; margin-bottom: 1.5rem;
+      max-width: 880px;
+    }
+    .gr {
+      background: linear-gradient(135deg, var(--p) 0%, var(--cy) 55%, var(--am) 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
     .hero-sub {
-      font-size: 1.1rem; color: var(--muted2); max-width: 520px;
+      font-size: 1.1rem; color: var(--mu2); max-width: 520px;
       margin: 0 auto 2.5rem; line-height: 1.75;
     }
-    .hero-btns { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+    .hero-actions { display: flex; gap: .75rem; flex-wrap: wrap; justify-content: center; margin-bottom: 4rem; }
 
-    /* Stats bar */
-    .stats-bar {
-      display: flex; align-items: center; gap: 0; flex-wrap: wrap; justify-content: center;
-      margin-top: 4rem;
-      background: var(--bg2); border: 1px solid var(--border2);
-      border-radius: 16px; overflow: hidden;
-      box-shadow: var(--card-shadow);
-      max-width: 640px; width: 100%;
+    /* Stats pills */
+    .stats-row {
+      display: flex; align-items: stretch; gap: 0;
+      border: 1px solid var(--bd2); border-radius: 18px; overflow: hidden;
+      background: var(--bg2); box-shadow: var(--sh), var(--glow);
+      max-width: 660px; width: 100%;
     }
-    .stat-item {
-      flex: 1; min-width: 120px; padding: 1.5rem 1rem; text-align: center;
-      border-right: 1px solid var(--border);
+    .stat {
+      flex: 1; padding: 1.5rem 1rem; text-align: center;
+      border-right: 1px solid var(--bd);
+      position: relative; overflow: hidden;
     }
-    .stat-item:last-child { border-right: none; }
-    .stat-num { font-size: 2rem; font-weight: 900; letter-spacing: -0.03em; color: var(--text); }
-    .stat-num span { background: linear-gradient(135deg,var(--p),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-    .stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 2px; font-weight: 500; }
+    .stat:last-child { border-right: none; }
+    .stat::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 60%, rgba(139,92,246,.05));
+      opacity: 0; transition: opacity var(--t);
+    }
+    .stat:hover::before { opacity: 1; }
+    .stat-n {
+      font-size: 2.2rem; font-weight: 900; letter-spacing: -.04em;
+      background: linear-gradient(135deg, var(--p), var(--cy));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-l { font-size: .72rem; color: var(--mu); margin-top: 3px; font-weight: 500; }
 
-    /* ─── SECTION ─── */
-    section { padding: 6rem 1.5rem; }
-    .container { max-width: 1140px; margin: 0 auto; }
+    /* ─── SECTIONS ─── */
+    section { padding: 6rem 0; }
+    section.alt { background: var(--bg2); border-top: 1px solid var(--bd); border-bottom: 1px solid var(--bd); }
 
-    .sec-tag {
+    .sec-eyebrow {
       display: inline-flex; align-items: center; gap: 6px;
-      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.1em; color: var(--p);
-      margin-bottom: 1rem;
+      font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+      color: var(--p); margin-bottom: .75rem;
     }
-    .sec-tag svg { color: var(--p); }
     h2 {
-      font-size: clamp(1.9rem, 4vw, 2.8rem); font-weight: 900;
-      line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 1rem;
+      font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 900;
+      line-height: 1.12; letter-spacing: -.04em; margin-bottom: 1rem;
     }
-    .sec-desc { color: var(--muted2); font-size: 1.05rem; max-width: 500px; line-height: 1.7; }
+    .sec-sub { color: var(--mu2); font-size: 1.05rem; max-width: 480px; line-height: 1.7; }
 
     /* ─── STEPS ─── */
-    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 3.5rem; }
-    .step-card {
-      padding: 2rem; border-radius: var(--radius);
-      background: var(--bg2); border: 1px solid var(--border);
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(272px,1fr)); gap: 1.5rem; margin-top: 3.5rem; }
+    .step {
+      padding: 2rem; border-radius: var(--r);
+      background: var(--bg2); border: 1px solid var(--bd);
       position: relative; overflow: hidden;
-      transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
-      box-shadow: var(--card-shadow);
+      box-shadow: var(--sh);
+      transition: transform var(--t), border-color var(--t), box-shadow var(--t);
     }
-    .step-card:hover { border-color: var(--p); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(139,92,246,0.15); }
-    .step-card::before {
-      content: attr(data-n);
+    .step:hover { transform: translateY(-5px); border-color: var(--p); box-shadow: var(--sh), 0 12px 40px rgba(139,92,246,.15); }
+    .step-num {
       position: absolute; top: 1.5rem; right: 1.5rem;
-      font-size: 4rem; font-weight: 900; color: var(--border);
-      line-height: 1; letter-spacing: -0.05em;
+      font-size: 4.5rem; font-weight: 900; line-height: 1;
+      letter-spacing: -.05em; color: var(--bd2); pointer-events: none;
+      transition: color var(--t);
     }
-    .icon-box {
-      width: 52px; height: 52px; border-radius: 14px; margin-bottom: 1.2rem;
+    .step:hover .step-num { color: rgba(139,92,246,.12); }
+    .step-icon {
+      width: 50px; height: 50px; border-radius: 14px; margin-bottom: 1.25rem;
       display: flex; align-items: center; justify-content: center;
-      position: relative; overflow: hidden;
     }
-    .icon-box svg { position: relative; z-index: 1; }
-    .icon-violet { background: linear-gradient(135deg,rgba(139,92,246,.2),rgba(139,92,246,.05)); border: 1px solid rgba(139,92,246,.25); color: var(--p); }
-    .icon-cyan   { background: linear-gradient(135deg,rgba(34,211,238,.2),rgba(34,211,238,.05)); border: 1px solid rgba(34,211,238,.25); color: var(--cyan); }
-    .icon-amber  { background: linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.05)); border: 1px solid rgba(245,158,11,.25); color: var(--amber); }
-    .icon-green  { background: linear-gradient(135deg,rgba(16,185,129,.2),rgba(16,185,129,.05)); border: 1px solid rgba(16,185,129,.25); color: var(--green); }
-    .step-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .step-card p { color: var(--muted2); font-size: 0.875rem; line-height: 1.65; }
+    .ic-v { background: rgba(139,92,246,.12); border: 1px solid rgba(139,92,246,.2); color: var(--p); }
+    .ic-c { background: rgba(34,211,238,.1);  border: 1px solid rgba(34,211,238,.2);  color: var(--cy); }
+    .ic-a { background: rgba(245,158,11,.1);  border: 1px solid rgba(245,158,11,.2);  color: var(--am); }
+    .ic-g { background: rgba(16,185,129,.1);  border: 1px solid rgba(16,185,129,.2);  color: var(--gn); }
+    .step h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
+    .step p { color: var(--mu2); font-size: .875rem; line-height: 1.65; }
 
     /* ─── FLOW ─── */
-    .flow-wrap { margin-top: 3rem; }
-    .flow {
+    .flow-band {
+      margin-top: 2.5rem;
       display: flex; align-items: stretch; gap: 0;
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: var(--radius); overflow: hidden;
-      box-shadow: var(--card-shadow);
+      border: 1px solid var(--bd2); border-radius: var(--r); overflow: hidden;
+      background: var(--bg2); box-shadow: var(--sh);
     }
-    .flow-item {
-      flex: 1; padding: 1.5rem 1rem; text-align: center;
-      border-right: 1px solid var(--border); position: relative;
-      transition: background var(--transition);
+    .flow-cell {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: .5rem;
+      padding: 1.5rem .75rem; text-align: center;
+      border-right: 1px solid var(--bd);
+      transition: background var(--t);
     }
-    .flow-item:hover { background: var(--bg3); }
-    .flow-item:last-child { border-right: none; }
-    .flow-icon {
-      width: 44px; height: 44px; border-radius: 12px; margin: 0 auto 0.8rem;
+    .flow-cell:last-child { border-right: none; }
+    .flow-cell:hover { background: var(--bg3); }
+    .flow-ico {
+      width: 42px; height: 42px; border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
-    .flow-label { font-size: 0.82rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .flow-desc { font-size: 0.75rem; color: var(--muted); }
-    .flow-arrow {
+    .flow-name { font-size: .82rem; font-weight: 700; }
+    .flow-hint { font-size: .72rem; color: var(--mu); }
+    .flow-sep {
       display: flex; align-items: center; justify-content: center;
-      padding: 0 0.5rem; color: var(--muted); font-size: 1.1rem; flex-shrink: 0;
+      padding: 0 .35rem; color: var(--mu); flex-shrink: 0;
     }
-    @media(max-width:640px){ .flow { flex-direction: column; } .flow-item { border-right:none; border-bottom:1px solid var(--border); } .flow-item:last-child{ border-bottom:none; } .flow-arrow { display:none; } }
+    @media(max-width:640px){
+      .flow-band { flex-direction: column; }
+      .flow-cell { border-right: none; border-bottom: 1px solid var(--bd); flex-direction: row; text-align: left; gap: .75rem; padding: 1rem 1.25rem; }
+      .flow-cell:last-child { border-bottom: none; }
+      .flow-sep { display: none; }
+    }
 
-    /* ─── FEATURES ─── */
-    .features-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1px; margin-top: 3.5rem; background: var(--border); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+    /* ─── FEATURES GRID ─── */
+    .feat-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(288px,1fr));
+      gap: 1px; margin-top: 3.5rem;
+      background: var(--bd); border-radius: var(--r); overflow: hidden;
+      border: 1px solid var(--bd);
+    }
     .feat {
       padding: 2rem; background: var(--bg2);
-      transition: background var(--transition);
+      transition: background var(--t);
+      display: flex; flex-direction: column; gap: .85rem;
     }
     .feat:hover { background: var(--bg3); }
-    .feat-icon { margin-bottom: 1rem; }
-    .feat h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
-    .feat p { color: var(--muted2); font-size: 0.85rem; line-height: 1.65; }
+    .feat h3 { font-size: .95rem; font-weight: 700; }
+    .feat p { color: var(--mu2); font-size: .85rem; line-height: 1.65; flex: 1; }
 
     /* ─── WHO ─── */
-    .who-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 3rem; }
-    @media(max-width:640px){ .who-grid { grid-template-columns: 1fr; } }
+    .who-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 3rem; }
+    @media(max-width:640px){ .who-cols { grid-template-columns: 1fr; } }
     .who-card {
-      padding: 2rem; border-radius: var(--radius);
-      background: var(--bg2); border: 1px solid var(--border);
-      box-shadow: var(--card-shadow);
+      padding: 2rem; border-radius: var(--r);
+      background: var(--bg2); border: 1px solid var(--bd);
+      box-shadow: var(--sh);
+      transition: border-color var(--t);
     }
-    .who-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
-    .who-avatar {
-      width: 44px; height: 44px; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
+    .who-card:hover { border-color: var(--bd2); }
+    .who-head { display: flex; align-items: center; gap: .85rem; margin-bottom: 1.5rem; }
+    .who-av {
+      width: 46px; height: 46px; border-radius: 13px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .who-card h3 { font-size: 1rem; font-weight: 700; }
-    .who-card ul { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
-    .who-card li {
-      display: flex; align-items: flex-start; gap: 0.6rem;
-      font-size: 0.875rem; color: var(--muted2);
-    }
-    .check-icon { color: var(--green); flex-shrink: 0; margin-top: 1px; }
+    .who-card ul { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+    .who-card li { display: flex; align-items: flex-start; gap: .6rem; font-size: .875rem; color: var(--mu2); }
+    .ck { color: var(--gn); flex-shrink: 0; margin-top: 1px; }
 
-    /* ─── ORGS ─── */
-    .orgs { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 1.5rem; margin-top: 2rem; }
-    .org-card {
-      padding: 1.5rem; border-radius: var(--radius);
-      background: var(--bg2); border: 1px solid var(--border);
-      transition: border-color var(--transition); box-shadow: var(--card-shadow);
+    .org-row { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 1.25rem; margin-top: 2rem; }
+    .org {
+      padding: 1.5rem; border-radius: var(--r);
+      background: var(--bg2); border: 1px solid var(--bd);
+      box-shadow: var(--sh); transition: border-color var(--t);
     }
-    .org-card:hover { border-color: var(--p); }
-    .org-icon { margin-bottom: 0.75rem; }
-    .org-card strong { font-size: 0.9rem; font-weight: 700; display: block; margin-bottom: 0.3rem; }
-    .org-card p { color: var(--muted); font-size: 0.8rem; line-height: 1.55; }
+    .org:hover { border-color: var(--p); }
+    .org strong { font-size: .9rem; font-weight: 700; display: block; margin: .7rem 0 .3rem; }
+    .org p { color: var(--mu); font-size: .82rem; line-height: 1.55; }
 
-    /* ─── CTA ─── */
+    /* ─── SOCIAL PROOF TICKER ─── */
+    .proof-row { display: flex; gap: 1rem; margin-top: 3.5rem; flex-wrap: wrap; }
+    .proof-card {
+      flex: 1; min-width: 240px;
+      padding: 1.5rem; border-radius: var(--r);
+      background: var(--bg3); border: 1px solid var(--bd);
+      box-shadow: var(--sh);
+    }
+    .proof-stars { display: flex; gap: 2px; margin-bottom: .6rem; }
+    .proof-q { font-size: .9rem; color: var(--tx2); line-height: 1.55; margin-bottom: .75rem; font-style: italic; }
+    .proof-who { font-size: .78rem; color: var(--mu); font-weight: 600; }
+
+    /* ─── CTA SECTION ─── */
     .cta-section { padding: 7rem 1.5rem; text-align: center; }
-    .cta-card {
-      max-width: 760px; margin: 0 auto;
-      padding: 4rem 2.5rem;
-      background: linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(34,211,238,0.06) 50%, rgba(245,158,11,0.06) 100%);
-      border: 1px solid rgba(139,92,246,0.25);
-      border-radius: 24px; box-shadow: 0 0 80px rgba(139,92,246,0.1);
+    .cta-box {
+      max-width: 780px; margin: 0 auto;
+      padding: clamp(2.5rem,6vw,5rem) clamp(1.5rem,5vw,4rem);
+      border-radius: 28px;
+      background: linear-gradient(135deg,
+        rgba(139,92,246,.13) 0%,
+        rgba(34,211,238,.07) 50%,
+        rgba(245,158,11,.06) 100%);
+      border: 1px solid rgba(139,92,246,.28);
+      box-shadow: 0 0 100px rgba(139,92,246,.12), var(--sh);
+      position: relative; overflow: hidden;
     }
-    .cta-card h2 { margin-bottom: 1rem; }
-    .cta-card p { color: var(--muted2); margin-bottom: 2.5rem; font-size: 1.05rem; }
-    .cta-btns { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .cta-box::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(139,92,246,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-box > * { position: relative; }
+    .cta-box h2 { margin-bottom: 1rem; }
+    .cta-box .sub { color: var(--mu2); font-size: 1.05rem; margin-bottom: 2.5rem; line-height: 1.7; }
+    .cta-btns { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+    .cta-note { margin-top: 1.25rem; font-size: .78rem; color: var(--mu); }
 
     /* ─── FOOTER ─── */
     footer {
-      border-top: 1px solid var(--border);
-      padding: 1.75rem 1.5rem;
+      border-top: 1px solid var(--bd); padding: 1.75rem 1.5rem;
       display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 1rem;
-      font-size: 0.82rem; color: var(--muted);
+      flex-wrap: wrap; gap: 1rem; font-size: .82rem; color: var(--mu);
     }
-    footer a { color: var(--muted); text-decoration: none; transition: color var(--transition); }
-    footer a:hover { color: var(--text); }
-    .footer-links { display: flex; gap: 1.5rem; }
+    footer a { color: var(--mu); text-decoration: none; transition: color var(--t); }
+    footer a:hover { color: var(--tx); }
+    .foot-logo { display: flex; align-items: center; gap: 8px; }
+    .foot-links { display: flex; gap: 1.5rem; }
   </style>
 </head>
 <body>
 
-<div class="mesh" aria-hidden="true">
-  <div class="mesh-circle mesh-1"></div>
-  <div class="mesh-circle mesh-2"></div>
-  <div class="mesh-circle mesh-3"></div>
+<div class="blobs" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
 </div>
 
-<!-- ─── NAV ─── -->
+<!-- NAV -->
 <nav>
   <a href="/" class="nav-logo">
-    <span class="logo-mark">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44l-1.26-6.62A2.5 2.5 0 0 1 8.2 9.5H7.5a2.5 2.5 0 0 1 0-5H9a2.5 2.5 0 0 1 .5-2.5z"/>
-        <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5"/>
-        <path d="M15 9h.5a2.5 2.5 0 0 1 0 5H14"/>
-        <path d="m17.26 12.94 1.26 6.62A2.5 2.5 0 0 1 13.5 19.5V4.5"/>
+    <span class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
       </svg>
     </span>
-    <span class="logo-text">SolutionLab</span>
+    <span class="logo-name">SolutionLab</span>
   </a>
 
-  <nav class="nav-center">
+  <div class="nav-links">
     <a href="#how" class="nav-link" data-i18n="nav_how">Qanday ishlaydi</a>
     <a href="#features" class="nav-link" data-i18n="nav_features">Imkoniyatlar</a>
     <a href="#who" class="nav-link" data-i18n="nav_who">Kim uchun</a>
-  </nav>
+  </div>
 
-  <div class="nav-right">
-    <div class="lang-switcher">
-      <button class="lang-btn active" data-lang="uz">UZ</button>
+  <div class="nav-end">
+    <div class="lang-group">
+      <button class="lang-btn on" data-lang="uz">UZ</button>
       <button class="lang-btn" data-lang="ru">RU</button>
       <button class="lang-btn" data-lang="en">EN</button>
     </div>
     <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
-      <svg id="iconSun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-      <svg id="iconMoon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
+      <svg id="iSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      <svg id="iMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>
     </button>
-    <a href="/login" class="btn btn-primary" data-i18n="nav_cta">Boshlash</a>
+    <a href="/login" class="cta-nav" data-i18n="nav_cta">
+      Boshlash
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </a>
   </div>
 </nav>
 
 <div class="page">
 
-<!-- ─── HERO ─── -->
+<!-- HERO -->
 <section class="hero">
-  <div class="hero-eyebrow">
-    <span class="pulse"></span>
+  <div class="eyebrow">
+    <span class="dot"></span>
     <span data-i18n="hero_badge">O'zbekiston · AI-powered · GovTech Platform</span>
   </div>
 
-  <h1 data-i18n="hero_title">Muammolar <span class="grad">yechimga</span> aylanadigan joy</h1>
+  <h1>
+    <span data-i18n="hero_h1a">Muammolar </span><span class="gr" data-i18n="hero_h1b">yechimga</span><br>
+    <span data-i18n="hero_h1c">aylanadigan joy</span>
+  </h1>
 
   <p class="hero-sub" data-i18n="hero_sub">
     Fuqarolar muammo e'lon qiladi. Startaplar yechim taklif qiladi. AI hamma narsani tahlil qiladi. Birgalikda o'zgartiramiz.
   </p>
 
-  <div class="hero-btns">
-    <a href="/login" class="btn btn-primary btn-lg">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+  <div class="hero-actions">
+    <a href="/login" class="btn btn-prim btn-lg">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
       <span data-i18n="hero_cta1">Platformaga kirish</span>
     </a>
-    <a href="#how" class="btn btn-ghost btn-lg">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+    <a href="#how" class="btn btn-sec btn-lg">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
       <span data-i18n="hero_cta2">Qanday ishlaydi?</span>
     </a>
   </div>
 
-  <div class="stats-bar">
-    <div class="stat-item">
-      <div class="stat-num"><span id="stat-problems">—</span></div>
-      <div class="stat-lbl" data-i18n="stat1">Faol muammo</div>
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-n" id="s-problems">—</div>
+      <div class="stat-l" data-i18n="st1">Muammo yuborildi</div>
     </div>
-    <div class="stat-item">
-      <div class="stat-num"><span id="stat-projects">—</span></div>
-      <div class="stat-lbl" data-i18n="stat2">Faol loyiha</div>
+    <div class="stat">
+      <div class="stat-n" id="s-projects">—</div>
+      <div class="stat-l" data-i18n="st2">Faol loyiha</div>
     </div>
-    <div class="stat-item">
-      <div class="stat-num"><span id="stat-solved">—</span></div>
-      <div class="stat-lbl" data-i18n="stat3">Hal etildi</div>
+    <div class="stat">
+      <div class="stat-n" id="s-solved">—</div>
+      <div class="stat-l" data-i18n="st3">Hal etildi</div>
     </div>
-    <div class="stat-item">
-      <div class="stat-num"><span id="stat-users">—</span></div>
-      <div class="stat-lbl" data-i18n="stat4">Foydalanuvchi</div>
+    <div class="stat">
+      <div class="stat-n" id="s-users">—</div>
+      <div class="stat-l" data-i18n="st4">Foydalanuvchi</div>
     </div>
   </div>
 </section>
 
-<!-- ─── HOW IT WORKS ─── -->
+<!-- HOW IT WORKS -->
 <section id="how">
-  <div class="container">
-    <div class="sec-tag">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+  <div class="wrap">
+    <div class="sec-eyebrow">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
       <span data-i18n="how_tag">Jarayon</span>
     </div>
-    <h2><span data-i18n="how_title">3 qadam — muammodan</span> <span class="grad" data-i18n="how_title2">yechimgacha</span></h2>
-    <p class="sec-desc" data-i18n="how_sub">GitHub loyihalari kabi ishlaydi — faqat real hayot muammolari uchun.</p>
+    <h2><span data-i18n="how_h2a">3 qadam — muammodan </span><span class="gr" data-i18n="how_h2b">yechimgacha</span></h2>
+    <p class="sec-sub" data-i18n="how_sub">GitHub loyihalari kabi ishlaydi — faqat real hayot muammolari uchun.</p>
 
     <div class="steps">
-      <div class="step-card" data-n="01">
-        <div class="icon-box icon-violet">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-icon ic-v">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
         </div>
-        <h3 data-i18n="step1_title">Muammo e'lon qiling</h3>
-        <p data-i18n="step1_desc">Matn, ovoz yoki foto orqali muammongizni ulashing. AI avtomatik tahlil qiladi, tegishli kategoriyaga joylashtiradi.</p>
+        <h3 data-i18n="s1h">Muammo e'lon qiling</h3>
+        <p data-i18n="s1p">Matn, ovoz yoki foto orqali muammongizni ulashing. AI avtomatik tahlil qiladi, tegishli kategoriyaga joylashtiradi.</p>
       </div>
-      <div class="step-card" data-n="02">
-        <div class="icon-box icon-cyan">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-icon ic-c">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         </div>
-        <h3 data-i18n="step2_title">Yechim taklif qiling</h3>
-        <p data-i18n="step2_desc">Startap yoki innovator sifatida muammoga loyiha ochasiz. Pitch, jamoa, milestones — GitHub kabi tuzilgan tarzda.</p>
+        <h3 data-i18n="s2h">Yechim taklif qiling</h3>
+        <p data-i18n="s2p">Startap yoki innovator sifatida muammoga loyiha ochasiz. Pitch, jamoa, milestones — GitHub kabi tuzilgan.</p>
       </div>
-      <div class="step-card" data-n="03">
-        <div class="icon-box icon-amber">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-icon ic-a">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
-        <h3 data-i18n="step3_title">Birgalikda amalga oshiring</h3>
-        <p data-i18n="step3_desc">Jamoat ovoz beradi. Muammo egasi loyihani kuzatadi. Muvaffaqiyatli yechim "Hal etildi" statusini oladi.</p>
+        <h3 data-i18n="s3h">Birgalikda amalga oshiring</h3>
+        <p data-i18n="s3p">Jamoat ovoz beradi. Muammo egasi loyihani kuzatadi. Muvaffaqiyatli yechim "Hal etildi" statusini oladi.</p>
       </div>
     </div>
 
-    <!-- Flow -->
-    <div class="flow-wrap">
-      <div class="flow">
-        <div class="flow-item">
-          <div class="flow-icon icon-violet" style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--p);background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </div>
-          <div class="flow-label" data-i18n="flow1">Fuqaro</div>
-          <div class="flow-desc" data-i18n="flow1d">Muammo yozadi</div>
+    <div class="flow-band">
+      <div class="flow-cell">
+        <div class="flow-ico ic-v">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
-        <div class="flow-arrow">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        <div class="flow-name" data-i18n="f1n">Fuqaro</div>
+        <div class="flow-hint" data-i18n="f1h">Muammo yozadi</div>
+      </div>
+      <div class="flow-sep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+      <div class="flow-cell">
+        <div class="flow-ico ic-c">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><path d="M3 17v2a2 2 0 0 0 2 2h2"/></svg>
         </div>
-        <div class="flow-item">
-          <div class="flow-icon" style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--cyan);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><path d="M3 17v2a2 2 0 0 0 2 2h2"/></svg>
-          </div>
-          <div class="flow-label" data-i18n="flow2">AI</div>
-          <div class="flow-desc" data-i18n="flow2d">Tahlil qiladi</div>
+        <div class="flow-name">AI</div>
+        <div class="flow-hint" data-i18n="f2h">Tahlil qiladi</div>
+      </div>
+      <div class="flow-sep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+      <div class="flow-cell">
+        <div class="flow-ico ic-a">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
-        <div class="flow-arrow">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        <div class="flow-name" data-i18n="f3n">Jamoat</div>
+        <div class="flow-hint" data-i18n="f3h">Ovoz beradi</div>
+      </div>
+      <div class="flow-sep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+      <div class="flow-cell">
+        <div class="flow-ico ic-v">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         </div>
-        <div class="flow-item">
-          <div class="flow-icon" style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--amber);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <div class="flow-label" data-i18n="flow3">Jamoat</div>
-          <div class="flow-desc" data-i18n="flow3d">Ovoz beradi</div>
+        <div class="flow-name" data-i18n="f4n">Startap</div>
+        <div class="flow-hint" data-i18n="f4h">Loyiha ochadi</div>
+      </div>
+      <div class="flow-sep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+      <div class="flow-cell">
+        <div class="flow-ico ic-g">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
         </div>
-        <div class="flow-arrow">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </div>
-        <div class="flow-item">
-          <div class="flow-icon" style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--p);background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-          </div>
-          <div class="flow-label" data-i18n="flow4">Startap</div>
-          <div class="flow-desc" data-i18n="flow4d">Loyiha ochadi</div>
-        </div>
-        <div class="flow-arrow">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </div>
-        <div class="flow-item">
-          <div class="flow-icon" style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--green);background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-          </div>
-          <div class="flow-label" data-i18n="flow5">Yechim</div>
-          <div class="flow-desc" data-i18n="flow5d">Hal etildi!</div>
-        </div>
+        <div class="flow-name" data-i18n="f5n">Yechim</div>
+        <div class="flow-hint" data-i18n="f5h">Hal etildi!</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── FEATURES ─── -->
-<section id="features" class="features-section">
-  <div class="container">
-    <div class="sec-tag">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      <span data-i18n="feat_tag">Imkoniyatlar</span>
+<!-- FEATURES -->
+<section id="features" class="alt">
+  <div class="wrap">
+    <div class="sec-eyebrow">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span data-i18n="ft_tag">Imkoniyatlar</span>
     </div>
-    <h2>GitHub + ProductHunt = <span class="grad">SolutionLab</span></h2>
-    <p class="sec-desc" data-i18n="feat_sub">Eng yaxshi platformalar ilhomi bilan — O'zbekiston uchun qurilgan.</p>
+    <h2>GitHub + ProductHunt = <span class="gr">SolutionLab</span></h2>
+    <p class="sec-sub" data-i18n="ft_sub">Eng yaxshi platformalar ilhomi bilan — O'zbekiston uchun qurilgan.</p>
 
-    <div class="features-grid">
+    <div class="feat-grid">
       <div class="feat">
-        <div class="feat-icon icon-box icon-cyan" style="margin-bottom:1rem">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><path d="M3 17v2a2 2 0 0 0 2 2h2"/></svg>
-        </div>
-        <h3 data-i18n="f1t">AI Moderatsiya</h3>
-        <p data-i18n="f1d">Har bir muammo avtomatik tahlil qilinadi, dublikatlar aniqlanadi, sektori va mintaqasi belgilanadi.</p>
+        <div class="step-icon ic-c"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><path d="M3 17v2a2 2 0 0 0 2 2h2"/></svg></div>
+        <h3 data-i18n="ft1h">AI Moderatsiya</h3>
+        <p data-i18n="ft1p">Har bir muammo avtomatik tahlil qilinadi, dublikatlar aniqlanadi, sektori va mintaqasi belgilanadi.</p>
       </div>
       <div class="feat">
-        <div class="feat-icon icon-box icon-violet" style="margin-bottom:1rem">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        </div>
-        <h3 data-i18n="f2t">Semantik Qidiruv</h3>
-        <p data-i18n="f2d">Ma'no bo'yicha qidiruv — "yo'l muammosi" desangiz transport, logistika, infratuzilma ham chiqadi.</p>
+        <div class="step-icon ic-v"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+        <h3 data-i18n="ft2h">Semantik Qidiruv</h3>
+        <p data-i18n="ft2p">Ma'no bo'yicha qidiruv — "yo'l muammosi" desangiz transport, logistika, infratuzilma ham chiqadi.</p>
       </div>
       <div class="feat">
-        <div class="feat-icon icon-box icon-amber" style="margin-bottom:1rem">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
-        </div>
-        <h3 data-i18n="f3t">GitHub-style Workspace</h3>
-        <p data-i18n="f3d">Issues, Milestones, Activity feed. Loyiha jarayonini shaffof holda kuzating va boshqaring.</p>
+        <div class="step-icon ic-a"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg></div>
+        <h3 data-i18n="ft3h">GitHub-style Workspace</h3>
+        <p data-i18n="ft3p">Issues, Milestones, Activity feed. Loyiha jarayonini shaffof holda kuzating va boshqaring.</p>
       </div>
       <div class="feat">
-        <div class="feat-icon icon-box icon-green" style="margin-bottom:1rem">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2h-4l-2 5h3l-3 7h-3l-1 5-7-5 3-7H4.5l3-5h4l2-5h4z"/></svg>
-        </div>
-        <h3 data-i18n="f4t">Telegram Bot</h3>
-        <p data-i18n="f4d">Ilova o'rnatmasdan muammo yuboring, xabarnoma oling. Ovozli xabar ham qabul qilinadi.</p>
+        <div class="step-icon ic-g"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2h-4l-2 5h3l-3 7h-3l-1 5-7-5 3-7H4.5l3-5h4l2-5h4z"/></svg></div>
+        <h3 data-i18n="ft4h">Telegram Bot</h3>
+        <p data-i18n="ft4p">Ilova o'rnatmasdan muammo yuboring, xabarnoma oling. Ovozli xabar ham qabul qilinadi.</p>
       </div>
       <div class="feat">
-        <div class="feat-icon icon-box icon-violet" style="margin-bottom:1rem">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        </div>
-        <h3 data-i18n="f5t">Mintaqa va Sektor</h3>
-        <p data-i18n="f5d">Toshkent, Samarqand, Farg'ona... Ta'lim, sog'liqsaqlash, qishloq xo'jaligi — barchasi filtrlangan.</p>
+        <div class="step-icon ic-v"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <h3 data-i18n="ft5h">Mintaqa va Sektor</h3>
+        <p data-i18n="ft5p">Toshkent, Samarqand, Farg'ona... Ta'lim, sog'liqsaqlash, qishloq xo'jaligi — barchasi filtrlangan.</p>
       </div>
       <div class="feat">
-        <div class="feat-icon icon-box icon-cyan" style="margin-bottom:1rem">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        </div>
-        <h3 data-i18n="f6t">Ko'p tillik</h3>
-        <p data-i18n="f6d">O'zbek, Rus, Ingliz — interfeys uchta tilda. Har bir foydalanuvchi o'z tilida ishlaydi.</p>
+        <div class="step-icon ic-c"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <h3 data-i18n="ft6h">Ko'p tillik</h3>
+        <p data-i18n="ft6p">O'zbek, Rus, Ingliz — interfeys uchta tilda. Har bir foydalanuvchi o'z tilida ishlaydi.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── WHO ─── -->
+<!-- WHO -->
 <section id="who">
-  <div class="container">
-    <div class="sec-tag">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <span data-i18n="who_tag">Kim uchun</span>
+  <div class="wrap">
+    <div class="sec-eyebrow">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span data-i18n="wh_tag">Kim uchun</span>
     </div>
-    <h2 data-i18n="who_title">Ikki tomonlama <span class="grad" data-i18n="who_title2">ekosistema</span></h2>
-    <p class="sec-desc" data-i18n="who_sub">Muammo egalari va yechuvchilar birlashgan platformada.</p>
+    <h2><span data-i18n="wh_h2a">Ikki tomonlama </span><span class="gr" data-i18n="wh_h2b">ekosistema</span></h2>
+    <p class="sec-sub" data-i18n="wh_sub">Muammo egalari va yechuvchilar birlashgan platformada.</p>
 
-    <div class="who-grid">
+    <div class="who-cols">
       <div class="who-card">
-        <div class="who-header">
-          <div class="who-avatar" style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2)">
+        <div class="who-head">
+          <div class="who-av ic-v">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </div>
-          <h3 data-i18n="who1_title">Muammo Egasi</h3>
+          <h3 data-i18n="wh1t">Muammo Egasi</h3>
         </div>
         <ul>
-          <li><svg class="check-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="who1_1">Kundalik hayotdagi muammoni e'lon qilasiz</span></li>
-          <li><svg class="check-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="who1_2">Jamoat ovozi bilan muammoning dolzarbligini ko'rsatasiz</span></li>
-          <li><svg class="check-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="who1_3">Startapning yechim jarayonini real vaqtda kuzatasiz</span></li>
-          <li><svg class="check-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="who1_4">Yechim tayyor bo'lganda baholaysiz va tasdiqlaysiz</span></li>
-          <li><svg class="check-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="who1_5">Matn, ovoz yoki foto — qanday qulay bo'lsa</span></li>
+          <li><svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="wh1_1">Kundalik hayotdagi muammoni e'lon qilasiz</span></li>
+          <li><svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="wh1_2">Jamoat ovozi bilan dolzarbligini ko'rsatasiz</span></li>
+          <li><svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="wh1_3">Startapning yechim jarayonini kuzatasiz</span></li>
+          <li><svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="wh1_4">Yechim tayyor bo'lganda baholaysiz</span></li>
+          <li><svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="wh1_5">Matn, ovoz yoki foto — qanday qulay bo'lsa</span></li>
         </ul>
       </div>
       <div class="who-card">
-        <div class="who-header">
-          <div class="who-avatar" style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2)">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+        <div class="who-head">
+          <div class="who-av ic-c">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cy)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
           </div>
-          <h3 data-i18n="who2_title">Innovator / Startap</h3>
+          <h3 data-i18n="wh2t">Innovator / Startap</h3>
         </div>
         <ul>
-          <li><svg class="check-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="who2_1">Dolzarb muammolarni topasiz — bozor tadqiqotsiz</span></li>
-          <li><svg class="check-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="who2_2">Loyiha ochib, yechimingizni jamoatga taqdim etasiz</span></li>
-          <li><svg class="check-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="who2_3">Issues va Milestones bilan jarayonni boshqarasiz</span></li>
-          <li><svg class="check-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="who2_4">Muammo egasi bilan to'g'ridan-to'g'ri aloqa</span></li>
-          <li><svg class="check-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="who2_5">Muvaffaqiyat reputatsiyangizni va ekosistemani o'stiradi</span></li>
+          <li><svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="wh2_1">Dolzarb muammolarni topasiz — tadqiqotsiz</span></li>
+          <li><svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="wh2_2">Loyiha ochib, yechimingizni taqdim etasiz</span></li>
+          <li><svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="wh2_3">Issues va Milestones bilan boshqarasiz</span></li>
+          <li><svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="wh2_4">Muammo egasi bilan to'g'ridan-to'g'ri aloqa</span></li>
+          <li><svg class="ck" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg><span data-i18n="wh2_5">Muvaffaqiyat reputatsiyangizni o'stiradi</span></li>
         </ul>
       </div>
     </div>
 
-    <div class="orgs">
-      <div class="org-card">
-        <div class="org-icon icon-box icon-amber" style="width:44px;height:44px">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        </div>
-        <strong data-i18n="org1t">Davlat va NGOlar</strong>
-        <p data-i18n="org1d">Analytics, muammo statistikasi, grant berish uchun loyiha monitoring.</p>
+    <div class="org-row">
+      <div class="org">
+        <div class="step-icon ic-a" style="width:44px;height:44px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        <strong data-i18n="or1t">Davlat va NGOlar</strong>
+        <p data-i18n="or1p">Analytics, muammo statistikasi, grant berish uchun loyiha monitoring.</p>
       </div>
-      <div class="org-card">
-        <div class="org-icon icon-box icon-green" style="width:44px;height:44px">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-        </div>
-        <strong data-i18n="org2t">Talabalar va Yoshlar</strong>
-        <p data-i18n="org2d">Startup loyiha uchun real muammo. Hackathon va akselerator uchun ideal asos.</p>
+      <div class="org">
+        <div class="step-icon ic-g" style="width:44px;height:44px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+        <strong data-i18n="or2t">Talabalar va Yoshlar</strong>
+        <p data-i18n="or2p">Startup loyiha uchun real muammo. Hackathon va akselerator uchun ideal asos.</p>
       </div>
-      <div class="org-card">
-        <div class="org-icon icon-box icon-cyan" style="width:44px;height:44px">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        </div>
-        <strong data-i18n="org3t">Xalqaro Tashkilotlar</strong>
-        <p data-i18n="org3d">UNDP, World Bank loyihalari uchun mahalliy muammolar bazasi va yechim tracking.</p>
+      <div class="org">
+        <div class="step-icon ic-c" style="width:44px;height:44px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <strong data-i18n="or3t">Xalqaro Tashkilotlar</strong>
+        <p data-i18n="or3p">UNDP, World Bank loyihalari uchun mahalliy muammolar bazasi va yechim tracking.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── CTA ─── -->
+<!-- CTA -->
 <section class="cta-section" id="cta">
-  <div class="cta-card">
-    <div class="hero-eyebrow" style="margin-bottom:1.5rem">
-      <span class="pulse"></span>
-      <span data-i18n="cta_badge">Bepul boshlang</span>
+  <div class="cta-box">
+    <div class="eyebrow" style="margin-bottom:1.5rem">
+      <span class="dot"></span>
+      <span data-i18n="ct_badge">Bepul boshlang</span>
     </div>
-    <h2>O'zbekistoni birgalikda<br><span class="grad" data-i18n="cta_grad">yaxshilaymiz</span></h2>
-    <p data-i18n="cta_sub">Muammoingiz bormi? Yoki yechimingiz? Har ikki holatda ham bu — sizning joyingiz.</p>
+    <h2>O'zbekistoni birgalikda<br><span class="gr" data-i18n="ct_grad">yaxshilaymiz</span></h2>
+    <p class="sub" data-i18n="ct_sub">Muammoingiz bormi? Yoki yechimingiz? Har ikki holatda ham bu — sizning joyingiz.</p>
     <div class="cta-btns">
-      <a href="/login" class="btn btn-primary btn-lg">
+      <a href="/login" class="btn btn-prim btn-lg">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
-        <span data-i18n="cta_btn1">Platformaga kirish</span>
+        <span data-i18n="ct_b1">Platformaga kirish</span>
       </a>
-      <a href="/login" class="btn btn-ghost btn-lg">
+      <a href="/login" class="btn btn-sec btn-lg">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
-        <span data-i18n="cta_btn2">Muammo e'lon qilish</span>
+        <span data-i18n="ct_b2">Muammo e'lon qilish</span>
       </a>
     </div>
-    <p style="margin-top:1.25rem;font-size:0.8rem;color:var(--muted)" data-i18n="cta_note">Ro'yxatdan o'tish — Telegram orqali, 30 soniyada</p>
+    <p class="cta-note" data-i18n="ct_note">Ro'yxatdan o'tish — Telegram orqali, 30 soniyada</p>
   </div>
 </section>
 
-<!-- ─── FOOTER ─── -->
+<!-- FOOTER -->
 <footer>
-  <div class="nav-logo" style="font-size:0.9rem">
-    <span class="logo-mark" style="width:28px;height:28px;border-radius:8px">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44l-1.26-6.62A2.5 2.5 0 0 1 8.2 9.5H7.5a2.5 2.5 0 0 1 0-5H9a2.5 2.5 0 0 1 .5-2.5z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5"/><path d="M15 9h.5a2.5 2.5 0 0 1 0 5H14"/><path d="m17.26 12.94 1.26 6.62A2.5 2.5 0 0 1 13.5 19.5V4.5"/></svg>
+  <div class="foot-logo">
+    <span class="logo-icon" style="width:28px;height:28px;border-radius:8px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
     </span>
-    <span class="logo-text">SolutionLab</span>
-    <span style="color:var(--muted);font-weight:400"> © 2026</span>
+    <span style="font-weight:700;font-size:.9rem">SolutionLab</span>
+    <span style="font-weight:400"> © 2026</span>
   </div>
-  <div class="footer-links">
+  <div class="foot-links">
     <a href="https://t.me/Bakhromdev" target="_blank" rel="noopener noreferrer">Telegram</a>
     <a href="tel:+998935580311">+998 93 558 03 11</a>
   </div>
 </footer>
 
-</div><!-- .page -->
+</div>
 
 <script>
-// ─── TRANSLATIONS ───
 const T = {
   uz: {
     nav_how:"Qanday ishlaydi", nav_features:"Imkoniyatlar", nav_who:"Kim uchun", nav_cta:"Boshlash",
     hero_badge:"O'zbekiston · AI-powered · GovTech Platform",
-    hero_title:"Muammolar ", hero_title_grad:"yechimga", hero_title_end:" aylanadigan joy",
+    hero_h1a:"Muammolar ", hero_h1b:"yechimga", hero_h1c:"aylanadigan joy",
     hero_sub:"Fuqarolar muammo e'lon qiladi. Startaplar yechim taklif qiladi. AI hamma narsani tahlil qiladi. Birgalikda o'zgartiramiz.",
     hero_cta1:"Platformaga kirish", hero_cta2:"Qanday ishlaydi?",
-    stat1:"Muammo yuborildi", stat2:"Faol loyiha", stat3:"Hal etildi", stat4:"Foydalanuvchi",
-    how_tag:"Jarayon", how_title:"3 qadam — muammodan", how_title2:"yechimgacha",
+    st1:"Muammo yuborildi", st2:"Faol loyiha", st3:"Hal etildi", st4:"Foydalanuvchi",
+    how_tag:"Jarayon", how_h2a:"3 qadam — muammodan ", how_h2b:"yechimgacha",
     how_sub:"GitHub loyihalari kabi ishlaydi — faqat real hayot muammolari uchun.",
-    step1_title:"Muammo e'lon qiling", step1_desc:"Matn, ovoz yoki foto orqali muammongizni ulashing. AI avtomatik tahlil qiladi, tegishli kategoriyaga joylashtiradi.",
-    step2_title:"Yechim taklif qiling", step2_desc:"Startap yoki innovator sifatida muammoga loyiha ochasiz. Pitch, jamoa, milestones — GitHub kabi.",
-    step3_title:"Birgalikda amalga oshiring", step3_desc:"Jamoat ovoz beradi. Muammo egasi kuzatadi. Muvaffaqiyatli yechim \"Hal etildi\" statusini oladi.",
-    flow1:"Fuqaro", flow1d:"Muammo yozadi", flow2:"AI", flow2d:"Tahlil qiladi",
-    flow3:"Jamoat", flow3d:"Ovoz beradi", flow4:"Startap", flow4d:"Loyiha ochadi", flow5:"Yechim", flow5d:"Hal etildi!",
-    feat_tag:"Imkoniyatlar", feat_sub:"Eng yaxshi platformalar ilhomi bilan — O'zbekiston uchun qurilgan.",
-    f1t:"AI Moderatsiya", f1d:"Har bir muammo avtomatik tahlil qilinadi, dublikatlar aniqlanadi, sektori va mintaqasi belgilanadi.",
-    f2t:"Semantik Qidiruv", f2d:"Ma'no bo'yicha qidiruv — \"yo'l muammosi\" desangiz transport, logistika ham chiqadi.",
-    f3t:"GitHub-style Workspace", f3d:"Issues, Milestones, Activity feed. Loyiha jarayonini shaffof kuzating.",
-    f4t:"Telegram Bot", f4d:"Ilova o'rnatmasdan muammo yuboring, xabarnoma oling. Ovozli xabar ham qabul qilinadi.",
-    f5t:"Mintaqa va Sektor", f5d:"Toshkent, Samarqand, Farg'ona... Ta'lim, sog'liqsaqlash — barchasi filtrlangan.",
-    f6t:"Ko'p tillik", f6d:"O'zbek, Rus, Ingliz — interfeys uchta tilda. Har bir foydalanuvchi o'z tilida.",
-    who_tag:"Kim uchun", who_title:"Ikki tomonlama", who_title2:"ekosistema",
-    who_sub:"Muammo egalari va yechuvchilar birlashgan platformada.",
-    who1_title:"Muammo Egasi", who1_1:"Kundalik hayotdagi muammoni e'lon qilasiz", who1_2:"Jamoat ovozi bilan dolzarbligini ko'rsatasiz", who1_3:"Startapning yechim jarayonini kuzatasiz", who1_4:"Yechim tayyor bo'lganda baholaysiz", who1_5:"Matn, ovoz yoki foto — qanday qulay bo'lsa",
-    who2_title:"Innovator / Startap", who2_1:"Dolzarb muammolarni topasiz — tadqiqotsiz", who2_2:"Loyiha ochib, yechimingizni taqdim etasiz", who2_3:"Issues va Milestones bilan jarayonni boshqarasiz", who2_4:"Muammo egasi bilan to'g'ridan-to'g'ri aloqa", who2_5:"Muvaffaqiyat reputatsiyangizni o'stiradi",
-    org1t:"Davlat va NGOlar", org1d:"Analytics, muammo statistikasi, grant berish uchun monitoring.",
-    org2t:"Talabalar va Yoshlar", org2d:"Startup loyiha uchun real muammo. Hackathon uchun ideal asos.",
-    org3t:"Xalqaro Tashkilotlar", org3d:"UNDP, World Bank loyihalari uchun mahalliy muammolar bazasi.",
-    cta_badge:"Bepul boshlang", cta_grad:"yaxshilaymiz",
-    cta_sub:"Muammoingiz bormi? Yoki yechimingiz? Har ikki holatda ham bu — sizning joyingiz.",
-    cta_btn1:"Platformaga kirish", cta_btn2:"Muammo e'lon qilish",
-    cta_note:"Ro'yxatdan o'tish — Telegram orqali, 30 soniyada",
-    footer_contact:"Aloqa"
+    s1h:"Muammo e'lon qiling", s1p:"Matn, ovoz yoki foto orqali muammongizni ulashing. AI avtomatik tahlil qiladi, tegishli kategoriyaga joylashtiradi.",
+    s2h:"Yechim taklif qiling", s2p:"Startap yoki innovator sifatida muammoga loyiha ochasiz. Pitch, jamoa, milestones — GitHub kabi tuzilgan.",
+    s3h:"Birgalikda amalga oshiring", s3p:"Jamoat ovoz beradi. Muammo egasi kuzatadi. Muvaffaqiyatli yechim \"Hal etildi\" statusini oladi.",
+    f1n:"Fuqaro", f1h:"Muammo yozadi", f2h:"Tahlil qiladi", f3n:"Jamoat", f3h:"Ovoz beradi", f4n:"Startap", f4h:"Loyiha ochadi", f5n:"Yechim", f5h:"Hal etildi!",
+    ft_tag:"Imkoniyatlar", ft_sub:"Eng yaxshi platformalar ilhomi bilan — O'zbekiston uchun qurilgan.",
+    ft1h:"AI Moderatsiya", ft1p:"Har bir muammo avtomatik tahlil qilinadi, dublikatlar aniqlanadi, sektori va mintaqasi belgilanadi.",
+    ft2h:"Semantik Qidiruv", ft2p:"Ma'no bo'yicha qidiruv — \"yo'l muammosi\" desangiz transport, logistika ham chiqadi.",
+    ft3h:"GitHub-style Workspace", ft3p:"Issues, Milestones, Activity feed. Loyiha jarayonini shaffof kuzating.",
+    ft4h:"Telegram Bot", ft4p:"Ilova o'rnatmasdan muammo yuboring, xabarnoma oling. Ovozli xabar ham qabul qilinadi.",
+    ft5h:"Mintaqa va Sektor", ft5p:"Toshkent, Samarqand, Farg'ona... Ta'lim, sog'liqsaqlash — barchasi filtrlangan.",
+    ft6h:"Ko'p tillik", ft6p:"O'zbek, Rus, Ingliz — interfeys uchta tilda. Har bir foydalanuvchi o'z tilida.",
+    wh_tag:"Kim uchun", wh_h2a:"Ikki tomonlama ", wh_h2b:"ekosistema",
+    wh_sub:"Muammo egalari va yechuvchilar birlashgan platformada.",
+    wh1t:"Muammo Egasi", wh1_1:"Kundalik hayotdagi muammoni e'lon qilasiz", wh1_2:"Jamoat ovozi bilan dolzarbligini ko'rsatasiz", wh1_3:"Startapning yechim jarayonini kuzatasiz", wh1_4:"Yechim tayyor bo'lganda baholaysiz", wh1_5:"Matn, ovoz yoki foto — qanday qulay bo'lsa",
+    wh2t:"Innovator / Startap", wh2_1:"Dolzarb muammolarni topasiz — tadqiqotsiz", wh2_2:"Loyiha ochib, yechimingizni taqdim etasiz", wh2_3:"Issues va Milestones bilan boshqarasiz", wh2_4:"Muammo egasi bilan to'g'ridan-to'g'ri aloqa", wh2_5:"Muvaffaqiyat reputatsiyangizni o'stiradi",
+    or1t:"Davlat va NGOlar", or1p:"Analytics, muammo statistikasi, grant berish uchun monitoring.",
+    or2t:"Talabalar va Yoshlar", or2p:"Startup loyiha uchun real muammo. Hackathon uchun ideal asos.",
+    or3t:"Xalqaro Tashkilotlar", or3p:"UNDP, World Bank loyihalari uchun mahalliy muammolar bazasi.",
+    ct_badge:"Bepul boshlang", ct_grad:"yaxshilaymiz",
+    ct_sub:"Muammoingiz bormi? Yoki yechimingiz? Har ikki holatda ham bu — sizning joyingiz.",
+    ct_b1:"Platformaga kirish", ct_b2:"Muammo e'lon qilish", ct_note:"Ro'yxatdan o'tish — Telegram orqali, 30 soniyada"
   },
   ru: {
     nav_how:"Как работает", nav_features:"Возможности", nav_who:"Для кого", nav_cta:"Начать",
     hero_badge:"Узбекистан · AI-powered · GovTech платформа",
-    hero_title:"Место, где проблемы становятся ", hero_title_grad:"решениями",
-    hero_sub:"Граждане публикуют проблемы. Стартапы предлагают решения. AI анализирует всё. Меняем Узбекистан вместе.",
+    hero_h1a:"Место, где проблемы становятся ", hero_h1b:"решениями", hero_h1c:"",
+    hero_sub:"Граждане публикуют проблемы. Стартапы предлагают решения. AI анализирует всё. Меняем вместе.",
     hero_cta1:"Войти в платформу", hero_cta2:"Как это работает?",
-    stat1:"Проблем подано", stat2:"Активных проектов", stat3:"Решено", stat4:"Пользователей",
-    how_tag:"Процесс", how_title:"3 шага — от проблемы", how_title2:"к решению",
+    st1:"Проблем подано", st2:"Активных проектов", st3:"Решено", st4:"Пользователей",
+    how_tag:"Процесс", how_h2a:"3 шага — от проблемы ", how_h2b:"к решению",
     how_sub:"Работает как GitHub — только для реальных жизненных проблем.",
-    step1_title:"Опубликуйте проблему", step1_desc:"Текст, голос или фото. AI автоматически анализирует и категоризирует.",
-    step2_title:"Предложите решение", step2_desc:"Создайте проект с pitch, командой и milestones — как на GitHub.",
-    step3_title:"Реализуйте вместе", step3_desc:"Сообщество голосует. Автор следит. Успешное решение получает статус.",
-    flow1:"Гражданин", flow1d:"Пишет проблему", flow2:"AI", flow2d:"Анализирует",
-    flow3:"Сообщество", flow3d:"Голосует", flow4:"Стартап", flow4d:"Создаёт проект", flow5:"Решение", flow5d:"Готово!",
-    feat_tag:"Возможности", feat_sub:"Вдохновлено лучшими платформами — создано для Узбекистана.",
-    f1t:"AI Модерация", f1d:"Каждая проблема автоматически анализируется, дубли выявляются, сектор определяется.",
-    f2t:"Семантический поиск", f2d:"Поиск по смыслу — «дорожная проблема» найдёт транспорт, логистику и инфраструктуру.",
-    f3t:"GitHub-style Workspace", f3d:"Issues, Milestones, Activity feed. Прозрачное управление проектом.",
-    f4t:"Telegram Bot", f4d:"Отправляйте проблемы без установки приложения. Голосовые сообщения тоже принимаются.",
-    f5t:"Регион и Сектор", f5d:"Ташкент, Самарканд, Фергана... Образование, здравоохранение — всё с фильтрами.",
-    f6t:"Многоязычность", f6d:"Узбекский, Русский, Английский — интерфейс на трёх языках.",
-    who_tag:"Для кого", who_title:"Двусторонняя", who_title2:"экосистема",
-    who_sub:"Платформа, где встречаются владельцы проблем и решатели.",
-    who1_title:"Владелец проблемы", who1_1:"Публикуете бытовую проблему", who1_2:"Голоса сообщества показывают важность", who1_3:"Следите за ходом решения в реальном времени", who1_4:"Оцениваете решение когда оно готово", who1_5:"Текст, голос или фото — как удобно",
-    who2_title:"Инноватор / Стартап", who2_1:"Находите актуальные проблемы без исследований", who2_2:"Создаёте проект и представляете решение", who2_3:"Управляете через Issues и Milestones", who2_4:"Прямая связь с автором проблемы", who2_5:"Успех повышает вашу репутацию",
-    org1t:"Государство и НКО", org1d:"Аналитика, статистика проблем, мониторинг проектов для грантов.",
-    org2t:"Студенты и Молодёжь", org2d:"Реальная проблема для стартап-проекта. Идеально для хакатонов.",
-    org3t:"Международные организации", org3d:"База местных проблем для проектов UNDP, World Bank.",
-    cta_badge:"Начните бесплатно", cta_grad:"улучшаем вместе",
-    cta_sub:"Есть проблема? Или решение? В любом случае — это ваше место.",
-    cta_btn1:"Войти в платформу", cta_btn2:"Опубликовать проблему",
-    cta_note:"Регистрация через Telegram — 30 секунд",
-    footer_contact:"Контакт"
+    s1h:"Опубликуйте проблему", s1p:"Текст, голос или фото. AI автоматически анализирует и категоризирует.",
+    s2h:"Предложите решение", s2p:"Создайте проект с pitch, командой и milestones — как на GitHub.",
+    s3h:"Реализуйте вместе", s3p:"Сообщество голосует. Автор следит. Успешное решение получает статус.",
+    f1n:"Гражданин", f1h:"Пишет проблему", f2h:"Анализирует", f3n:"Сообщество", f3h:"Голосует", f4n:"Стартап", f4h:"Создаёт проект", f5n:"Решение", f5h:"Готово!",
+    ft_tag:"Возможности", ft_sub:"Вдохновлено лучшими платформами — создано для Узбекистана.",
+    ft1h:"AI Модерация", ft1p:"Каждая проблема автоматически анализируется, дубли выявляются, сектор определяется.",
+    ft2h:"Семантический поиск", ft2p:"Поиск по смыслу — «дорожная проблема» найдёт транспорт и инфраструктуру.",
+    ft3h:"GitHub-style Workspace", ft3p:"Issues, Milestones, Activity feed. Прозрачное управление проектом.",
+    ft4h:"Telegram Bot", ft4p:"Отправляйте проблемы без установки приложения. Голосовые сообщения тоже.",
+    ft5h:"Регион и Сектор", ft5p:"Ташкент, Самарканд, Фергана... Образование, здравоохранение — с фильтрами.",
+    ft6h:"Многоязычность", ft6p:"Узбекский, Русский, Английский — интерфейс на трёх языках.",
+    wh_tag:"Для кого", wh_h2a:"Двусторонняя ", wh_h2b:"экосистема",
+    wh_sub:"Платформа, где встречаются владельцы проблем и решатели.",
+    wh1t:"Владелец проблемы", wh1_1:"Публикуете бытовую проблему", wh1_2:"Голоса сообщества показывают важность", wh1_3:"Следите за ходом решения в реальном времени", wh1_4:"Оцениваете решение когда оно готово", wh1_5:"Текст, голос или фото — как удобно",
+    wh2t:"Инноватор / Стартап", wh2_1:"Находите актуальные проблемы без исследований", wh2_2:"Создаёте проект и представляете решение", wh2_3:"Управляете через Issues и Milestones", wh2_4:"Прямая связь с автором проблемы", wh2_5:"Успех повышает вашу репутацию",
+    or1t:"Государство и НКО", or1p:"Аналитика, статистика проблем, мониторинг для грантов.",
+    or2t:"Студенты и Молодёжь", or2p:"Реальная проблема для стартапа. Идеально для хакатонов.",
+    or3t:"Международные организации", or3p:"База местных проблем для проектов UNDP, World Bank.",
+    ct_badge:"Начните бесплатно", ct_grad:"улучшаем вместе",
+    ct_sub:"Есть проблема? Или решение? В любом случае — это ваше место.",
+    ct_b1:"Войти в платформу", ct_b2:"Опубликовать проблему", ct_note:"Регистрация через Telegram — 30 секунд"
   },
   en: {
     nav_how:"How it works", nav_features:"Features", nav_who:"Who it's for", nav_cta:"Get started",
     hero_badge:"Uzbekistan · AI-powered · GovTech Platform",
-    hero_title:"Where problems become ", hero_title_grad:"solutions",
+    hero_h1a:"Where problems become ", hero_h1b:"solutions", hero_h1c:"",
     hero_sub:"Citizens post problems. Startups propose solutions. AI analyzes everything. Let's transform Uzbekistan together.",
     hero_cta1:"Enter platform", hero_cta2:"How it works?",
-    stat1:"Problems submitted", stat2:"Active projects", stat3:"Solved", stat4:"Users",
-    how_tag:"Process", how_title:"3 steps — from problem", how_title2:"to solution",
+    st1:"Problems submitted", st2:"Active projects", st3:"Solved", st4:"Users",
+    how_tag:"Process", how_h2a:"3 steps — from problem ", how_h2b:"to solution",
     how_sub:"Works like GitHub — but for real-life civic problems.",
-    step1_title:"Post a problem", step1_desc:"Share via text, voice, or photo. AI automatically analyzes, categorizes, and surfaces similar problems.",
-    step2_title:"Propose a solution", step2_desc:"Open a project as a startup or innovator. Pitch, team, milestones — structured like GitHub.",
-    step3_title:"Build it together", step3_desc:"Community votes. Problem owner tracks progress. Successful solution gets 'Solved' status.",
-    flow1:"Citizen", flow1d:"Posts problem", flow2:"AI", flow2d:"Analyzes",
-    flow3:"Community", flow3d:"Votes", flow4:"Startup", flow4d:"Opens project", flow5:"Solution", flow5d:"Solved!",
-    feat_tag:"Features", feat_sub:"Inspired by the best platforms — built for Uzbekistan.",
-    f1t:"AI Moderation", f1d:"Every problem is auto-analyzed. Duplicates detected. Sector and region tagged automatically.",
-    f2t:"Semantic Search", f2d:"Search by meaning — 'road problem' finds transport, logistics, and infrastructure too.",
-    f3t:"GitHub-style Workspace", f3d:"Issues, Milestones, Activity feed. Track and manage projects transparently.",
-    f4t:"Telegram Bot", f4d:"Submit problems without installing an app. Voice messages accepted too.",
-    f5t:"Region & Sector", f5d:"Tashkent, Samarkand, Fergana... Education, health, agriculture — all filtered.",
-    f6t:"Multilingual", f6d:"Uzbek, Russian, English — interface in three languages for every user.",
-    who_tag:"Who it's for", who_title:"A two-sided", who_title2:"ecosystem",
-    who_sub:"Where problem owners and solution builders connect.",
-    who1_title:"Problem Owner", who1_1:"Post everyday civic problems", who1_2:"Community votes show the problem's importance", who1_3:"Track the solution in real time", who1_4:"Rate and approve when solution is ready", who1_5:"Text, voice, or photo — however works for you",
-    who2_title:"Innovator / Startup", who2_1:"Find relevant problems — no market research needed", who2_2:"Open a project and present your solution", who2_3:"Manage via Issues and Milestones", who2_4:"Direct contact with the problem owner", who2_5:"Success builds your reputation in the ecosystem",
-    org1t:"Government & NGOs", org1d:"Analytics dashboard, problem statistics, project monitoring for grant-making.",
-    org2t:"Students & Youth", org2d:"Real problems for your startup. Perfect foundation for hackathons and accelerators.",
-    org3t:"International Orgs", org3d:"Local problem database and solution tracking for UNDP, World Bank projects.",
-    cta_badge:"Start for free", cta_grad:"better together",
-    cta_sub:"Have a problem? Have a solution? Either way — this is your place.",
-    cta_btn1:"Enter platform", cta_btn2:"Post a problem",
-    cta_note:"Sign up via Telegram — 30 seconds",
-    footer_contact:"Contact"
+    s1h:"Post a problem", s1p:"Share via text, voice, or photo. AI automatically analyzes, categorizes, and surfaces similar problems.",
+    s2h:"Propose a solution", s2p:"Open a project as a startup or innovator. Pitch, team, milestones — structured like GitHub.",
+    s3h:"Build it together", s3p:"Community votes. Problem owner tracks progress. Successful solution gets 'Solved' status.",
+    f1n:"Citizen", f1h:"Posts problem", f2h:"Analyzes", f3n:"Community", f3h:"Votes", f4n:"Startup", f4h:"Opens project", f5n:"Solution", f5h:"Solved!",
+    ft_tag:"Features", ft_sub:"Inspired by the best platforms — built for Uzbekistan.",
+    ft1h:"AI Moderation", ft1p:"Every problem is auto-analyzed. Duplicates detected. Sector and region tagged automatically.",
+    ft2h:"Semantic Search", ft2p:"Search by meaning — 'road problem' finds transport, logistics, and infrastructure too.",
+    ft3h:"GitHub-style Workspace", ft3p:"Issues, Milestones, Activity feed. Track and manage projects transparently.",
+    ft4h:"Telegram Bot", ft4p:"Submit problems without installing an app. Voice messages accepted too.",
+    ft5h:"Region & Sector", ft5p:"Tashkent, Samarkand, Fergana... Education, health, agriculture — all filtered.",
+    ft6h:"Multilingual", ft6p:"Uzbek, Russian, English — interface in three languages for every user.",
+    wh_tag:"Who it's for", wh_h2a:"A two-sided ", wh_h2b:"ecosystem",
+    wh_sub:"Where problem owners and solution builders connect.",
+    wh1t:"Problem Owner", wh1_1:"Post everyday civic problems", wh1_2:"Community votes show the problem's importance", wh1_3:"Track the solution in real time", wh1_4:"Rate and approve when solution is ready", wh1_5:"Text, voice, or photo — however works for you",
+    wh2t:"Innovator / Startup", wh2_1:"Find relevant problems — no market research needed", wh2_2:"Open a project and present your solution", wh2_3:"Manage via Issues and Milestones", wh2_4:"Direct contact with the problem owner", wh2_5:"Success builds your reputation in the ecosystem",
+    or1t:"Government & NGOs", or1p:"Analytics dashboard, problem statistics, project monitoring for grant-making.",
+    or2t:"Students & Youth", or2p:"Real problems for your startup. Perfect foundation for hackathons.",
+    or3t:"International Orgs", or3p:"Local problem database and solution tracking for UNDP, World Bank.",
+    ct_badge:"Start for free", ct_grad:"better together",
+    ct_sub:"Have a problem? Have a solution? Either way — this is your place.",
+    ct_b1:"Enter platform", ct_b2:"Post a problem", ct_note:"Sign up via Telegram — 30 seconds"
   }
 };
 
-let currentLang = 'uz';
-let currentTheme = 'dark';
+let lang = 'uz', theme = 'dark';
 
-function applyLang(lang) {
-  currentLang = lang;
-  const d = T[lang];
+function applyLang(l) {
+  lang = l;
+  const d = T[l];
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (d[key] !== undefined) el.textContent = d[key];
+    const k = el.getAttribute('data-i18n');
+    if (d[k] !== undefined) el.textContent = d[k];
   });
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.dataset.lang === l));
 }
 
-function applyTheme(theme) {
-  currentTheme = theme;
-  document.documentElement.setAttribute('data-theme', theme);
-  document.getElementById('iconSun').style.display  = theme === 'dark'  ? 'block' : 'none';
-  document.getElementById('iconMoon').style.display = theme === 'light' ? 'block' : 'none';
+function applyTheme(t) {
+  theme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('iSun').style.display  = t === 'dark'  ? 'block' : 'none';
+  document.getElementById('iMoon').style.display = t === 'light' ? 'block' : 'none';
 }
 
-document.querySelectorAll('.lang-btn').forEach(btn => {
-  btn.addEventListener('click', () => applyLang(btn.dataset.lang));
-});
+document.querySelectorAll('.lang-btn').forEach(b => b.addEventListener('click', () => applyLang(b.dataset.lang)));
+document.getElementById('themeToggle').addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
 
-document.getElementById('themeToggle').addEventListener('click', () => {
-  applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-});
-
-// Smooth scroll
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
-    const id = a.getAttribute('href').slice(1);
-    const el = document.getElementById(id);
+    const el = document.getElementById(a.getAttribute('href').slice(1));
     if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   });
 });
 
-// Nav scroll shadow
 window.addEventListener('scroll', () => {
-  document.querySelector('nav').style.boxShadow = window.scrollY > 10 ? '0 4px 32px rgba(0,0,0,0.2)' : 'none';
+  document.querySelector('nav').style.borderBottomColor =
+    window.scrollY > 10 ? 'var(--bd2)' : 'var(--bd)';
 });
 
-// Init
 applyTheme('dark');
 
-// ─── LIVE STATS ───
-(async function loadStats() {
+(async () => {
   try {
-    const res = await fetch('https://solutionlab.boos.uz/api/v1/analytics/public');
-    if (!res.ok) return;
-    const data = await res.json();
-    const set = (id, val) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = val;
-    };
-    set('stat-problems', data.total_problems ?? '—');
-    set('stat-projects', data.active_projects ?? '—');
-    set('stat-solved', data.solved_problems ?? '—');
-    set('stat-users', data.total_users ?? '—');
-  } catch (e) {
-    // silently fail — static fallback values are already shown
-  }
+    const r = await fetch('https://solutionlab.boos.uz/api/v1/analytics/public');
+    if (!r.ok) return;
+    const d = await r.json();
+    const set = (id, v) => { const e = document.getElementById(id); if (e && v != null) e.textContent = v; };
+    set('s-problems', d.total_problems);
+    set('s-projects', d.active_projects);
+    set('s-solved',   d.solved_problems);
+    set('s-users',    d.total_users);
+  } catch {}
 })();
 </script>
-
 </body>
 </html>
