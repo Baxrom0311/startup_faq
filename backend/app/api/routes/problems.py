@@ -79,6 +79,8 @@ def _problem_public(
     public.project_count = session.exec(
         select(func.count()).select_from(Project).where(Project.problem_id == problem.id)
     ).one()
+    author = session.get(User, problem.author_id)
+    public.author_name = author.full_name if author else None
     return public
 
 
@@ -418,6 +420,7 @@ async def read_problems(
     voted_problem_ids = set()
     comment_counts = {}
     project_counts = {}
+    author_names: dict[uuid.UUID, str | None] = {}
     if problem_ids:
         voted_problem_ids = set(
             session.exec(
@@ -441,12 +444,16 @@ async def read_problems(
                 .group_by(Project.problem_id)
             ).all()
         )
+        author_ids = list({problem.author_id for problem in problems})
+        authors = session.exec(select(User).where(User.id.in_(author_ids))).all()
+        author_names = {u.id: u.full_name for u in authors}
     data = []
     for problem in problems:
         public = ProblemPublic.model_validate(problem)
         public.has_voted = problem.id in voted_problem_ids
         public.comment_count = comment_counts.get(problem.id, 0)
         public.project_count = project_counts.get(problem.id, 0)
+        public.author_name = author_names.get(problem.author_id)
         data.append(public)
     return ProblemsPublic(data=data, count=count)
 

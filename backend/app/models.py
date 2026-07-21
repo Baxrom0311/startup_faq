@@ -308,6 +308,7 @@ class CommentsPublic(SQLModel):
 class ProblemPublic(SQLModel):
     id: uuid.UUID
     author_id: uuid.UUID
+    author_name: str | None = None
     sector_id: int | None = None
     region_id: int | None = None
     raw_text: str | None = None

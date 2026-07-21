@@ -24,6 +24,7 @@ export type Problem = {
   region_id?: number | null
   id: string
   author_id: string
+  author_name?: string | null
   title?: string | null
   raw_text?: string | null
   raw_audio_key?: string | null

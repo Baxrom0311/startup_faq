@@ -378,6 +378,11 @@ function ProblemDetail() {
               <span className="text-muted-foreground text-xs">
                 {shortDate(problem.created_at)}
               </span>
+              {problem.author_name && (
+                <span className="text-muted-foreground text-xs">
+                  · {problem.author_name}
+                </span>
+              )}
             </div>
             <CardTitle className="break-words text-2xl">
               {problem.title || problem.raw_text || t("unnamed_problem")}
