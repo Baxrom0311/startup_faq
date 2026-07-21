@@ -4,7 +4,27 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>SolutionLab — Muammolarni startaplarga bog'laymiz</title>
-  <meta name="description" content="Fuqarolar muammo e'lon qiladi. Startaplar yechim taklif qiladi. AI tahlil qiladi."/>
+  <meta name="description" content="Fuqarolar muammo e'lon qiladi. Startaplar yechim taklif qiladi. AI tahlil qiladi. O'zbekistonning eng yirik muammo-startap ekosistema platformasi."/>
+  <meta name="keywords" content="startap, muammo, yechim, O'zbekiston, biznes, innovatsiya, SolutionLab"/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="author" content="SolutionLab"/>
+  <link rel="canonical" href="https://solutionlab.uz/"/>
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://solutionlab.uz/"/>
+  <meta property="og:title" content="SolutionLab — Muammolarni startaplarga bog'laymiz"/>
+  <meta property="og:description" content="Fuqarolar muammo e'lon qiladi. Startaplar yechim taklif qiladi. AI tahlil qiladi."/>
+  <meta property="og:image" content="https://solutionlab.uz/og-image.png"/>
+  <meta property="og:locale" content="uz_UZ"/>
+  <meta property="og:site_name" content="SolutionLab"/>
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="SolutionLab — Muammolarni startaplarga bog'laymiz"/>
+  <meta name="twitter:description" content="Fuqarolar muammo e'lon qiladi. Startaplar yechim taklif qiladi. AI tahlil qiladi."/>
+  <meta name="twitter:image" content="https://solutionlab.uz/og-image.png"/>
+
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
@@ -122,8 +142,11 @@ nav{
   max-width:1200px;margin:0 auto;
 }
 @media(max-width:900px){
-  .hero{grid-template-columns:1fr;text-align:center;padding-top:6rem}
+  .hero{grid-template-columns:1fr;text-align:center;padding-top:5.5rem;gap:2rem}
   .hero-visual{display:none}
+}
+@media(max-width:480px){
+  .hero{padding-top:4.5rem;padding-bottom:3rem}
 }
 .badge{
   display:inline-flex;align-items:center;gap:7px;
@@ -262,6 +285,11 @@ nav{
   max-width:800px;margin:0 auto;
   border:1px solid var(--bd2);border-radius:16px;overflow:hidden;
   box-shadow:var(--shadow)
+}
+@media(max-width:600px){
+  .stats-inner{flex-direction:column;border-radius:12px}
+  .stt{border-right:none!important;border-bottom:1px solid var(--bd)}
+  .stt:last-child{border-bottom:none}
 }
 .stt{flex:1;padding:1.5rem 1.25rem;text-align:center;border-right:1px solid var(--bd);position:relative}
 .stt:last-child{border-right:none}

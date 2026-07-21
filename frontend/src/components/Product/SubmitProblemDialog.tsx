@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router"
-import { ArrowRight, ImageIcon, Volume2, X } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { ArrowRight, ImageIcon, Mic, MicOff, Volume2, X } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
@@ -70,6 +70,13 @@ export function SubmitProblemDialog({
   const [submitting, setSubmitting] = useState(false)
   const [duplicateProblem, setDuplicateProblem] = useState<Problem | null>(null)
 
+  // Recording state
+  const [isRecording, setIsRecording] = useState(false)
+  const [recordSeconds, setRecordSeconds] = useState(0)
+  const recorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
   useEffect(() => {
     fetchSectors()
       .then(setSectors)
@@ -106,9 +113,15 @@ export function SubmitProblemDialog({
     }
   }, [photoPreviewUrls])
 
-  // Reset all state when dialog closes/reopens
+  // Stop recording and clean up timer when dialog closes
   useEffect(() => {
     if (!open) {
+      if (recorderRef.current && isRecording) {
+        recorderRef.current.stop()
+      }
+      if (timerRef.current) clearInterval(timerRef.current)
+      setIsRecording(false)
+      setRecordSeconds(0)
       setDuplicateProblem(null)
       setRawText("")
       setSectorId("")
@@ -116,7 +129,37 @@ export function SubmitProblemDialog({
       setAudioFile(null)
       setPhotoFiles([])
     }
-  }, [open])
+  }, [open, isRecording])
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const recorder = new MediaRecorder(stream)
+      chunksRef.current = []
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data)
+      }
+      recorder.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop())
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" })
+        const file = new File([blob], `recording-${Date.now()}.webm`, { type: "audio/webm" })
+        setAudioFile(file)
+        setIsRecording(false)
+        if (timerRef.current) clearInterval(timerRef.current)
+      }
+      recorder.start()
+      recorderRef.current = recorder
+      setIsRecording(true)
+      setRecordSeconds(0)
+      timerRef.current = setInterval(() => setRecordSeconds((s) => s + 1), 1000)
+    } catch {
+      toast.error(t("audio_record_error"))
+    }
+  }
+
+  const stopRecording = () => {
+    recorderRef.current?.stop()
+  }
 
   const selectAudio = (file?: File) => {
     if (!file) {
@@ -292,12 +335,39 @@ export function SubmitProblemDialog({
           <label className="text-sm font-medium" htmlFor="audio-file">
             {t("submit_audio_label")}
           </label>
-          <Input
-            id="audio-file"
-            accept="audio/*"
-            type="file"
-            onChange={(event) => selectAudio(event.target.files?.[0])}
-          />
+          <div className="flex gap-2">
+            <Input
+              id="audio-file"
+              accept="audio/*"
+              type="file"
+              className="flex-1"
+              onChange={(event) => selectAudio(event.target.files?.[0])}
+            />
+            {isRecording ? (
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                className="shrink-0 gap-1.5"
+                onClick={stopRecording}
+              >
+                <MicOff className="size-3.5" />
+                {Math.floor(recordSeconds / 60).toString().padStart(2, "0")}:{(recordSeconds % 60).toString().padStart(2, "0")}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="shrink-0 gap-1.5"
+                onClick={startRecording}
+                disabled={!!audioFile}
+              >
+                <Mic className="size-3.5" />
+                {t("audio_record")}
+              </Button>
+            )}
+          </div>
           {audioFile && audioPreviewUrl && (
             <div className="flex items-center gap-3 rounded-md border p-3">
               <Volume2 className="text-muted-foreground size-4 shrink-0" />

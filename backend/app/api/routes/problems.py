@@ -301,6 +301,7 @@ async def read_problems(
     sector_id: int | None = None,
     region_id: int | None = None,
     mine: bool = False,
+    author_id: uuid.UUID | None = None,
     q: str | None = None,
     sort: str = "newest",
 ) -> Any:
@@ -326,6 +327,8 @@ async def read_problems(
         filters.append(Problem.region_id == region_id)
     if mine:
         filters.append(Problem.author_id == current_user.id)
+    elif author_id is not None:
+        filters.append(Problem.author_id == author_id)
 
     if q and q.strip():
         from app.modules.ai.providers import get_embedding_provider

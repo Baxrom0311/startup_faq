@@ -15,6 +15,7 @@ from app.models import (
     Message,
     User,
     UserCreate,
+    UserProfilePublic,
     UserPublic,
     UserRegister,
     UsersPublic,
@@ -148,6 +149,23 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
     _ = (session, user_in)
     _telegram_auth_only()
+
+
+@router.get("/{user_id}/profile", response_model=UserProfilePublic)
+def read_user_profile(
+    user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
+) -> Any:
+    """Get a public profile for any user (visible to all logged-in users)."""
+    user = session.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return UserProfilePublic(
+        id=user.id,
+        full_name=user.full_name,
+        bio=user.bio,
+        reputation=user.reputation,
+        created_at=user.created_at,
+    )
 
 
 @router.get("/{user_id}", response_model=UserPublic)

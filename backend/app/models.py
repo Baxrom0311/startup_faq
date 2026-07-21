@@ -86,6 +86,15 @@ class UsersPublic(SQLModel):
     count: int
 
 
+class UserProfilePublic(SQLModel):
+    """Minimal public profile — safe to return to any logged-in user."""
+    id: uuid.UUID
+    full_name: str | None = None
+    bio: str | None = None
+    reputation: int = 0
+    created_at: datetime | None = None
+
+
 
 class AuthSession(SQLModel, table=True):
     __tablename__ = "auth_session"

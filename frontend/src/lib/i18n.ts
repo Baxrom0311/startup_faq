@@ -233,7 +233,27 @@ const uz = {
   // Layout
   layout_error: "Xatolik yuz berdi",
   layout_retry: "Qayta urinish",
-  layout_search: "Qidirish",
+  layout_search: "Qidirish...",
+  layout_search_placeholder: "Muammo yoki loyiha qidiring...",
+  layout_search_problems: "Muammolar",
+  layout_search_projects: "Loyihalar",
+  layout_search_empty: "Hech narsa topilmadi",
+  layout_search_hint: "Qidirish uchun yozing",
+
+  // User profile
+  profile_joined: "A'zo bo'lgan",
+  profile_problems: "Muammolari",
+  profile_projects: "Loyihalari",
+  profile_no_problems: "Muammolar yo'q",
+  profile_no_projects: "Loyihalar yo'q",
+  profile_reputation: "Obro'",
+
+  // Audio recording
+  audio_record: "Yozish",
+  audio_record_start: "Yozishni boshlash",
+  audio_record_stop: "Yozishni to'xtatish",
+  audio_record_delete: "O'chirish",
+  audio_record_error: "Mikrofonga ruxsat berilmadi",
 
   // Common
   empty_state: "Hali hech narsa yo'q",
@@ -596,7 +616,27 @@ const ru: typeof uz = {
   // Layout
   layout_error: "Произошла ошибка",
   layout_retry: "Повторить",
-  layout_search: "Поиск",
+  layout_search: "Поиск...",
+  layout_search_placeholder: "Поиск проблем или проектов...",
+  layout_search_problems: "Проблемы",
+  layout_search_projects: "Проекты",
+  layout_search_empty: "Ничего не найдено",
+  layout_search_hint: "Начните вводить для поиска",
+
+  // User profile
+  profile_joined: "Дата регистрации",
+  profile_problems: "Проблемы",
+  profile_projects: "Проекты",
+  profile_no_problems: "Нет проблем",
+  profile_no_projects: "Нет проектов",
+  profile_reputation: "Репутация",
+
+  // Audio recording
+  audio_record: "Запись",
+  audio_record_start: "Начать запись",
+  audio_record_stop: "Остановить запись",
+  audio_record_delete: "Удалить",
+  audio_record_error: "Нет доступа к микрофону",
 
   empty_state: "Пока ничего нет",
   empty_problems: "Проблем нет",
@@ -959,7 +999,27 @@ const en: typeof uz = {
   // Layout
   layout_error: "Something went wrong",
   layout_retry: "Try again",
-  layout_search: "Search",
+  layout_search: "Search...",
+  layout_search_placeholder: "Search problems or projects...",
+  layout_search_problems: "Problems",
+  layout_search_projects: "Projects",
+  layout_search_empty: "Nothing found",
+  layout_search_hint: "Start typing to search",
+
+  // User profile
+  profile_joined: "Joined",
+  profile_problems: "Problems",
+  profile_projects: "Projects",
+  profile_no_problems: "No problems yet",
+  profile_no_projects: "No projects yet",
+  profile_reputation: "Reputation",
+
+  // Audio recording
+  audio_record: "Record",
+  audio_record_start: "Start recording",
+  audio_record_stop: "Stop recording",
+  audio_record_delete: "Delete",
+  audio_record_error: "Microphone access denied",
 
   empty_state: "Nothing here yet",
   empty_problems: "No problems yet",
