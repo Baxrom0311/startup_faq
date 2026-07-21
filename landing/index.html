@@ -421,20 +421,20 @@
 
   <div class="stats-bar">
     <div class="stat-item">
-      <div class="stat-num"><span>68+</span></div>
+      <div class="stat-num"><span id="stat-problems">—</span></div>
       <div class="stat-lbl" data-i18n="stat1">Faol muammo</div>
     </div>
     <div class="stat-item">
-      <div class="stat-num"><span>5</span></div>
+      <div class="stat-num"><span id="stat-projects">—</span></div>
       <div class="stat-lbl" data-i18n="stat2">Faol loyiha</div>
     </div>
     <div class="stat-item">
-      <div class="stat-num"><span>AI</span></div>
-      <div class="stat-lbl" data-i18n="stat3">Tahlil tizimi</div>
+      <div class="stat-num"><span id="stat-solved">—</span></div>
+      <div class="stat-lbl" data-i18n="stat3">Hal etildi</div>
     </div>
     <div class="stat-item">
-      <div class="stat-num"><span>∞</span></div>
-      <div class="stat-lbl" data-i18n="stat4">Yechim imkoniyati</div>
+      <div class="stat-num"><span id="stat-users">—</span></div>
+      <div class="stat-lbl" data-i18n="stat4">Foydalanuvchi</div>
     </div>
   </div>
 </section>
@@ -703,7 +703,7 @@ const T = {
     hero_title:"Muammolar ", hero_title_grad:"yechimga", hero_title_end:" aylanadigan joy",
     hero_sub:"Fuqarolar muammo e'lon qiladi. Startaplar yechim taklif qiladi. AI hamma narsani tahlil qiladi. Birgalikda o'zgartiramiz.",
     hero_cta1:"Platformaga kirish", hero_cta2:"Qanday ishlaydi?",
-    stat1:"Faol muammo", stat2:"Faol loyiha", stat3:"Tahlil tizimi", stat4:"Yechim imkoniyati",
+    stat1:"Muammo yuborildi", stat2:"Faol loyiha", stat3:"Hal etildi", stat4:"Foydalanuvchi",
     how_tag:"Jarayon", how_title:"3 qadam — muammodan", how_title2:"yechimgacha",
     how_sub:"GitHub loyihalari kabi ishlaydi — faqat real hayot muammolari uchun.",
     step1_title:"Muammo e'lon qiling", step1_desc:"Matn, ovoz yoki foto orqali muammongizni ulashing. AI avtomatik tahlil qiladi, tegishli kategoriyaga joylashtiradi.",
@@ -737,7 +737,7 @@ const T = {
     hero_title:"Место, где проблемы становятся ", hero_title_grad:"решениями",
     hero_sub:"Граждане публикуют проблемы. Стартапы предлагают решения. AI анализирует всё. Меняем Узбекистан вместе.",
     hero_cta1:"Войти в платформу", hero_cta2:"Как это работает?",
-    stat1:"Активных проблем", stat2:"Активных проектов", stat3:"AI анализ", stat4:"Возможность решений",
+    stat1:"Проблем подано", stat2:"Активных проектов", stat3:"Решено", stat4:"Пользователей",
     how_tag:"Процесс", how_title:"3 шага — от проблемы", how_title2:"к решению",
     how_sub:"Работает как GitHub — только для реальных жизненных проблем.",
     step1_title:"Опубликуйте проблему", step1_desc:"Текст, голос или фото. AI автоматически анализирует и категоризирует.",
@@ -771,7 +771,7 @@ const T = {
     hero_title:"Where problems become ", hero_title_grad:"solutions",
     hero_sub:"Citizens post problems. Startups propose solutions. AI analyzes everything. Let's transform Uzbekistan together.",
     hero_cta1:"Enter platform", hero_cta2:"How it works?",
-    stat1:"Active problems", stat2:"Active projects", stat3:"AI analysis", stat4:"Solution potential",
+    stat1:"Problems submitted", stat2:"Active projects", stat3:"Solved", stat4:"Users",
     how_tag:"Process", how_title:"3 steps — from problem", how_title2:"to solution",
     how_sub:"Works like GitHub — but for real-life civic problems.",
     step1_title:"Post a problem", step1_desc:"Share via text, voice, or photo. AI automatically analyzes, categorizes, and surfaces similar problems.",
@@ -845,6 +845,25 @@ window.addEventListener('scroll', () => {
 
 // Init
 applyTheme('dark');
+
+// ─── LIVE STATS ───
+(async function loadStats() {
+  try {
+    const res = await fetch('https://solutionlab.boos.uz/api/v1/analytics/public');
+    if (!res.ok) return;
+    const data = await res.json();
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+    set('stat-problems', data.total_problems ?? '—');
+    set('stat-projects', data.active_projects ?? '—');
+    set('stat-solved', data.solved_problems ?? '—');
+    set('stat-users', data.total_users ?? '—');
+  } catch (e) {
+    // silently fail — static fallback values are already shown
+  }
+})();
 </script>
 
 </body>

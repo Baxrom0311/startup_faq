@@ -76,6 +76,41 @@ async def read_analytics_overview(
     return data
 
 
+@router.get("/public")
+async def read_public_stats(
+    session: SessionDep,
+    redis: RedisDep,
+) -> dict:
+    """Public stats endpoint — no auth required. Used by the landing page."""
+    cache_key = "analytics:public"
+    try:
+        cached = await redis.get(cache_key)
+        if cached:
+            return json.loads(cached)
+    except Exception:
+        pass
+
+    from app.models import User
+    total_problems = session.exec(select(func.count()).select_from(Problem)).one()
+    solved = _count_problems(session, "solved")
+    active_projects = _count_projects(session, "approved", "in_progress", "piloting", "completed")
+    total_users = session.exec(select(func.count()).select_from(User)).one()
+
+    data = {
+        "total_problems": total_problems,
+        "solved_problems": solved,
+        "active_projects": active_projects,
+        "total_users": total_users,
+    }
+
+    try:
+        await redis.setex(cache_key, 300, json.dumps(data))
+    except Exception:
+        pass
+
+    return data
+
+
 @router.get("/by-sector")
 async def read_analytics_by_sector(
     session: SessionDep,
