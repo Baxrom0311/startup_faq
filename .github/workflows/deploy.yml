@@ -59,14 +59,14 @@ jobs:
 
             # Rebuild images and restart containers
             echo "==> Building images..."
-            docker compose -f compose.yml build backend frontend bot
+            docker compose -f compose.yml -f compose.server.yml build backend frontend bot
 
             echo "==> Restarting services..."
-            docker compose -f compose.yml up -d --force-recreate backend frontend bot worker prestart
+            docker compose -f compose.yml -f compose.server.yml up -d --force-recreate backend frontend bot worker prestart
 
             echo "==> Waiting for backend health..."
             for i in $(seq 1 30); do
-              if docker compose -f compose.yml exec -T backend curl -sf http://localhost:8000/api/v1/health > /dev/null 2>&1; then
+              if docker compose -f compose.yml -f compose.server.yml exec -T backend curl -sf http://localhost:8000/api/v1/health > /dev/null 2>&1; then
                 echo "Backend healthy!"
                 break
               fi

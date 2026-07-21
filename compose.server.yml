@@ -1,0 +1,17 @@
+# Server override for nginx-based deployment (no Traefik).
+# Usage: docker compose -f compose.yml -f compose.server.yml ...
+
+networks:
+  traefik-public:
+    external: false   # create locally instead of expecting an external network
+
+services:
+  backend:
+    ports:
+      - "127.0.0.1:8100:8000"
+    labels: []         # remove Traefik labels
+
+  frontend:
+    ports:
+      - "127.0.0.1:5173:80"
+    labels: []         # remove Traefik labels
