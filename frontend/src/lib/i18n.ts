@@ -102,6 +102,17 @@ const uz = {
   project_reviews_title: "Baholashlar",
   project_done_toast: "Bajarildi!",
   project_complete_toast: "Loyiha yakunlandi!",
+  project_repo_label: "GitHub / Kod Ombori",
+  project_repo_open: "Ochish",
+  project_repo_missing: "GitHub havolasi biriktirilmagan",
+  project_repo_missing_hint: "Loyihaning manba kodini ulashingiz mumkin",
+  project_repo_add: "Havola qo'shish",
+  project_repo_none: "GitHub havolasi kiritilmagan.",
+  project_edit_title: "Loyihani tahrirlash",
+  project_edit_name_label: "Loyiha nomi",
+  project_edit_name_placeholder: "Loyiha nomi",
+  project_edit_pitch_label: "Pitch / Tavsif",
+  project_edit_pitch_placeholder: "Loyiha tavsifi va maqsadi",
 
   // Admin
   admin_title: "Admin",
@@ -303,6 +314,7 @@ const uz = {
 
   // Project tabs
   project_tab_overview: "Umumiy",
+  project_tab_chat: "Muhokama",
   project_tab_issues: "Masalalar",
   project_tab_milestones: "Bosqichlar",
   project_tab_activity: "Faoliyat",
@@ -431,6 +443,17 @@ const ru: typeof uz = {
   project_reviews_title: "Отзывы",
   project_done_toast: "Готово!",
   project_complete_toast: "Проект завершён!",
+  project_repo_label: "GitHub / Репозиторий",
+  project_repo_open: "Открыть",
+  project_repo_missing: "GitHub-ссылка не добавлена",
+  project_repo_missing_hint: "Вы можете поделиться исходным кодом проекта",
+  project_repo_add: "Добавить ссылку",
+  project_repo_none: "GitHub-ссылка не указана.",
+  project_edit_title: "Редактировать проект",
+  project_edit_name_label: "Название проекта",
+  project_edit_name_placeholder: "Название проекта",
+  project_edit_pitch_label: "Pitch / Описание",
+  project_edit_pitch_placeholder: "Описание и цели проекта",
 
   admin_title: "Админ",
   admin_feed_title: "Проблемы на рассмотрении",
@@ -625,6 +648,7 @@ const ru: typeof uz = {
 
   // Project tabs
   project_tab_overview: "Обзор",
+  project_tab_chat: "Обсуждение",
   project_tab_issues: "Вопросы",
   project_tab_milestones: "Этапы",
   project_tab_activity: "Активность",
@@ -754,6 +778,17 @@ const en: typeof uz = {
   project_reviews_title: "Reviews",
   project_done_toast: "Done!",
   project_complete_toast: "Project completed!",
+  project_repo_label: "GitHub / Repository",
+  project_repo_open: "Open",
+  project_repo_missing: "No GitHub link added",
+  project_repo_missing_hint: "You can share the project's source code",
+  project_repo_add: "Add link",
+  project_repo_none: "No GitHub link provided.",
+  project_edit_title: "Edit project",
+  project_edit_name_label: "Project name",
+  project_edit_name_placeholder: "Project name",
+  project_edit_pitch_label: "Pitch / Description",
+  project_edit_pitch_placeholder: "Project description and goals",
 
   admin_title: "Admin",
   admin_feed_title: "Problems pending review",
@@ -948,6 +983,7 @@ const en: typeof uz = {
 
   // Project tabs
   project_tab_overview: "Overview",
+  project_tab_chat: "Discussion",
   project_tab_issues: "Issues",
   project_tab_milestones: "Milestones",
   project_tab_activity: "Activity",

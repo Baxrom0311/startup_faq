@@ -131,7 +131,7 @@ function Admin() {
     const token = localStorage.getItem("access_token")
     if (!token) return
     const apiBase = import.meta.env.VITE_API_URL || ""
-    const downloadUrl = `${apiBase}/problems/export/csv?token=${token}`
+    const downloadUrl = `${apiBase}/api/v1/problems/export/csv?token=${token}`
     window.open(downloadUrl, "_blank")
   }
 

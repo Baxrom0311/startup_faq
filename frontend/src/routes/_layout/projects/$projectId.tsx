@@ -772,7 +772,7 @@ function ProjectDetail() {
 
   const tabs: { key: typeof tab; label: string; icon?: React.ReactNode }[] = [
     { key: "overview", label: t("project_tab_overview"), icon: <Code2 className="size-3.5" /> },
-    { key: "chat", label: "Chat & Muloqot", icon: <MessageSquare className="size-3.5" /> },
+    { key: "chat", label: t("project_tab_chat"), icon: <MessageSquare className="size-3.5" /> },
     { key: "issues", label: t("project_tab_issues"), icon: <AlertCircle className="size-3.5" /> },
     { key: "milestones", label: t("project_tab_milestones"), icon: <CheckCircle2 className="size-3.5" /> },
     { key: "activity", label: t("project_tab_activity"), icon: <GitBranch className="size-3.5" /> },
@@ -825,7 +825,7 @@ function ProjectDetail() {
                 {isLead && (
                   <Button variant="outline" size="sm" onClick={openEditModal} className="gap-1.5">
                     <Edit3 className="size-3.5" />
-                    <span className="hidden sm:inline">Tahrirlash</span>
+                    <span className="hidden sm:inline">{t("problem_edit")}</span>
                   </Button>
                 )}
               </div>
@@ -876,7 +876,7 @@ function ProjectDetail() {
                       <Code2 className="size-5" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-muted-foreground">GitHub / Kod Ombori</p>
+                      <p className="text-xs font-medium text-muted-foreground">{t("project_repo_label")}</p>
                       <a
                         href={project.repo_url}
                         target="_blank"
@@ -890,7 +890,7 @@ function ProjectDetail() {
                   </div>
                   <Button size="sm" variant="outline" asChild>
                     <a href={project.repo_url} target="_blank" rel="noopener noreferrer">
-                      Ochish
+                      {t("project_repo_open")}
                     </a>
                   </Button>
                 </CardContent>
@@ -901,12 +901,12 @@ function ProjectDetail() {
                   <div className="flex items-center gap-3">
                     <Code2 className="size-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">GitHub havolasi biriktirilmagan</p>
-                      <p className="text-xs text-muted-foreground">Loyihaning manba kodini ulashingiz mumkin</p>
+                      <p className="text-sm font-medium">{t("project_repo_missing")}</p>
+                      <p className="text-xs text-muted-foreground">{t("project_repo_missing_hint")}</p>
                     </div>
                   </div>
                   <Button size="sm" variant="outline" onClick={openEditModal}>
-                    <Plus className="size-3.5" /> Link qo'shish
+                    <Plus className="size-3.5" /> {t("project_repo_add")}
                   </Button>
                 </CardContent>
               </Card>
@@ -1215,7 +1215,7 @@ function ProjectDetail() {
             <CardTitle className="flex items-center justify-between gap-2 text-sm">
               <span className="flex items-center gap-2">
                 <Code2 className="size-4 text-primary" />
-                Kod Ombori
+                {t("project_repo_label")}
               </span>
               {isLead && (
                 <button
@@ -1223,7 +1223,7 @@ function ProjectDetail() {
                   onClick={openEditModal}
                   className="text-xs text-primary hover:underline"
                 >
-                  Tahrirlash
+                  {t("problem_edit")}
                 </button>
               )}
             </CardTitle>
@@ -1240,7 +1240,7 @@ function ProjectDetail() {
                 {project.repo_url}
               </a>
             ) : (
-              <p className="text-xs text-muted-foreground">GitHub havolasi kiritilmagan.</p>
+              <p className="text-xs text-muted-foreground">{t("project_repo_none")}</p>
             )}
           </CardContent>
         </Card>
@@ -1276,28 +1276,28 @@ function ProjectDetail() {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Loyihani Tahrirlash</DialogTitle>
+            <DialogTitle>{t("project_edit_title")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Loyiha Nomi</label>
+              <label className="text-xs font-medium text-muted-foreground">{t("project_edit_name_label")}</label>
               <Input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                placeholder="Loyiha nomi"
+                placeholder={t("project_edit_name_placeholder")}
               />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Pitch / Tavsif</label>
+              <label className="text-xs font-medium text-muted-foreground">{t("project_edit_pitch_label")}</label>
               <Textarea
                 value={editPitch}
                 onChange={(e) => setEditPitch(e.target.value)}
-                placeholder="Loyiha tavsifi va maqsadi"
+                placeholder={t("project_edit_pitch_placeholder")}
                 className="min-h-[100px] resize-none"
               />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">GitHub / Repository URL</label>
+              <label className="text-xs font-medium text-muted-foreground">{t("project_repo_label")} URL</label>
               <Input
                 value={editRepoUrl}
                 onChange={(e) => setEditRepoUrl(e.target.value)}
@@ -1309,7 +1309,7 @@ function ProjectDetail() {
                 {t("cancel")}
               </Button>
               <Button size="sm" onClick={handleSaveProject} disabled={isUpdating || !editTitle.trim()}>
-                Saqlash
+                {t("save")}
               </Button>
             </div>
           </div>

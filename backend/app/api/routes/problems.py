@@ -9,7 +9,7 @@ from sqlmodel import func, select
 
 from app.core.limiter import limiter
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import CurrentUser, CurrentUserFromQuery, SessionDep
 from app.models import (
     AIAnalysis,
     Comment,
@@ -119,7 +119,7 @@ def _attach_owned_media(
 @router.get("/export/csv")
 def export_problems_csv(
     session: SessionDep,
-    current_user: CurrentUser,
+    current_user: CurrentUserFromQuery,
 ) -> StreamingResponse:
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Not enough permissions")
