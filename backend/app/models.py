@@ -154,6 +154,7 @@ class ProblemCreate(ProblemBase):
 class ProblemUpdate(SQLModel):
     raw_text: str | None = Field(default=None, max_length=5000)
     region_id: int | None = None
+    sector_id: int | None = None
 
 
 class ProblemMergeRequest(SQLModel):
@@ -295,6 +296,7 @@ class CommentPublic(CommentBase):
     id: uuid.UUID
     problem_id: uuid.UUID
     user_id: uuid.UUID
+    author_name: str | None = None
     created_at: datetime
 
 

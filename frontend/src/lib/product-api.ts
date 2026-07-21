@@ -65,6 +65,7 @@ export type Comment = {
   id: string
   problem_id: string
   user_id: string
+  author_name?: string | null
   text: string
   parent_id?: string | null
   created_at: string

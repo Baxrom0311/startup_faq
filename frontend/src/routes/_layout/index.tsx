@@ -71,6 +71,7 @@ function Dashboard() {
   const [regions, setRegions] = useState<Region[]>([])
   const [activeRegion, setActiveRegion] = useState<number | null>(null)
   const [mineOnly, setMineOnly] = useState(false)
+  const [sort, setSort] = useState<"newest" | "popular">("newest")
   const [submitOpen, setSubmitOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
@@ -104,6 +105,7 @@ function Dashboard() {
         activeRegion != null ? `&region_id=${activeRegion}` : ""
       const mineParam = mineOnly ? "&mine=true" : ""
       const statusParam = mineOnly ? "all" : "published"
+      const sortParam = `&sort=${sort}`
       const [
         problemsData,
         incomingData,
@@ -112,7 +114,7 @@ function Dashboard() {
         notificationsData,
       ] = await Promise.all([
         apiJson<ProblemsResponse>(
-          `/problems/?status=${statusParam}${searchParam}${sectorParam}${regionParam}${mineParam}&skip=${currentSkip}&limit=20`,
+          `/problems/?status=${statusParam}${searchParam}${sectorParam}${regionParam}${mineParam}${sortParam}&skip=${currentSkip}&limit=20`,
         ),
         apiJson<ProjectsResponse>("/projects?owner=true&status=proposed"),
         apiJson<ProjectsResponse>("/projects?mine=true"),
@@ -135,7 +137,7 @@ function Dashboard() {
       setNotifications(notificationsData.data)
       setUnreadNotifications(notificationsData.unread_count)
     },
-    [debouncedQuery, activeSector, activeRegion, mineOnly],
+    [debouncedQuery, activeSector, activeRegion, mineOnly, sort],
   )
 
   useEffect(() => {
@@ -382,17 +384,41 @@ function Dashboard() {
                   <Badge variant="outline">{totalCount}</Badge>
                 )}
               </div>
-              <button
-                type="button"
-                onClick={() => setMineOnly((v) => !v)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  mineOnly
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "hover:bg-muted/50"
-                }`}
-              >
-                {t("dashboard_mine")}
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => { setSort("newest"); setSkip(0) }}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    sort === "newest"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "hover:bg-muted/50"
+                  }`}
+                >
+                  {t("sort_newest")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSort("popular"); setSkip(0) }}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    sort === "popular"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "hover:bg-muted/50"
+                  }`}
+                >
+                  {t("sort_popular")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMineOnly((v) => !v)}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    mineOnly
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "hover:bg-muted/50"
+                  }`}
+                >
+                  {t("dashboard_mine")}
+                </button>
+              </div>
             </div>
             {initialLoading ? (
               <CardSkeleton rows={4} />

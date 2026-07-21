@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   CornerDownRight,
   CornerUpLeft,
+  Edit3,
   MessageSquare,
   RefreshCcw,
   Rocket,
@@ -26,8 +27,21 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import useAuth from "@/hooks/useAuth"
 import {
@@ -76,6 +90,11 @@ function ProblemDetail() {
   const [projectPitch, setProjectPitch] = useState("")
   const [projectRepoUrl, setProjectRepoUrl] = useState("")
   const [claiming, setClaiming] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editText, setEditText] = useState("")
+  const [editSectorId, setEditSectorId] = useState<string>("")
+  const [editRegionId, setEditRegionId] = useState<string>("")
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     fetchSectors()
@@ -164,6 +183,37 @@ function ProblemDetail() {
     }
   }
 
+  const openEdit = () => {
+    if (!problem) return
+    setEditText(problem.raw_text ?? "")
+    setEditSectorId(problem.sector_id != null ? String(problem.sector_id) : "")
+    setEditRegionId(problem.region_id != null ? String(problem.region_id) : "")
+    setEditOpen(true)
+  }
+
+  const saveEdit = async () => {
+    if (!editText.trim()) return
+    setSaving(true)
+    try {
+      await apiMutation(
+        `/problems/${problemId}`,
+        {
+          raw_text: editText.trim(),
+          sector_id: editSectorId ? Number(editSectorId) : null,
+          region_id: editRegionId ? Number(editRegionId) : null,
+        },
+        "PATCH",
+      )
+      toast.success(t("problem_edit_success"))
+      setEditOpen(false)
+      await loadProblem()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("error_generic"))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const runProblemAction = async (
     action: "publish" | "archive" | "solve" | "reanalyze",
   ) => {
@@ -199,6 +249,9 @@ function ProblemDetail() {
               {comment.text}
             </p>
             <p className="text-muted-foreground mt-1 text-xs">
+              {comment.author_name && (
+                <span className="font-medium text-foreground/70">{comment.author_name} · </span>
+              )}
               {shortDate(comment.created_at)}
             </p>
           </div>
@@ -234,6 +287,10 @@ function ProblemDetail() {
 
   const canClaim =
     problem.status === "published" && user?.id !== problem.author_id && !!user
+  const canEdit =
+    !!user &&
+    user.id === problem.author_id &&
+    ["draft", "needs_review"].includes(problem.status)
   const canSolve =
     !!user &&
     (user.is_superuser || user.id === problem.author_id) &&
@@ -428,7 +485,73 @@ function ProblemDetail() {
         </Card>
       </main>
 
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t("problem_edit_title")}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <Textarea
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              rows={6}
+              className="resize-none"
+            />
+            <Select
+              value={editSectorId || "__none"}
+              onValueChange={(v) => setEditSectorId(v === "__none" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">—</SelectItem>
+                {sectors.map((s) => (
+                  <SelectItem key={s.id} value={String(s.id)}>
+                    {s.icon} {s.name_uz}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={editRegionId || "__none"}
+              onValueChange={(v) => setEditRegionId(v === "__none" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">—</SelectItem>
+                {regions.map((r) => (
+                  <SelectItem key={r.id} value={String(r.id)}>
+                    {r.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <LoadingButton
+              loading={saving}
+              disabled={!editText.trim()}
+              onClick={saveEdit}
+            >
+              {t("problem_edit_save")}
+            </LoadingButton>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <aside className="flex flex-col gap-4">
+        {canEdit && (
+          <Card className="bg-background shadow-none">
+            <CardContent className="pt-4">
+              <Button variant="outline" className="w-full" onClick={openEdit}>
+                <Edit3 className="size-4" />
+                {t("problem_edit")}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {(canPublish || canArchive || canSolve || canReanalyze) && (
           <Card className="bg-background shadow-none">
             <CardHeader>

@@ -14,6 +14,7 @@ from app.models import (
     AIAnalysis,
     Comment,
     CommentCreate,
+    CommentPublic,
     CommentsPublic,
     Message,
     Problem,
@@ -21,6 +22,7 @@ from app.models import (
     ProblemMedia,
     ProblemMergeRequest,
     ProblemPublic,
+    ProblemUpdate,
     ProblemsPublic,
     Project,
     Sector,
@@ -298,6 +300,7 @@ async def read_problems(
     region_id: int | None = None,
     mine: bool = False,
     q: str | None = None,
+    sort: str = "newest",
 ) -> Any:
     filters = []
     if status != "all":
@@ -384,25 +387,27 @@ async def read_problems(
                 | (Problem.transcript.ilike(pattern))
             )
 
+            order_col = Problem.vote_count.desc() if sort == "popular" else Problem.created_at.desc()
             count_statement = select(func.count()).select_from(Problem).where(*filters)
             count = session.exec(count_statement).one()
 
             statement = (
                 select(Problem)
                 .where(*filters)
-                .order_by(Problem.created_at.desc())
+                .order_by(order_col)
                 .offset(skip)
                 .limit(limit)
             )
             problems = session.exec(statement).all()
     else:
+        order_col = Problem.vote_count.desc() if sort == "popular" else Problem.created_at.desc()
         count_statement = select(func.count()).select_from(Problem).where(*filters)
         count = session.exec(count_statement).one()
 
         statement = (
             select(Problem)
             .where(*filters)
-            .order_by(Problem.created_at.desc())
+            .order_by(order_col)
             .offset(skip)
             .limit(limit)
         )
@@ -455,6 +460,62 @@ def read_problem(
         and problem.author_id != current_user.id
     ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Problem not found")
+    return _problem_public(session=session, current_user=current_user, problem=problem)
+
+
+@router.patch("/{problem_id}", response_model=ProblemPublic)
+@limiter.limit("10/minute")
+async def update_problem(
+    *,
+    session: SessionDep,
+    request: Request,
+    current_user: CurrentUser,
+    problem_id: uuid.UUID,
+    problem_in: ProblemUpdate,
+) -> Any:
+    """Allow the problem author to edit a problem in draft or needs_review state."""
+    problem = _get_problem_or_404(session=session, problem_id=problem_id)
+    if problem.author_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+    if problem.status not in {"draft", "needs_review"}:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only problems in draft or needs_review state can be edited",
+        )
+
+    text_changed = (
+        problem_in.raw_text is not None and problem_in.raw_text != problem.raw_text
+    )
+    if text_changed and problem_in.raw_text:
+        sector: Sector | None = None
+        sector_id = problem_in.sector_id if problem_in.sector_id is not None else problem.sector_id
+        if sector_id is not None:
+            sector = session.get(Sector, sector_id)
+        sector_name = sector.name_uz if sector else "Umumiy"
+        moderation = await moderate_content(text=problem_in.raw_text, sector_name=sector_name)
+        if not moderation.approved:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=moderation.reason or "Muammo matni qabul qilinmadi.",
+            )
+
+    update_data = problem_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(problem, field, value)
+
+    if text_changed and problem.status == "needs_review":
+        # Text passed moderation — restore to published
+        transition_problem(
+            session=session,
+            problem=problem,
+            to_status="published",
+            actor_id=current_user.id,
+            reason="author_edit_approved",
+        )
+
+    session.add(problem)
+    session.commit()
+    session.refresh(problem)
     return _problem_public(session=session, current_user=current_user, problem=problem)
 
 
@@ -696,7 +757,22 @@ def read_comments(
         .limit(limit)
     )
     comments = session.exec(statement).all()
-    return CommentsPublic(data=comments, count=count)
+
+    # Batch-load author names to avoid N+1
+    author_ids = list({c.user_id for c in comments})
+    authors: dict[uuid.UUID, str | None] = {}
+    if author_ids:
+        users = session.exec(select(User).where(User.id.in_(author_ids))).all()
+        authors = {u.id: u.full_name for u in users}
+
+    data = [
+        CommentPublic(
+            **comment.model_dump(),
+            author_name=authors.get(comment.user_id),
+        )
+        for comment in comments
+    ]
+    return CommentsPublic(data=data, count=count)
 
 
 @router.post("/{problem_id}/comments", response_model=Comment, status_code=201)
