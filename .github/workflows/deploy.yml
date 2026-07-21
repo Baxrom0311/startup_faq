@@ -50,7 +50,7 @@ jobs:
 
             # Rebuild images and restart containers
             echo "==> Building images..."
-            docker compose -f compose.yml build --no-cache backend frontend bot
+            docker compose -f compose.yml build backend frontend bot
 
             echo "==> Restarting services..."
             docker compose -f compose.yml up -d --force-recreate backend frontend bot worker prestart
