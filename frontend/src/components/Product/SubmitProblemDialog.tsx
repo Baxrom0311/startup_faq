@@ -106,12 +106,15 @@ export function SubmitProblemDialog({
     }
   }, [photoPreviewUrls])
 
-  // Reset state when dialog closes/reopens
+  // Reset all state when dialog closes/reopens
   useEffect(() => {
     if (!open) {
       setDuplicateProblem(null)
+      setRawText("")
       setSectorId("")
       setRegionId("")
+      setAudioFile(null)
+      setPhotoFiles([])
     }
   }, [open])
 
@@ -228,13 +231,18 @@ export function SubmitProblemDialog({
           <DialogTitle>{t("submit_title")}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-2">
-          <label className="text-sm font-medium" htmlFor="raw-text">
-            {t("submit_text_label")}
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium" htmlFor="raw-text">
+              {t("submit_text_label")}
+            </label>
+            <span className={`text-xs ${rawText.length > 4500 ? "text-destructive" : "text-muted-foreground"}`}>
+              {rawText.length}/5000
+            </span>
+          </div>
           <Textarea
             id="raw-text"
             value={rawText}
-            onChange={(event) => setRawText(event.target.value)}
+            onChange={(event) => setRawText(event.target.value.slice(0, 5000))}
             placeholder={t("submit_text_placeholder")}
             rows={4}
           />
