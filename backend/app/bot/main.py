@@ -4,8 +4,10 @@ import logging
 import httpx
 import redis.asyncio as aioredis
 from aiogram import Bot, Dispatcher, F, Router
-from aiogram.filters import CommandObject, CommandStart
+from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
     KeyboardButton,
     Message,
     ReplyKeyboardMarkup,
@@ -54,9 +56,34 @@ async def _pop_token(telegram_id: int) -> str | None:
 
 @router.message(CommandStart(deep_link=False))
 async def start_no_token(message: Message) -> None:
+    frontend = settings.FRONTEND_HOST.rstrip("/")
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🌐 Platformani ochish", url=frontend)],
+    ])
     await message.answer(
-        "Salom! Bu bot platformaga kirish uchun ishlatiladi.\n\n"
+        "👋 Salom! Bu <b>SolutionLab</b> boti.\n\n"
+        "Bu orqali:\n"
+        "• Platformaga kirish (login) qilasiz\n"
+        "• Muammo va loyihalar bo'yicha bildirishnoma olasiz\n\n"
         "Kirish uchun saytga o'ting va «Telegram orqali kirish» tugmasini bosing.",
+        parse_mode="HTML",
+        reply_markup=keyboard,
+    )
+
+
+@router.message(Command("help"))
+async def help_command(message: Message) -> None:
+    frontend = settings.FRONTEND_HOST.rstrip("/")
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🌐 Platforma", url=frontend)],
+    ])
+    await message.answer(
+        "<b>SolutionLab boti yordami</b>\n\n"
+        "🔑 <b>Kirish:</b> Saytda «Telegram orqali kirish» bosing, so'ng raqamingizni ulashing.\n\n"
+        "🔔 <b>Bildirishnomalar:</b> Muammo yoki loyiha yangilanganda bu orqali xabar olasiz.\n\n"
+        "📌 Barcha funksiyalar platforma saytida mavjud.",
+        parse_mode="HTML",
+        reply_markup=keyboard,
     )
 
 
@@ -135,9 +162,17 @@ async def verify_contact(message: Message) -> None:
         await message.answer("Tasdiqlashda xatolik bo'ldi. Saytga qaytib qaytadan urinib ko'ring.")
         return
 
+    frontend = settings.FRONTEND_HOST.rstrip("/")
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="▶️ Platformaga kirish", url=frontend)],
+    ])
     await message.answer(
-        "Kirdingiz. Saytga qayting.",
+        "✅ Muvaffaqiyatli kirdingiz! Platformaga qayting.",
         reply_markup=ReplyKeyboardRemove(),
+    )
+    await message.answer(
+        "Muammolarni ko'rish va loyihalar bilan ishlash uchun:",
+        reply_markup=keyboard,
     )
     logger.info(
         "Telegram auth verified: user_id=%s phone=%s",
