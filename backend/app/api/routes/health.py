@@ -18,7 +18,7 @@ def liveness() -> dict[str, str]:
 
 
 @router.get("/ready")
-def readiness(session: SessionDep) -> JSONResponse:
+async def readiness(session: SessionDep) -> JSONResponse:
     """Readiness probe — checks PostgreSQL and Redis connectivity."""
     db_ok = True
     redis_ok = True
@@ -29,14 +29,11 @@ def readiness(session: SessionDep) -> JSONResponse:
         db_ok = False
 
     try:
-        async def _ping_redis() -> bool:
-            r = Redis.from_url(settings.REDIS_URL)
-            try:
-                return await r.ping()
-            finally:
-                await r.aclose()
-
-        asyncio.run(_ping_redis())
+        r = Redis.from_url(settings.REDIS_URL)
+        try:
+            redis_ok = await r.ping()
+        finally:
+            await r.aclose()
     except Exception:
         redis_ok = False
 

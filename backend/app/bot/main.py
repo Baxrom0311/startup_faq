@@ -1,8 +1,8 @@
 import asyncio
 import logging
-import time
 
 import httpx
+import redis.asyncio as aioredis
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.filters import CommandObject, CommandStart
 from aiogram.types import (
@@ -19,33 +19,37 @@ logger = logging.getLogger(__name__)
 
 router = Router()
 
-# {telegram_id: (token, created_at)}
-auth_tokens_by_user_id: dict[int, tuple[str, float]] = {}
 TOKEN_TTL_SECONDS = 300  # 5 daqiqa
+_redis: aioredis.Redis | None = None
 
 
-def _store_token(telegram_id: int, token: str) -> None:
-    auth_tokens_by_user_id[telegram_id] = (token, time.monotonic())
+def _get_redis() -> aioredis.Redis:
+    global _redis
+    if _redis is None:
+        _redis = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+    return _redis
 
 
-def _pop_token(telegram_id: int) -> str | None:
-    entry = auth_tokens_by_user_id.pop(telegram_id, None)
-    if entry is None:
+def _redis_key(telegram_id: int) -> str:
+    return f"tg_auth_token:{telegram_id}"
+
+
+async def _store_token(telegram_id: int, token: str) -> None:
+    try:
+        await _get_redis().setex(_redis_key(telegram_id), TOKEN_TTL_SECONDS, token)
+    except Exception as exc:
+        logger.warning("Redis store token failed: %s", exc)
+
+
+async def _pop_token(telegram_id: int) -> str | None:
+    key = _redis_key(telegram_id)
+    try:
+        r = _get_redis()
+        token = await r.getdel(key)
+        return token
+    except Exception as exc:
+        logger.warning("Redis pop token failed: %s", exc)
         return None
-    token, created_at = entry
-    if time.monotonic() - created_at > TOKEN_TTL_SECONDS:
-        logger.info("Token expired for telegram_id=%s", telegram_id)
-        return None
-    return token
-
-
-def _purge_stale_tokens() -> None:
-    now = time.monotonic()
-    stale = [uid for uid, (_, ts) in auth_tokens_by_user_id.items() if now - ts > TOKEN_TTL_SECONDS]
-    for uid in stale:
-        auth_tokens_by_user_id.pop(uid, None)
-    if stale:
-        logger.debug("Purged %d stale auth tokens", len(stale))
 
 
 @router.message(CommandStart(deep_link=False))
@@ -64,8 +68,7 @@ async def start_auth(message: Message, command: CommandObject) -> None:
         return
 
     if message.from_user:
-        _purge_stale_tokens()
-        _store_token(message.from_user.id, token)
+        await _store_token(message.from_user.id, token)
 
     headers = {}
     if settings.TG_WEBHOOK_SECRET:
@@ -96,7 +99,7 @@ async def verify_contact(message: Message) -> None:
         await message.answer("Kontakt kelmadi. Qaytadan urinib ko'ring.")
         return
 
-    token = _pop_token(message.from_user.id)
+    token = await _pop_token(message.from_user.id)
     if not token:
         await message.answer("Login sessiya topilmadi yoki muddati tugagan. Saytga qaytib qaytadan urinib ko'ring.")
         return

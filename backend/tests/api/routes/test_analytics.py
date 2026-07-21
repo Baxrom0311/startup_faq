@@ -76,3 +76,33 @@ def test_analytics_overview_normal_user(
         headers=normal_user_token_headers,
     )
     assert r.status_code == 200
+
+
+def test_analytics_by_sector(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    r = client.get(
+        f"{settings.API_V1_STR}/analytics/by-sector",
+        headers=superuser_token_headers,
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)
+    if len(data) > 0:
+        assert "sector_id" in data[0]
+        assert "problem_count" in data[0]
+
+
+def test_analytics_trend(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    r = client.get(
+        f"{settings.API_V1_STR}/analytics/trend?days=30",
+        headers=superuser_token_headers,
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)
+    if len(data) > 0:
+        assert "date" in data[0]
+        assert "count" in data[0]

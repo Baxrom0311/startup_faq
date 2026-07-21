@@ -1,6 +1,8 @@
 import { Link as RouterLink } from "@tanstack/react-router"
 import { ChevronsUpDown, LogOut, Settings } from "lucide-react"
 
+import { useTranslation } from "react-i18next"
+
 import type { UserPublic } from "@/client"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -43,6 +45,7 @@ function UserInfo({ fullName, email }: UserInfoProps) {
 }
 
 export function User({ user }: { user: UserPublic | null | undefined }) {
+  const { t } = useTranslation()
   const { logout } = useAuth()
   const { isMobile, setOpenMobile } = useSidebar()
 
@@ -67,7 +70,10 @@ export function User({ user }: { user: UserPublic | null | undefined }) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               data-testid="user-menu"
             >
-              <UserInfo fullName={user?.full_name ?? undefined} email={user?.email} />
+              <UserInfo
+                fullName={user?.full_name ?? undefined}
+                email={user?.email}
+              />
               <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -78,18 +84,21 @@ export function User({ user }: { user: UserPublic | null | undefined }) {
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <UserInfo fullName={user?.full_name ?? undefined} email={user?.email} />
+              <UserInfo
+                fullName={user?.full_name ?? undefined}
+                email={user?.email}
+              />
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <RouterLink to="/settings" onClick={handleMenuClick}>
               <DropdownMenuItem>
                 <Settings />
-                Settings
+                {t("nav_settings")}
               </DropdownMenuItem>
             </RouterLink>
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
-              Logout
+              {t("nav_logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

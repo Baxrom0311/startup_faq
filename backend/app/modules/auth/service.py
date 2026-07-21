@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 
 from app.core import security
 from app.core.config import settings
-from app.models import AuthSession, User
+from app.models import AuthSession, RefreshToken, User
 
 AUTH_SESSION_TTL_MINUTES = 5
 
@@ -168,10 +168,47 @@ def access_token_for_verified_session(auth_session: AuthSession) -> str | None:
     )
 
 
-def refresh_token_for_verified_session(auth_session: AuthSession) -> str | None:
+def refresh_token_for_verified_session(
+    session: Session, auth_session: AuthSession
+) -> str | None:
     if auth_session.status != "verified" or not auth_session.user_id:
         return None
+
+    # Check if a refresh token already exists for this auth session (idempotency)
+    existing = session.exec(
+        select(RefreshToken).where(
+            RefreshToken.auth_session_token == auth_session.token
+        )
+    ).first()
+
+    if existing:
+        return security.create_refresh_token(
+            auth_session.user_id,
+            expires_delta=timedelta(days=settings.JWT_REFRESH_TTL_DAYS),
+            jti=existing.jti,
+            family=existing.family,
+        )
+
+    # Otherwise, generate a new refresh token family
+    import uuid
+    jti = uuid.uuid4()
+    family = uuid.uuid4()
+    expires_at = datetime.now(timezone.utc) + timedelta(days=settings.JWT_REFRESH_TTL_DAYS)
+
+    db_token = RefreshToken(
+        jti=jti,
+        user_id=auth_session.user_id,
+        family=family,
+        expires_at=expires_at,
+        revoked=False,
+        auth_session_token=auth_session.token,
+    )
+    session.add(db_token)
+    session.commit()
+
     return security.create_refresh_token(
         auth_session.user_id,
         expires_delta=timedelta(days=settings.JWT_REFRESH_TTL_DAYS),
+        jti=jti,
+        family=family,
     )

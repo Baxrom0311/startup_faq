@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AnalyticsReadAnalyticsOverviewResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MediaPresignMediaUploadData, MediaPresignMediaUploadResponse, NotificationsReadNotificationsData, NotificationsReadNotificationsResponse, NotificationsMarkOneNotificationReadData, NotificationsMarkOneNotificationReadResponse, NotificationsMarkNotificationsReadData, NotificationsMarkNotificationsReadResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProblemsCreateProblemData, ProblemsCreateProblemResponse, ProblemsReadProblemsData, ProblemsReadProblemsResponse, ProblemsReadProblemMediaData, ProblemsReadProblemMediaResponse, ProblemsReadProblemAnalysesData, ProblemsReadProblemAnalysesResponse, ProblemsReadProblemData, ProblemsReadProblemResponse, ProblemsPublishProblemData, ProblemsPublishProblemResponse, ProblemsArchiveProblemData, ProblemsArchiveProblemResponse, ProblemsReanalyzeProblemData, ProblemsReanalyzeProblemResponse, ProblemsSolveProblemData, ProblemsSolveProblemResponse, ProblemsMergeProblemData, ProblemsMergeProblemResponse, ProblemsVoteProblemData, ProblemsVoteProblemResponse, ProblemsUnvoteProblemData, ProblemsUnvoteProblemResponse, ProblemsReadCommentsData, ProblemsReadCommentsResponse, ProblemsCreateCommentData, ProblemsCreateCommentResponse, ProjectsCreateClaimData, ProjectsCreateClaimResponse, ProjectsReadProjectsData, ProjectsReadProjectsResponse, ProjectsReadProjectData, ProjectsReadProjectResponse, ProjectsApproveProjectEndpointData, ProjectsApproveProjectEndpointResponse, ProjectsRejectProjectEndpointData, ProjectsRejectProjectEndpointResponse, ProjectsStartProjectPilotingEndpointData, ProjectsStartProjectPilotingEndpointResponse, ProjectsCompleteProjectEndpointData, ProjectsCompleteProjectEndpointResponse, ProjectsReadProjectReviewsData, ProjectsReadProjectReviewsResponse, ProjectsReadProjectMilestonesData, ProjectsReadProjectMilestonesResponse, ProjectsCreateProjectMilestoneData, ProjectsCreateProjectMilestoneResponse, ProjectsUpdateProjectMilestoneData, ProjectsUpdateProjectMilestoneResponse, ProjectsReadProjectUpdatesData, ProjectsReadProjectUpdatesResponse, ProjectsCreateProjectUpdateData, ProjectsCreateProjectUpdateResponse, TelegramAuthStartTelegramAuthData, TelegramAuthStartTelegramAuthResponse, TelegramAuthTelegramAuthStatusData, TelegramAuthTelegramAuthStatusResponse, TelegramAuthMarkStartData, TelegramAuthMarkStartResponse, TelegramAuthVerifyContactData, TelegramAuthVerifyContactResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, UtilsReadinessCheckResponse } from './types.gen';
+import type { AnalyticsReadAnalyticsOverviewResponse, BroadcastsCreateBroadcastData, BroadcastsCreateBroadcastResponse, BroadcastsReadBroadcastsData, BroadcastsReadBroadcastsResponse, BroadcastsReadBroadcastData, BroadcastsReadBroadcastResponse, BroadcastsUpdateBroadcastData, BroadcastsUpdateBroadcastResponse, BroadcastsDeleteBroadcastData, BroadcastsDeleteBroadcastResponse, BroadcastsSendBroadcastApiData, BroadcastsSendBroadcastApiResponse, HealthLivenessResponse, HealthReadinessResponse, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, MediaPresignMediaUploadData, MediaPresignMediaUploadResponse, MediaCleanupOrphansResponse, NotificationsReadNotificationsData, NotificationsReadNotificationsResponse, NotificationsMarkOneNotificationReadData, NotificationsMarkOneNotificationReadResponse, NotificationsMarkNotificationsReadData, NotificationsMarkNotificationsReadResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProblemsCreateProblemData, ProblemsCreateProblemResponse, ProblemsReadProblemsData, ProblemsReadProblemsResponse, ProblemsReadProblemMediaData, ProblemsReadProblemMediaResponse, ProblemsReadProblemAnalysesData, ProblemsReadProblemAnalysesResponse, ProblemsReadProblemData, ProblemsReadProblemResponse, ProblemsPublishProblemData, ProblemsPublishProblemResponse, ProblemsArchiveProblemData, ProblemsArchiveProblemResponse, ProblemsReanalyzeProblemData, ProblemsReanalyzeProblemResponse, ProblemsSolveProblemData, ProblemsSolveProblemResponse, ProblemsMergeProblemData, ProblemsMergeProblemResponse, ProblemsVoteProblemData, ProblemsVoteProblemResponse, ProblemsUnvoteProblemData, ProblemsUnvoteProblemResponse, ProblemsReadCommentsData, ProblemsReadCommentsResponse, ProblemsCreateCommentData, ProblemsCreateCommentResponse, ProjectsCreateClaimData, ProjectsCreateClaimResponse, ProjectsReadProjectsData, ProjectsReadProjectsResponse, ProjectsReadProjectData, ProjectsReadProjectResponse, ProjectsApproveProjectEndpointData, ProjectsApproveProjectEndpointResponse, ProjectsRejectProjectEndpointData, ProjectsRejectProjectEndpointResponse, ProjectsStartProjectPilotingEndpointData, ProjectsStartProjectPilotingEndpointResponse, ProjectsCompleteProjectEndpointData, ProjectsCompleteProjectEndpointResponse, ProjectsReadProjectReviewsData, ProjectsReadProjectReviewsResponse, ProjectsReadProjectMilestonesData, ProjectsReadProjectMilestonesResponse, ProjectsCreateProjectMilestoneData, ProjectsCreateProjectMilestoneResponse, ProjectsUpdateProjectMilestoneData, ProjectsUpdateProjectMilestoneResponse, ProjectsReadProjectUpdatesData, ProjectsReadProjectUpdatesResponse, ProjectsCreateProjectUpdateData, ProjectsCreateProjectUpdateResponse, RegionsListRegionsResponse, SectorsListSectorsResponse, TelegramAuthStartTelegramAuthData, TelegramAuthStartTelegramAuthResponse, TelegramAuthTelegramAuthStatusData, TelegramAuthTelegramAuthStatusResponse, TelegramAuthMarkStartData, TelegramAuthMarkStartResponse, TelegramAuthVerifyContactData, TelegramAuthVerifyContactResponse, TelegramAuthRefreshAccessTokenData, TelegramAuthRefreshAccessTokenResponse, TelegramAuthLogoutData, TelegramAuthLogoutResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, UtilsReadinessCheckResponse } from './types.gen';
 
 export class AnalyticsService {
     /**
@@ -19,20 +19,38 @@ export class AnalyticsService {
     }
 }
 
-export class ItemsService {
+export class BroadcastsService {
     /**
-     * Read Items
-     * Retrieve items.
+     * Create Broadcast
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns BroadcastPublic Successful Response
+     * @throws ApiError
+     */
+    public static createBroadcast(data: BroadcastsCreateBroadcastData): CancelablePromise<BroadcastsCreateBroadcastResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/broadcasts/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Broadcasts
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
-     * @returns ItemsPublic Successful Response
+     * @returns BroadcastsPublic Successful Response
      * @throws ApiError
      */
-    public static readItems(data: ItemsReadItemsData = {}): CancelablePromise<ItemsReadItemsResponse> {
+    public static readBroadcasts(data: BroadcastsReadBroadcastsData = {}): CancelablePromise<BroadcastsReadBroadcastsResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/items/',
+            url: '/api/v1/broadcasts/',
             query: {
                 skip: data.skip,
                 limit: data.limit
@@ -44,37 +62,16 @@ export class ItemsService {
     }
     
     /**
-     * Create Item
-     * Create new item.
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns ItemPublic Successful Response
-     * @throws ApiError
-     */
-    public static createItem(data: ItemsCreateItemData): CancelablePromise<ItemsCreateItemResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/items/',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Read Item
-     * Get item by ID.
+     * Read Broadcast
      * @param data The data for the request.
      * @param data.id
-     * @returns ItemPublic Successful Response
+     * @returns BroadcastPublic Successful Response
      * @throws ApiError
      */
-    public static readItem(data: ItemsReadItemData): CancelablePromise<ItemsReadItemResponse> {
+    public static readBroadcast(data: BroadcastsReadBroadcastData): CancelablePromise<BroadcastsReadBroadcastResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/items/{id}',
+            url: '/api/v1/broadcasts/{id}',
             path: {
                 id: data.id
             },
@@ -85,18 +82,17 @@ export class ItemsService {
     }
     
     /**
-     * Update Item
-     * Update an item.
+     * Update Broadcast
      * @param data The data for the request.
      * @param data.id
      * @param data.requestBody
-     * @returns ItemPublic Successful Response
+     * @returns BroadcastPublic Successful Response
      * @throws ApiError
      */
-    public static updateItem(data: ItemsUpdateItemData): CancelablePromise<ItemsUpdateItemResponse> {
+    public static updateBroadcast(data: BroadcastsUpdateBroadcastData): CancelablePromise<BroadcastsUpdateBroadcastResponse> {
         return __request(OpenAPI, {
-            method: 'PUT',
-            url: '/api/v1/items/{id}',
+            method: 'PATCH',
+            url: '/api/v1/broadcasts/{id}',
             path: {
                 id: data.id
             },
@@ -109,17 +105,36 @@ export class ItemsService {
     }
     
     /**
-     * Delete Item
-     * Delete an item.
+     * Delete Broadcast
      * @param data The data for the request.
      * @param data.id
      * @returns Message Successful Response
      * @throws ApiError
      */
-    public static deleteItem(data: ItemsDeleteItemData): CancelablePromise<ItemsDeleteItemResponse> {
+    public static deleteBroadcast(data: BroadcastsDeleteBroadcastData): CancelablePromise<BroadcastsDeleteBroadcastResponse> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/v1/items/{id}',
+            url: '/api/v1/broadcasts/{id}',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Send Broadcast Api
+     * @param data The data for the request.
+     * @param data.id
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static sendBroadcastApi(data: BroadcastsSendBroadcastApiData): CancelablePromise<BroadcastsSendBroadcastApiResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/broadcasts/{id}/send',
             path: {
                 id: data.id
             },
@@ -130,10 +145,38 @@ export class ItemsService {
     }
 }
 
+export class HealthService {
+    /**
+     * Liveness
+     * Liveness probe — always returns 200 if the process is up.
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static liveness(): CancelablePromise<HealthLivenessResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/health'
+        });
+    }
+    
+    /**
+     * Readiness
+     * Readiness probe — checks PostgreSQL and Redis connectivity.
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static readiness(): CancelablePromise<HealthReadinessResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/ready'
+        });
+    }
+}
+
 export class LoginService {
     /**
      * Login Access Token
-     * Disabled: SignalHub uses Telegram contact verification for login.
+     * Disabled: SolutionLab uses Telegram contact verification for login.
      * @returns Token Successful Response
      * @throws ApiError
      */
@@ -159,7 +202,7 @@ export class LoginService {
     
     /**
      * Recover Password
-     * Disabled: SignalHub uses Telegram contact verification for login.
+     * Disabled: SolutionLab uses Telegram contact verification for login.
      * @param data The data for the request.
      * @param data.email
      * @returns Message Successful Response
@@ -180,7 +223,7 @@ export class LoginService {
     
     /**
      * Reset Password
-     * Disabled: SignalHub uses Telegram contact verification for login.
+     * Disabled: SolutionLab uses Telegram contact verification for login.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns Message Successful Response
@@ -237,6 +280,19 @@ export class MediaService {
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+    
+    /**
+     * Cleanup Orphans
+     * Admin-only: enqueue an orphan-media cleanup task via arq.
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static cleanupOrphans(): CancelablePromise<MediaCleanupOrphansResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/media/cleanup-orphans'
         });
     }
 }
@@ -666,6 +722,7 @@ export class ProjectsService {
      * @param data.owner
      * @param data.status
      * @param data.problemId
+     * @param data.q
      * @returns ProjectsPublic Successful Response
      * @throws ApiError
      */
@@ -679,7 +736,8 @@ export class ProjectsService {
                 mine: data.mine,
                 owner: data.owner,
                 status: data.status,
-                problem_id: data.problemId
+                problem_id: data.problemId,
+                q: data.q
             },
             errors: {
                 422: 'Validation Error'
@@ -920,6 +978,34 @@ export class ProjectsService {
     }
 }
 
+export class RegionsService {
+    /**
+     * List Regions
+     * @returns Region Successful Response
+     * @throws ApiError
+     */
+    public static listRegions(): CancelablePromise<RegionsListRegionsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/regions/'
+        });
+    }
+}
+
+export class SectorsService {
+    /**
+     * List Sectors
+     * @returns Sector Successful Response
+     * @throws ApiError
+     */
+    public static listSectors(): CancelablePromise<SectorsListSectorsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/sectors/'
+        });
+    }
+}
+
 export class TelegramAuthService {
     /**
      * Start Telegram Auth
@@ -999,6 +1085,46 @@ export class TelegramAuthService {
             headers: {
                 'x-telegram-webhook-secret': data.xTelegramWebhookSecret
             },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Refresh Access Token
+     * Exchange a valid refresh token for a new access token, with rotation and revocation.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns TokenRefreshResponse Successful Response
+     * @throws ApiError
+     */
+    public static refreshAccessToken(data: TelegramAuthRefreshAccessTokenData): CancelablePromise<TelegramAuthRefreshAccessTokenResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/telegram/refresh',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Logout
+     * Revoke the provided refresh token to log out.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static logout(data: TelegramAuthLogoutData): CancelablePromise<TelegramAuthLogoutResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/auth/telegram/logout',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -1100,7 +1226,7 @@ export class UsersService {
     
     /**
      * Update Password Me
-     * Disabled: SignalHub uses Telegram contact verification for login.
+     * Disabled: SolutionLab uses Telegram contact verification for login.
      * @returns Message Successful Response
      * @throws ApiError
      */
@@ -1113,7 +1239,7 @@ export class UsersService {
     
     /**
      * Register User
-     * Disabled: SignalHub uses Telegram contact verification for registration.
+     * Disabled: SolutionLab uses Telegram contact verification for registration.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns UserPublic Successful Response

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { ArrowRight, ImageIcon, Volume2, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -13,10 +14,21 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
   apiMutation,
+  fetchRegions,
+  fetchSectors,
   type Problem,
+  type Region,
+  type Sector,
   uploadProblemAudio,
   uploadProblemPhoto,
 } from "@/lib/product-api"
@@ -47,11 +59,25 @@ export function SubmitProblemDialog({
   onOpenChange,
   onCreated,
 }: SubmitProblemDialogProps) {
+  const { t } = useTranslation()
   const [rawText, setRawText] = useState("")
+  const [sectorId, setSectorId] = useState<string>("")
+  const [regionId, setRegionId] = useState<string>("")
+  const [sectors, setSectors] = useState<Sector[]>([])
+  const [regions, setRegions] = useState<Region[]>([])
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [photoFiles, setPhotoFiles] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [duplicateProblem, setDuplicateProblem] = useState<Problem | null>(null)
+
+  useEffect(() => {
+    fetchSectors()
+      .then(setSectors)
+      .catch(() => undefined)
+    fetchRegions()
+      .then(setRegions)
+      .catch(() => undefined)
+  }, [])
 
   const audioPreviewUrl = useMemo(
     () => (audioFile ? URL.createObjectURL(audioFile) : null),
@@ -80,10 +106,12 @@ export function SubmitProblemDialog({
     }
   }, [photoPreviewUrls])
 
-  // Reset duplicate state when dialog closes/reopens
+  // Reset state when dialog closes/reopens
   useEffect(() => {
     if (!open) {
       setDuplicateProblem(null)
+      setSectorId("")
+      setRegionId("")
     }
   }, [open])
 
@@ -93,7 +121,7 @@ export function SubmitProblemDialog({
       return
     }
     if (!AUDIO_TYPES.has(file.type) || file.size > MAX_AUDIO_SIZE) {
-      toast.error("Audio")
+      toast.error(t("error_audio_invalid"))
       return
     }
     setAudioFile(file)
@@ -123,6 +151,8 @@ export function SubmitProblemDialog({
         raw_text: rawText.trim() || null,
         raw_audio_key: rawAudioKey,
         photo_keys: photoKeys,
+        sector_id: sectorId ? Number(sectorId) : null,
+        region_id: regionId ? Number(regionId) : null,
       })
 
       setRawText("")
@@ -134,10 +164,10 @@ export function SubmitProblemDialog({
         return
       }
       onOpenChange(false)
-      toast.success("Sent")
+      toast.success(t("submit_success"))
       await onCreated?.()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error")
+      toast.error(error instanceof Error ? error.message : t("error_generic"))
     } finally {
       setSubmitting(false)
     }
@@ -155,33 +185,33 @@ export function SubmitProblemDialog({
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Muammo allaqachon mavjud</DialogTitle>
+            <DialogTitle>{t("submit_duplicate_title")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <p className="text-muted-foreground text-sm">
-              Bu muammo allaqachon tizimda mavjud. Ovozingiz unga qo'shildi.
+              {t("submit_duplicate_desc")}
             </p>
             <div className="rounded-md border bg-muted/40 p-4">
               <p className="truncate text-sm font-medium">
                 {duplicateProblem.title ||
                   duplicateProblem.raw_text ||
-                  "Muammo"}
+                  t("unnamed_problem")}
               </p>
               <p className="text-muted-foreground mt-1 text-xs">
-                {duplicateProblem.vote_count} ovoz
+                {duplicateProblem.vote_count} {t("votes")}
               </p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleClose}>
-              Yopish
+              {t("submit_duplicate_close")}
             </Button>
             <Button asChild onClick={() => onOpenChange(false)}>
               <Link
                 to="/problems/$problemId"
                 params={{ problemId: duplicateProblem.id }}
               >
-                Ko'rish
+                {t("submit_duplicate_view")}
                 <ArrowRight />
               </Link>
             </Button>
@@ -195,22 +225,64 @@ export function SubmitProblemDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New</DialogTitle>
+          <DialogTitle>{t("submit_title")}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-2">
           <label className="text-sm font-medium" htmlFor="raw-text">
-            Text
+            {t("submit_text_label")}
           </label>
           <Textarea
             id="raw-text"
             value={rawText}
             onChange={(event) => setRawText(event.target.value)}
-            placeholder="Write..."
+            placeholder={t("submit_text_placeholder")}
+            rows={4}
           />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {sectors.length > 0 && (
+            <div className="grid gap-2">
+              <span className="text-sm font-medium">
+                {t("submit_sector_label")}
+              </span>
+              <Select value={sectorId} onValueChange={setSectorId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("submit_sector_placeholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {sectors.map((sector) => (
+                    <SelectItem key={sector.id} value={String(sector.id)}>
+                      {sector.icon}{" "}
+                      {t(`sector_${sector.slug}` as any, sector.name_uz)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {regions.length > 0 && (
+            <div className="grid gap-2">
+              <span className="text-sm font-medium">
+                {t("submit_region_label")}
+              </span>
+              <Select value={regionId} onValueChange={setRegionId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("submit_region_placeholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {regions.map((region) => (
+                    <SelectItem key={region.id} value={String(region.id)}>
+                      {region.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <div className="grid gap-2">
           <label className="text-sm font-medium" htmlFor="audio-file">
-            Audio
+            {t("submit_audio_label")}
           </label>
           <Input
             id="audio-file"
@@ -244,7 +316,7 @@ export function SubmitProblemDialog({
         </div>
         <div className="grid gap-2">
           <label className="text-sm font-medium" htmlFor="photo-files">
-            Photo
+            {t("submit_photo_label")}
           </label>
           <Input
             id="photo-files"
@@ -295,7 +367,7 @@ export function SubmitProblemDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("submit_cancel")}
           </Button>
           <LoadingButton
             type="button"
@@ -307,7 +379,7 @@ export function SubmitProblemDialog({
             }
             onClick={submitProblem}
           >
-            Send
+            {t("submit_send")}
           </LoadingButton>
         </DialogFooter>
       </DialogContent>

@@ -20,6 +20,10 @@ async def enqueue_analyze_problem(problem_id: UUID) -> None:
 
 def enqueue_analyze_problem_best_effort(problem_id: UUID) -> None:
     try:
-        asyncio.run(enqueue_analyze_problem(problem_id))
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(enqueue_analyze_problem(problem_id))
+        except RuntimeError:
+            asyncio.run(enqueue_analyze_problem(problem_id))
     except Exception:
         logger.exception("Failed to enqueue analyze_problem for problem_id=%s", problem_id)

@@ -30,6 +30,54 @@ export type AnalyticsOverview = {
     claim_to_solved_rate: number;
 };
 
+export type BroadcastCreate = {
+    title: string;
+    text_uz: string;
+    text_ru?: (string | null);
+    text_en?: (string | null);
+    buttons?: Array<{
+        [key: string]: unknown;
+    }>;
+    photo_key?: (string | null);
+    target_region_id?: (number | null);
+};
+
+export type BroadcastPublic = {
+    title: string;
+    text_uz: string;
+    text_ru?: (string | null);
+    text_en?: (string | null);
+    buttons?: Array<{
+        [key: string]: unknown;
+    }>;
+    photo_key?: (string | null);
+    target_region_id?: (number | null);
+    id: string;
+    status: string;
+    sent_count: number;
+    failed_count: number;
+    created_at: string;
+    started_at?: (string | null);
+    completed_at?: (string | null);
+};
+
+export type BroadcastsPublic = {
+    data: Array<BroadcastPublic>;
+    count: number;
+};
+
+export type BroadcastUpdate = {
+    title?: (string | null);
+    text_uz?: (string | null);
+    text_ru?: (string | null);
+    text_en?: (string | null);
+    buttons?: (Array<{
+    [key: string]: unknown;
+}> | null);
+    photo_key?: (string | null);
+    target_region_id?: (number | null);
+};
+
 export type Comment = {
     text: string;
     parent_id?: (string | null);
@@ -60,29 +108,6 @@ export type CommentsPublic = {
 
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
-};
-
-export type ItemCreate = {
-    title: string;
-    description?: (string | null);
-};
-
-export type ItemPublic = {
-    title: string;
-    description?: (string | null);
-    id: string;
-    owner_id: string;
-    created_at?: (string | null);
-};
-
-export type ItemsPublic = {
-    data: Array<ItemPublic>;
-    count: number;
-};
-
-export type ItemUpdate = {
-    title?: (string | null);
-    description?: (string | null);
 };
 
 export type Message = {
@@ -142,6 +167,7 @@ export type ProblemCreate = {
     raw_text?: (string | null);
     raw_audio_key?: (string | null);
     region_id?: (number | null);
+    sector_id?: (number | null);
     photo_keys?: Array<(string)>;
 };
 
@@ -181,6 +207,7 @@ export type ProblemPublic = {
     comment_count?: number;
     project_count?: number;
     duplicate_of?: (string | null);
+    is_duplicate?: boolean;
     has_voted?: boolean;
     published_at?: (string | null);
     created_at: string;
@@ -270,6 +297,12 @@ export type ProjectUpdatesPublic = {
     count: number;
 };
 
+export type Region = {
+    id: number;
+    name: string;
+    parent_id?: (number | null);
+};
+
 export type ReviewCreate = {
     rating: number;
     text?: (string | null);
@@ -289,6 +322,15 @@ export type ReviewsPublic = {
     count: number;
 };
 
+export type Sector = {
+    id: number;
+    slug: string;
+    name_uz: string;
+    name_ru?: (string | null);
+    name_en?: (string | null);
+    icon?: (string | null);
+};
+
 export type TelegramAuthStartRequest = {
     phone?: (string | null);
     client?: (string | null);
@@ -303,6 +345,7 @@ export type TelegramAuthStartResponse = {
 export type TelegramAuthStatusResponse = {
     status: string;
     access_token?: (string | null);
+    refresh_token?: (string | null);
     token_type?: string;
     expires_at?: (string | null);
     retry_after_seconds?: (number | null);
@@ -324,6 +367,16 @@ export type Token = {
     token_type?: string;
 };
 
+export type TokenRefreshRequest = {
+    refresh_token: string;
+};
+
+export type TokenRefreshResponse = {
+    access_token: string;
+    refresh_token: string;
+    token_type?: string;
+};
+
 export type UserCreate = {
     email: string;
     is_active?: boolean;
@@ -334,6 +387,7 @@ export type UserCreate = {
     telegram_username?: (string | null);
     roles?: Array<(string)>;
     region_id?: (number | null);
+    language?: string;
     bio?: (string | null);
     reputation?: number;
     tg_linked_at?: (string | null);
@@ -350,6 +404,7 @@ export type UserPublic = {
     telegram_username?: (string | null);
     roles?: Array<(string)>;
     region_id?: (number | null);
+    language?: string;
     bio?: (string | null);
     reputation?: number;
     tg_linked_at?: (string | null);
@@ -378,6 +433,7 @@ export type UserUpdate = {
     telegram_username?: (string | null);
     roles?: Array<(string)>;
     region_id?: (number | null);
+    language?: string;
     bio?: (string | null);
     reputation?: number;
     tg_linked_at?: (string | null);
@@ -387,6 +443,9 @@ export type UserUpdate = {
 export type UserUpdateMe = {
     full_name?: (string | null);
     email?: (string | null);
+    language?: (string | null);
+    bio?: (string | null);
+    region_id?: (number | null);
 };
 
 export type ValidationError = {
@@ -397,37 +456,49 @@ export type ValidationError = {
 
 export type AnalyticsReadAnalyticsOverviewResponse = (AnalyticsOverview);
 
-export type ItemsReadItemsData = {
+export type BroadcastsCreateBroadcastData = {
+    requestBody: BroadcastCreate;
+};
+
+export type BroadcastsCreateBroadcastResponse = (BroadcastPublic);
+
+export type BroadcastsReadBroadcastsData = {
     limit?: number;
     skip?: number;
 };
 
-export type ItemsReadItemsResponse = (ItemsPublic);
+export type BroadcastsReadBroadcastsResponse = (BroadcastsPublic);
 
-export type ItemsCreateItemData = {
-    requestBody: ItemCreate;
-};
-
-export type ItemsCreateItemResponse = (ItemPublic);
-
-export type ItemsReadItemData = {
+export type BroadcastsReadBroadcastData = {
     id: string;
 };
 
-export type ItemsReadItemResponse = (ItemPublic);
+export type BroadcastsReadBroadcastResponse = (BroadcastPublic);
 
-export type ItemsUpdateItemData = {
+export type BroadcastsUpdateBroadcastData = {
     id: string;
-    requestBody: ItemUpdate;
+    requestBody: BroadcastUpdate;
 };
 
-export type ItemsUpdateItemResponse = (ItemPublic);
+export type BroadcastsUpdateBroadcastResponse = (BroadcastPublic);
 
-export type ItemsDeleteItemData = {
+export type BroadcastsDeleteBroadcastData = {
     id: string;
 };
 
-export type ItemsDeleteItemResponse = (Message);
+export type BroadcastsDeleteBroadcastResponse = (Message);
+
+export type BroadcastsSendBroadcastApiData = {
+    id: string;
+};
+
+export type BroadcastsSendBroadcastApiResponse = (Message);
+
+export type HealthLivenessResponse = ({
+    [key: string]: (string);
+});
+
+export type HealthReadinessResponse = (unknown);
 
 export type LoginLoginAccessTokenResponse = (Token);
 
@@ -456,6 +527,8 @@ export type MediaPresignMediaUploadData = {
 };
 
 export type MediaPresignMediaUploadResponse = (PresignResponse);
+
+export type MediaCleanupOrphansResponse = (Message);
 
 export type NotificationsReadNotificationsData = {
     limit?: number;
@@ -589,6 +662,7 @@ export type ProjectsReadProjectsData = {
     mine?: boolean;
     owner?: boolean;
     problemId?: (string | null);
+    q?: (string | null);
     skip?: number;
     status?: (string | null);
 };
@@ -665,6 +739,10 @@ export type ProjectsCreateProjectUpdateData = {
 
 export type ProjectsCreateProjectUpdateResponse = (ProjectUpdatePublic);
 
+export type RegionsListRegionsResponse = (Array<Region>);
+
+export type SectorsListSectorsResponse = (Array<Sector>);
+
 export type TelegramAuthStartTelegramAuthData = {
     requestBody: TelegramAuthStartRequest;
 };
@@ -690,6 +768,18 @@ export type TelegramAuthVerifyContactData = {
 };
 
 export type TelegramAuthVerifyContactResponse = (TelegramAuthStatusResponse);
+
+export type TelegramAuthRefreshAccessTokenData = {
+    requestBody: TokenRefreshRequest;
+};
+
+export type TelegramAuthRefreshAccessTokenResponse = (TokenRefreshResponse);
+
+export type TelegramAuthLogoutData = {
+    requestBody: TokenRefreshRequest;
+};
+
+export type TelegramAuthLogoutResponse = (Message);
 
 export type UsersReadUsersData = {
     limit?: number;

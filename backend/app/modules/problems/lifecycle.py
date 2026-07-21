@@ -7,7 +7,7 @@ from sqlmodel import Session
 from app.models import Problem, ProblemStatusLog
 
 ALLOWED_TRANSITIONS: dict[str, set[str]] = {
-    "draft": {"ai_processing", "archived"},
+    "draft": {"ai_processing", "published", "archived"},
     "ai_processing": {"published", "needs_review", "archived"},
     "needs_review": {"ai_processing", "published", "archived"},
     "published": {"ai_processing", "claimed", "archived"},
@@ -40,6 +40,13 @@ def transition_problem(
     problem.updated_at = now
     if to_status == "published" and problem.published_at is None:
         problem.published_at = now
+
+    if to_status == "published":
+        from app.models import User
+        author = session.get(User, problem.author_id)
+        if author:
+            author.reputation = max(author.reputation + 5, 0)
+            session.add(author)
 
     session.add(problem)
     session.add(

@@ -48,9 +48,9 @@ def test_create_problem(
         headers=normal_user_token_headers,
         json={"raw_text": "unique test problem " + random_lower_string()},
     )
-    assert r.status_code == 202
+    assert r.status_code == 201
     data = r.json()
-    assert data["status"] == "ai_processing"
+    assert data["status"] == "published"
     assert "id" in data
 
 
@@ -64,7 +64,7 @@ def test_create_problem_dedup_returns_existing(
         headers=normal_user_token_headers,
         json={"raw_text": text},
     )
-    assert r1.status_code == 202
+    assert r1.status_code == 201
     first_id = r1.json()["id"]
 
     r2 = client.post(
@@ -72,7 +72,7 @@ def test_create_problem_dedup_returns_existing(
         headers=normal_user_token_headers,
         json={"raw_text": text},
     )
-    assert r2.status_code == 202
+    assert r2.status_code == 201
     data2 = r2.json()
     assert data2["id"] == first_id
     assert data2["is_duplicate"] is True
@@ -439,3 +439,29 @@ def test_merge_problem_admin_only(
     db.refresh(source)
     assert source.status == "archived"
     assert source.duplicate_of == target.id
+
+
+def test_export_problems_csv(
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    superuser_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    # 1. Normal user should receive 403 Forbidden
+    r = client.get(
+        f"{settings.API_V1_STR}/problems/export/csv",
+        headers=normal_user_token_headers,
+    )
+    assert r.status_code == 403
+
+    # 2. Superuser should receive 200 and text/csv file
+    r = client.get(
+        f"{settings.API_V1_STR}/problems/export/csv",
+        headers=superuser_token_headers,
+    )
+    assert r.status_code == 200
+    assert "text/csv" in r.headers["content-type"]
+    assert "problems.csv" in r.headers["content-disposition"]
+    # Check that CSV has header row
+    content = r.content.decode("utf-8")
+    assert "ID,Author ID,Sector ID,Region ID,Title,Raw Text,Status,Severity Score,Vote Count,Created At" in content

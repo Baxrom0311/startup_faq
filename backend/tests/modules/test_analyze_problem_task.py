@@ -84,18 +84,20 @@ def test_analyze_problem_task_moves_failures_to_review(
     assert any(isinstance(obj, ProblemStatusLog) for obj in session.objects)
 
 
-def test_analyze_problem_task_ignores_non_processing_problem(
+def test_analyze_problem_task_ignores_terminal_problem(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    problem = Problem(
-        id=uuid.uuid4(),
-        author_id=uuid.uuid4(),
-        raw_text="Suv bosimi past",
-        status="published",
-    )
-    session = DummySession(problem)
-    _patch_session(monkeypatch, session)
+    # solved and archived problems must never be re-analyzed by the worker
+    for terminal_status in ("solved", "archived", "draft"):
+        problem = Problem(
+            id=uuid.uuid4(),
+            author_id=uuid.uuid4(),
+            raw_text="Suv bosimi past",
+            status=terminal_status,
+        )
+        session = DummySession(problem)
+        _patch_session(monkeypatch, session)
 
-    asyncio.run(task_module.analyze_problem({}, str(problem.id)))
+        asyncio.run(task_module.analyze_problem({}, str(problem.id)))
 
-    assert session.committed is False
+        assert session.committed is False, f"Should not commit for status={terminal_status!r}"

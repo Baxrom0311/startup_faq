@@ -21,7 +21,7 @@ def _telegram_auth_only() -> None:
 @router.post("/login/access-token")
 def login_access_token() -> Token:
     """
-    Disabled: SignalHub uses Telegram contact verification for login.
+    Disabled: SolutionLab uses Telegram contact verification for login.
     """
     _telegram_auth_only()
 
@@ -37,7 +37,7 @@ def test_token(current_user: CurrentUser) -> Any:
 @router.post("/password-recovery/{email}")
 def recover_password(email: str, session: SessionDep) -> Message:
     """
-    Disabled: SignalHub uses Telegram contact verification for login.
+    Disabled: SolutionLab uses Telegram contact verification for login.
     """
     _ = (email, session)
     _telegram_auth_only()
@@ -46,7 +46,7 @@ def recover_password(email: str, session: SessionDep) -> Message:
 @router.post("/reset-password/")
 def reset_password(session: SessionDep, body: NewPassword) -> Message:
     """
-    Disabled: SignalHub uses Telegram contact verification for login.
+    Disabled: SolutionLab uses Telegram contact verification for login.
     """
     _ = (session, body)
     _telegram_auth_only()

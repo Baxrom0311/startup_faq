@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 import { Send } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { AuthLayout } from "@/components/Common/AuthLayout"
@@ -31,20 +32,12 @@ export const Route = createFileRoute("/login")({
     }
   },
   head: () => ({
-    meta: [{ title: "Login - SignalHub" }],
+    meta: [{ title: "Login - SolutionLab" }],
   }),
 })
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: "Telegram'da tasdiqlang...",
-  started: "Telegram ochilmoqda...",
-  verified: "Kirildi!",
-  expired: "Sessiya tugadi. Qaytadan urinib ko'ring.",
-  phone_mismatch: "Telefon raqami mos kelmadi.",
-  timed_out: "Vaqt tugadi. Qaytadan urinib ko'ring.",
-}
-
 function Login() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [phone, setPhone] = useState("")
   const [session, setSession] = useState<TelegramStartResponse | null>(null)
@@ -66,7 +59,10 @@ function Login() {
         let message: string
         try {
           const body = await response.json()
-          message = typeof body?.detail === "string" ? body.detail : `HTTP ${response.status}`
+          message =
+            typeof body?.detail === "string"
+              ? body.detail
+              : `HTTP ${response.status}`
         } catch {
           message = `HTTP ${response.status}`
         }
@@ -75,16 +71,21 @@ function Login() {
       const data = (await response.json()) as TelegramStartResponse
       setSession(data)
       setStatus("pending")
-      window.location.href = data.deep_link
+      window.open(data.deep_link, "_blank", "noopener,noreferrer")
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Autentifikatsiya xatosi")
+      toast.error(error instanceof Error ? error.message : t("error_generic"))
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    const terminalStatuses = new Set(["verified", "expired", "phone_mismatch", "timed_out"])
+    const terminalStatuses = new Set([
+      "verified",
+      "expired",
+      "phone_mismatch",
+      "timed_out",
+    ])
     if (!session || terminalStatuses.has(status)) return
 
     const interval = window.setInterval(async () => {
@@ -93,7 +94,7 @@ function Login() {
       if (retryCount.current > MAX_POLL_RETRIES) {
         window.clearInterval(interval)
         setStatus("timed_out")
-        toast.error("Vaqt tugadi")
+        toast.error(t("login_status_timed_out"))
         return
       }
 
@@ -113,10 +114,10 @@ function Login() {
           navigate({ to: "/" })
         }
         if (data.status === "expired") {
-          toast.error("Sessiya tugadi")
+          toast.error(t("login_status_expired"))
         }
         if (data.status === "phone_mismatch") {
-          toast.error("Telefon raqami mos kelmadi")
+          toast.error(t("login_status_phone_mismatch"))
         }
       } catch {
         // Short connection drops should not break the login flow
@@ -124,7 +125,7 @@ function Login() {
     }, 2000)
 
     return () => window.clearInterval(interval)
-  }, [navigate, session, status])
+  }, [navigate, session, status, t])
 
   const handleRetry = () => {
     setSession(null)
@@ -138,13 +139,13 @@ function Login() {
     <AuthLayout>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-semibold">Login</h1>
+          <h1 className="text-2xl font-semibold">{t("login_title")}</h1>
         </div>
 
         <div className="grid gap-4">
           <div className="grid gap-2">
             <label className="text-sm font-medium" htmlFor="phone">
-              Phone
+              {t("login_phone_label")}
             </label>
             <Input
               id="phone"
@@ -158,34 +159,44 @@ function Login() {
 
           {isTerminal ? (
             <LoadingButton type="button" loading={false} onClick={handleRetry}>
-              Qaytadan urinish
+              {t("login_retry")}
             </LoadingButton>
           ) : (
             <LoadingButton
               type="button"
               loading={loading}
-              disabled={phone.trim().length < 9 || (!!session && status === "pending")}
+              disabled={
+                phone.trim().length < 9 || (!!session && status === "pending")
+              }
               onClick={startTelegramAuth}
             >
               <Send />
-              Telegram
+              {t("login_send")}
             </LoadingButton>
           )}
 
           {session && !isTerminal && (
-            <a
-              className="text-center text-sm underline underline-offset-4"
-              href={session.deep_link}
-            >
-              Telegram'ni ochish
-            </a>
+            <div className="flex flex-col items-center gap-3 rounded-lg border bg-muted/30 p-4 text-center">
+              <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
+                <Send className="size-5 text-primary" />
+              </div>
+              <p className="text-sm font-medium">{t("login_status_pending")}</p>
+              <p className="text-xs text-muted-foreground">{t("login_tg_instruction")}</p>
+              <a
+                href={session.deep_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+              >
+                <Send className="size-4" />
+                {t("login_open_telegram")}
+              </a>
+            </div>
           )}
 
-          {status !== "idle" && (
-            <p
-              className={`text-center text-sm ${isTerminal ? "text-destructive" : "text-muted-foreground"}`}
-            >
-              {STATUS_LABELS[status] ?? status}
+          {status !== "idle" && isTerminal && (
+            <p className="text-center text-sm text-destructive">
+              {t(`login_status_${status}` as never) || status}
             </p>
           )}
         </div>

@@ -107,6 +107,310 @@ export const AnalyticsOverviewSchema = {
     title: 'AnalyticsOverview'
 } as const;
 
+export const BroadcastCreateSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Title'
+        },
+        text_uz: {
+            type: 'string',
+            maxLength: 4000,
+            title: 'Text Uz'
+        },
+        text_ru: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 4000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Text Ru'
+        },
+        text_en: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 4000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Text En'
+        },
+        buttons: {
+            items: {
+                additionalProperties: true,
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Buttons'
+        },
+        photo_key: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Photo Key'
+        },
+        target_region_id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Target Region Id'
+        }
+    },
+    type: 'object',
+    required: ['title', 'text_uz'],
+    title: 'BroadcastCreate'
+} as const;
+
+export const BroadcastPublicSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Title'
+        },
+        text_uz: {
+            type: 'string',
+            maxLength: 4000,
+            title: 'Text Uz'
+        },
+        text_ru: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 4000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Text Ru'
+        },
+        text_en: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 4000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Text En'
+        },
+        buttons: {
+            items: {
+                additionalProperties: true,
+                type: 'object'
+            },
+            type: 'array',
+            title: 'Buttons'
+        },
+        photo_key: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Photo Key'
+        },
+        target_region_id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Target Region Id'
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        sent_count: {
+            type: 'integer',
+            title: 'Sent Count'
+        },
+        failed_count: {
+            type: 'integer',
+            title: 'Failed Count'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        started_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Started At'
+        },
+        completed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Completed At'
+        }
+    },
+    type: 'object',
+    required: ['title', 'text_uz', 'id', 'status', 'sent_count', 'failed_count', 'created_at'],
+    title: 'BroadcastPublic'
+} as const;
+
+export const BroadcastUpdateSchema = {
+    properties: {
+        title: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Title'
+        },
+        text_uz: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 4000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Text Uz'
+        },
+        text_ru: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 4000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Text Ru'
+        },
+        text_en: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 4000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Text En'
+        },
+        buttons: {
+            anyOf: [
+                {
+                    items: {
+                        additionalProperties: true,
+                        type: 'object'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Buttons'
+        },
+        photo_key: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Photo Key'
+        },
+        target_region_id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Target Region Id'
+        }
+    },
+    type: 'object',
+    title: 'BroadcastUpdate'
+} as const;
+
+export const BroadcastsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/BroadcastPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'BroadcastsPublic'
+} as const;
+
 export const CommentSchema = {
     properties: {
         text: {
@@ -256,131 +560,6 @@ export const HTTPValidationErrorSchema = {
     },
     type: 'object',
     title: 'HTTPValidationError'
-} as const;
-
-export const ItemCreateSchema = {
-    properties: {
-        title: {
-            type: 'string',
-            maxLength: 255,
-            minLength: 1,
-            title: 'Title'
-        },
-        description: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Description'
-        }
-    },
-    type: 'object',
-    required: ['title'],
-    title: 'ItemCreate'
-} as const;
-
-export const ItemPublicSchema = {
-    properties: {
-        title: {
-            type: 'string',
-            maxLength: 255,
-            minLength: 1,
-            title: 'Title'
-        },
-        description: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Description'
-        },
-        id: {
-            type: 'string',
-            format: 'uuid',
-            title: 'Id'
-        },
-        owner_id: {
-            type: 'string',
-            format: 'uuid',
-            title: 'Owner Id'
-        },
-        created_at: {
-            anyOf: [
-                {
-                    type: 'string',
-                    format: 'date-time'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Created At'
-        }
-    },
-    type: 'object',
-    required: ['title', 'id', 'owner_id'],
-    title: 'ItemPublic'
-} as const;
-
-export const ItemUpdateSchema = {
-    properties: {
-        title: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255,
-                    minLength: 1
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Title'
-        },
-        description: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Description'
-        }
-    },
-    type: 'object',
-    title: 'ItemUpdate'
-} as const;
-
-export const ItemsPublicSchema = {
-    properties: {
-        data: {
-            items: {
-                '$ref': '#/components/schemas/ItemPublic'
-            },
-            type: 'array',
-            title: 'Data'
-        },
-        count: {
-            type: 'integer',
-            title: 'Count'
-        }
-    },
-    type: 'object',
-    required: ['data', 'count'],
-    title: 'ItemsPublic'
 } as const;
 
 export const MessageSchema = {
@@ -636,6 +815,17 @@ export const ProblemCreateSchema = {
             ],
             title: 'Region Id'
         },
+        sector_id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Sector Id'
+        },
         photo_keys: {
             items: {
                 type: 'string'
@@ -852,6 +1042,11 @@ export const ProblemPublicSchema = {
                 }
             ],
             title: 'Duplicate Of'
+        },
+        is_duplicate: {
+            type: 'boolean',
+            title: 'Is Duplicate',
+            default: false
         },
         has_voted: {
             type: 'boolean',
@@ -1300,6 +1495,34 @@ export const ProjectsPublicSchema = {
     title: 'ProjectsPublic'
 } as const;
 
+export const RegionSchema = {
+    properties: {
+        id: {
+            type: 'integer',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Name'
+        },
+        parent_id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Parent Id'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name'],
+    title: 'Region'
+} as const;
+
 export const ReviewCreateSchema = {
     properties: {
         rating: {
@@ -1391,6 +1614,64 @@ export const ReviewsPublicSchema = {
     title: 'ReviewsPublic'
 } as const;
 
+export const SectorSchema = {
+    properties: {
+        id: {
+            type: 'integer',
+            title: 'Id'
+        },
+        slug: {
+            type: 'string',
+            maxLength: 80,
+            title: 'Slug'
+        },
+        name_uz: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Name Uz'
+        },
+        name_ru: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name Ru'
+        },
+        name_en: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name En'
+        },
+        icon: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 80
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Icon'
+        }
+    },
+    type: 'object',
+    required: ['id', 'slug', 'name_uz'],
+    title: 'Sector'
+} as const;
+
 export const TelegramAuthStartRequestSchema = {
     properties: {
         phone: {
@@ -1458,6 +1739,17 @@ export const TelegramAuthStatusResponseSchema = {
                 }
             ],
             title: 'Access Token'
+        },
+        refresh_token: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Refresh Token'
         },
         token_type: {
             type: 'string',
@@ -1571,6 +1863,39 @@ export const TokenSchema = {
     title: 'Token'
 } as const;
 
+export const TokenRefreshRequestSchema = {
+    properties: {
+        refresh_token: {
+            type: 'string',
+            title: 'Refresh Token'
+        }
+    },
+    type: 'object',
+    required: ['refresh_token'],
+    title: 'TokenRefreshRequest'
+} as const;
+
+export const TokenRefreshResponseSchema = {
+    properties: {
+        access_token: {
+            type: 'string',
+            title: 'Access Token'
+        },
+        refresh_token: {
+            type: 'string',
+            title: 'Refresh Token'
+        },
+        token_type: {
+            type: 'string',
+            title: 'Token Type',
+            default: 'bearer'
+        }
+    },
+    type: 'object',
+    required: ['access_token', 'refresh_token'],
+    title: 'TokenRefreshResponse'
+} as const;
+
 export const UserCreateSchema = {
     properties: {
         email: {
@@ -1653,6 +1978,12 @@ export const UserCreateSchema = {
                 }
             ],
             title: 'Region Id'
+        },
+        language: {
+            type: 'string',
+            maxLength: 5,
+            title: 'Language',
+            default: 'uz'
         },
         bio: {
             anyOf: [
@@ -1777,6 +2108,12 @@ export const UserPublicSchema = {
                 }
             ],
             title: 'Region Id'
+        },
+        language: {
+            type: 'string',
+            maxLength: 5,
+            title: 'Language',
+            default: 'uz'
         },
         bio: {
             anyOf: [
@@ -1952,6 +2289,12 @@ export const UserUpdateSchema = {
             ],
             title: 'Region Id'
         },
+        language: {
+            type: 'string',
+            maxLength: 5,
+            title: 'Language',
+            default: 'uz'
+        },
         bio: {
             anyOf: [
                 {
@@ -2025,6 +2368,41 @@ export const UserUpdateMeSchema = {
                 }
             ],
             title: 'Email'
+        },
+        language: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 5
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Language'
+        },
+        bio: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bio'
+        },
+        region_id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Region Id'
         }
     },
     type: 'object',

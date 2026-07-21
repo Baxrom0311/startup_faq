@@ -28,6 +28,7 @@ class UserBase(SQLModel):
         sa_column=Column(JSON, nullable=False),
     )
     region_id: int | None = None
+    language: str = Field(default="uz", max_length=5)
     bio: str | None = Field(default=None, max_length=1000)
     reputation: int = 0
     tg_linked_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
@@ -53,6 +54,9 @@ class UserUpdate(UserBase):
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
+    language: str | None = Field(default=None, max_length=5)
+    bio: str | None = Field(default=None, max_length=1000)
+    region_id: int | None = None
 
 
 class UpdatePassword(SQLModel):
@@ -100,10 +104,27 @@ class AuthSession(SQLModel, table=True):
     expires_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
 
 
+class RefreshToken(SQLModel, table=True):
+    __tablename__ = "refresh_tokens"
+
+    jti: uuid.UUID = Field(primary_key=True, default_factory=uuid.uuid4)
+    user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
+    family: uuid.UUID = Field(index=True)
+    revoked: bool = Field(default=False)
+    expires_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    auth_session_token: str | None = Field(default=None, foreign_key="auth_session.token", index=True)
+
+
 class Sector(SQLModel, table=True):
     id: int = Field(primary_key=True)
     slug: str = Field(unique=True, index=True, max_length=80)
     name_uz: str = Field(max_length=255)
+    name_ru: str | None = Field(default=None, max_length=255)
+    name_en: str | None = Field(default=None, max_length=255)
     icon: str | None = Field(default=None, max_length=80)
 
 
@@ -120,6 +141,7 @@ class ProblemBase(SQLModel):
 
 
 class ProblemCreate(ProblemBase):
+    sector_id: int | None = None
     photo_keys: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -469,6 +491,92 @@ class ReviewsPublic(SQLModel):
     count: int
 
 
+# ─── Project Issues ─────────────────────────────────────────────────────────
+
+class ProjectIssueBase(SQLModel):
+    title: str = Field(min_length=1, max_length=255)
+    body: str | None = Field(default=None, max_length=10000)
+    kind: str = Field(default="task", max_length=32)  # bug | feature | task | question
+    status: str = Field(default="open", max_length=32)  # open | closed
+
+
+class ProjectIssueCreate(ProjectIssueBase):
+    pass
+
+
+class ProjectIssueUpdate(SQLModel):
+    title: str | None = Field(default=None, min_length=1, max_length=255)
+    body: str | None = Field(default=None, max_length=10000)
+    kind: str | None = Field(default=None, max_length=32)
+    status: str | None = Field(default=None, max_length=32)
+
+
+class ProjectIssue(ProjectIssueBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    project_id: uuid.UUID = Field(foreign_key="project.id", nullable=False, index=True)
+    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    comment_count: int = Field(default=0)
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),
+    )
+    updated_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),
+    )
+    closed_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),
+    )
+
+
+class ProjectIssuePublic(ProjectIssueBase):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    author_id: uuid.UUID
+    comment_count: int
+    created_at: datetime
+    updated_at: datetime
+    closed_at: datetime | None = None
+
+
+class ProjectIssuesPublic(SQLModel):
+    data: list[ProjectIssuePublic]
+    count: int
+
+
+# ─── Issue Comments ────────────────────────────────────────────────────────
+
+class IssueCommentBase(SQLModel):
+    text: str = Field(min_length=1, max_length=5000)
+
+
+class IssueCommentCreate(IssueCommentBase):
+    pass
+
+
+class IssueComment(IssueCommentBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    issue_id: uuid.UUID = Field(foreign_key="projectissue.id", nullable=False, index=True)
+    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),
+    )
+
+
+class IssueCommentPublic(IssueCommentBase):
+    id: uuid.UUID
+    issue_id: uuid.UUID
+    author_id: uuid.UUID
+    created_at: datetime
+
+
+class IssueCommentsPublic(SQLModel):
+    data: list[IssueCommentPublic]
+    count: int
+
+
 class Notification(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, index=True, ondelete="CASCADE")
@@ -525,3 +633,66 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+# Broadcast (Reklama/E'lonlar)
+class BroadcastBase(SQLModel):
+    title: str = Field(max_length=255)
+    text_uz: str = Field(max_length=4000)
+    text_ru: str | None = Field(default=None, max_length=4000)
+    text_en: str | None = Field(default=None, max_length=4000)
+    # [{"text": "Batafsil", "url": "https://..."}]
+    buttons: list[dict] = Field(
+        default_factory=list,
+        sa_column=Column(JSON, nullable=False),
+    )
+    photo_key: str | None = Field(default=None, max_length=255)
+    target_region_id: int | None = None
+
+
+class BroadcastCreate(SQLModel):
+    title: str = Field(max_length=255)
+    text_uz: str = Field(max_length=4000)
+    text_ru: str | None = Field(default=None, max_length=4000)
+    text_en: str | None = Field(default=None, max_length=4000)
+    buttons: list[dict] = Field(default_factory=list)
+    photo_key: str | None = Field(default=None, max_length=255)
+    target_region_id: int | None = None
+
+
+class BroadcastUpdate(SQLModel):
+    title: str | None = Field(default=None, max_length=255)
+    text_uz: str | None = Field(default=None, max_length=4000)
+    text_ru: str | None = Field(default=None, max_length=4000)
+    text_en: str | None = Field(default=None, max_length=4000)
+    buttons: list[dict] | None = None
+    photo_key: str | None = Field(default=None, max_length=255)
+    target_region_id: int | None = None
+
+
+class Broadcast(BroadcastBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    status: str = Field(default="pending", max_length=32, index=True)
+    sent_count: int = Field(default=0)
+    failed_count: int = Field(default=0)
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    started_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))  # type: ignore
+    completed_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))  # type: ignore
+
+
+class BroadcastPublic(BroadcastBase):
+    id: uuid.UUID
+    status: str
+    sent_count: int
+    failed_count: int
+    created_at: datetime
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+
+
+class BroadcastsPublic(SQLModel):
+    data: list[BroadcastPublic]
+    count: int

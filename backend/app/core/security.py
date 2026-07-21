@@ -26,14 +26,25 @@ def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
     return encoded_jwt
 
 
-def create_refresh_token(subject: str | Any, expires_delta: timedelta) -> str:
+def create_refresh_token(
+    subject: str | Any,
+    expires_delta: timedelta,
+    jti: Any,
+    family: Any,
+) -> str:
     expire = datetime.now(timezone.utc) + expires_delta
-    to_encode = {"exp": expire, "sub": str(subject), "type": "refresh"}
+    to_encode = {
+        "exp": expire,
+        "sub": str(subject),
+        "type": "refresh",
+        "jti": str(jti),
+        "family": str(family),
+    }
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
 
 
-def decode_refresh_token(token: str) -> str:
-    """Decode a refresh token and return the user_id (sub). Raises ValueError on any error."""
+def decode_refresh_token(token: str) -> dict[str, Any]:
+    """Decode a refresh token and return the payload dictionary. Raises ValueError on any error."""
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
     except jwt.ExpiredSignatureError:
@@ -43,9 +54,11 @@ def decode_refresh_token(token: str) -> str:
     if payload.get("type") != "refresh":
         raise ValueError("Not a refresh token")
     sub = payload.get("sub")
-    if not sub:
-        raise ValueError("Missing subject in refresh token")
-    return str(sub)
+    jti = payload.get("jti")
+    family = payload.get("family")
+    if not sub or not jti or not family:
+        raise ValueError("Malformed refresh token")
+    return payload
 
 
 def verify_password(

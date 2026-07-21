@@ -213,6 +213,11 @@ def complete_project_with_review(
     )
     session.add(project)
     session.add(review)
+    
+    lead = session.get(User, project.lead_id)
+    if lead:
+        lead.reputation = max(lead.reputation + 20, 0)
+        session.add(lead)
     transition_problem(
         session=session,
         problem=problem,

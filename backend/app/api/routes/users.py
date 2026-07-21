@@ -101,7 +101,7 @@ def update_user_me(
 @router.patch("/me/password", response_model=Message)
 def update_password_me() -> Message:
     """
-    Disabled: SignalHub uses Telegram contact verification for login.
+    Disabled: SolutionLab uses Telegram contact verification for login.
     """
     _telegram_auth_only()
 
@@ -131,7 +131,7 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
 @router.post("/signup", response_model=UserPublic)
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
-    Disabled: SignalHub uses Telegram contact verification for registration.
+    Disabled: SolutionLab uses Telegram contact verification for registration.
     """
     _ = (session, user_in)
     _telegram_auth_only()

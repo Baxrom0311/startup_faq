@@ -3,6 +3,7 @@ import { expect, type Page, test } from "@playwright/test"
 import { randomEmail, randomPassword } from "./utils/random"
 
 test.use({ storageState: { cookies: [], origins: [] } })
+test.skip(true, "Email/password signup is replaced by Telegram Auth")
 
 const fillForm = async (
   page: Page,

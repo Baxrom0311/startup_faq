@@ -175,7 +175,9 @@ async def analyze_problem_with_ai(*, session: Session, problem: Problem) -> AIRe
             target=duplicate,
             reason="ai_duplicate",
         )
-    else:
+    elif problem.status == "ai_processing":
+        # Only change status when processing from scratch; reanalysis of
+        # published/claimed/piloting problems keeps their current status.
         needs_review = (
             not structured.is_actionable
             or structured.flags.get("needs_review", False)

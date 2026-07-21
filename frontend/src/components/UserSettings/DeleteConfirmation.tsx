@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 
 import { UsersService } from "@/client"
 import { Button } from "@/components/ui/button"
@@ -13,21 +15,21 @@ import {
 } from "@/components/ui/dialog"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useAuth from "@/hooks/useAuth"
-import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
 
 const DeleteConfirmation = () => {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { showSuccessToast, showErrorToast } = useCustomToast()
   const { logout } = useAuth()
 
   const mutation = useMutation({
     mutationFn: () => UsersService.deleteUserMe(),
     onSuccess: () => {
-      showSuccessToast("Done")
+      toast.success(t("settings_delete_success"))
       logout()
     },
-    onError: handleError.bind(showErrorToast),
+    onError: (err: Error) => {
+      toast.error(err.message || t("error_generic"))
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] })
     },
@@ -36,17 +38,17 @@ const DeleteConfirmation = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="destructive">Delete</Button>
+        <Button variant="destructive">{t("settings_delete_account")}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete</DialogTitle>
+          <DialogTitle>{t("settings_delete_account")}</DialogTitle>
         </DialogHeader>
 
         <DialogFooter className="mt-4">
           <DialogClose asChild>
             <Button variant="outline" disabled={mutation.isPending}>
-              Cancel
+              {t("settings_delete_cancel")}
             </Button>
           </DialogClose>
           <LoadingButton
@@ -55,7 +57,7 @@ const DeleteConfirmation = () => {
             loading={mutation.isPending}
             onClick={() => mutation.mutate()}
           >
-            Delete
+            {t("settings_delete_confirm")}
           </LoadingButton>
         </DialogFooter>
       </DialogContent>

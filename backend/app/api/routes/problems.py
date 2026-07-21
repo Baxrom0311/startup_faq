@@ -1,8 +1,13 @@
 import uuid
+import csv
+import io
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
+from fastapi.responses import StreamingResponse
 from sqlmodel import func, select
+
+from app.core.limiter import limiter
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
@@ -18,8 +23,11 @@ from app.models import (
     ProblemPublic,
     ProblemsPublic,
     Project,
+    Sector,
+    User,
     Vote,
 )
+from app.modules.ai.moderation import moderate_content
 from app.modules.ai.queue import enqueue_analyze_problem_best_effort
 from app.modules.ai.schemas import AIAnalysisPublic, AIAnalysisPublics
 from app.modules.media.schemas import ProblemMediaPublic, ProblemMediaPublics
@@ -106,14 +114,65 @@ def _attach_owned_media(
         session.add(media)
 
 
-@router.post("/", response_model=ProblemPublic, status_code=202)
-def create_problem(
-    *,
+@router.get("/export/csv")
+def export_problems_csv(
     session: SessionDep,
     current_user: CurrentUser,
+) -> StreamingResponse:
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    problems = session.exec(select(Problem).order_by(Problem.created_at.desc())).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "ID", "Author ID", "Sector ID", "Region ID", "Title",
+        "Raw Text", "Status", "Severity Score", "Vote Count", "Created At"
+    ])
+
+    for p in problems:
+        writer.writerow([
+            str(p.id),
+            str(p.author_id),
+            str(p.sector_id) if p.sector_id else "",
+            str(p.region_id) if p.region_id else "",
+            p.title or "",
+            p.raw_text or "",
+            p.status,
+            str(p.severity_score) if p.severity_score is not None else "",
+            str(p.vote_count),
+            p.created_at.isoformat() if p.created_at else ""
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        io.BytesIO(output.getvalue().encode("utf-8")),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=problems.csv"}
+    )
+
+
+@router.post("/", response_model=ProblemPublic, status_code=201)
+@limiter.limit("20/minute")
+async def create_problem(
+    *,
+    session: SessionDep,
+    request: Request,
+    current_user: CurrentUser,
     problem_in: ProblemCreate,
-    background_tasks: BackgroundTasks,
 ) -> Any:
+    # Validate sector if provided
+    sector: Sector | None = None
+    if problem_in.sector_id is not None:
+        sector = session.get(Sector, problem_in.sector_id)
+        if not sector:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Sektor topilmadi.",
+            )
+
     media_keys = [key for key in [problem_in.raw_audio_key, *problem_in.photo_keys] if key]
     duplicate = find_duplicate_problem(
         session=session,
@@ -146,6 +205,16 @@ def create_problem(
         result.is_duplicate = True
         return result
 
+    # AI content moderation (synchronous — user gets instant feedback)
+    if problem_in.raw_text:
+        sector_name = sector.name_uz if sector else "Umumiy"
+        moderation = await moderate_content(text=problem_in.raw_text, sector_name=sector_name)
+        if not moderation.approved:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=moderation.reason or "Muammo matni qabul qilinmadi.",
+            )
+
     problem_data = problem_in.model_dump(exclude={"photo_keys"})
     problem = Problem.model_validate(
         problem_data,
@@ -159,9 +228,9 @@ def create_problem(
     transition_problem(
         session=session,
         problem=problem,
-        to_status="ai_processing",
+        to_status="published",
         actor_id=current_user.id,
-        reason="problem_submitted",
+        reason="ai_approved",
     )
     _attach_owned_media(
         session=session,
@@ -171,7 +240,6 @@ def create_problem(
     )
     session.commit()
     session.refresh(problem)
-    background_tasks.add_task(enqueue_analyze_problem_best_effort, problem.id)
     return _problem_public(session=session, current_user=current_user, problem=problem)
 
 
@@ -220,7 +288,7 @@ def read_problem_analyses(
 
 
 @router.get("/", response_model=ProblemsPublic)
-def read_problems(
+async def read_problems(
     session: SessionDep,
     current_user: CurrentUser,
     skip: int = 0,
@@ -231,36 +299,114 @@ def read_problems(
     mine: bool = False,
     q: str | None = None,
 ) -> Any:
-    if status not in _PUBLIC_STATUSES and not current_user.is_superuser and not mine:
-        raise HTTPException(
-            status_code=403,
-            detail="Not enough permissions to filter by this status",
-        )
-    filters = [Problem.status == status]
+    filters = []
+    if status != "all":
+        if status not in _PUBLIC_STATUSES and not current_user.is_superuser and not mine:
+            raise HTTPException(
+                status_code=403,
+                detail="Not enough permissions to filter by this status",
+            )
+        filters.append(Problem.status == status)
+    else:
+        if not mine and not current_user.is_superuser:
+            raise HTTPException(
+                status_code=403,
+                detail="Not enough permissions to query all statuses",
+            )
     if sector_id is not None:
         filters.append(Problem.sector_id == sector_id)
     if region_id is not None:
         filters.append(Problem.region_id == region_id)
     if mine:
         filters.append(Problem.author_id == current_user.id)
-    if q:
-        pattern = f"%{q.strip()}%"
-        filters.append(
-            (Problem.title.ilike(pattern))
-            | (Problem.raw_text.ilike(pattern))
-            | (Problem.transcript.ilike(pattern))
-        )
 
-    count_statement = select(func.count()).select_from(Problem).where(*filters)
-    count = session.exec(count_statement).one()
-    statement = (
-        select(Problem)
-        .where(*filters)
-        .order_by(Problem.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-    )
-    problems = session.exec(statement).all()
+    if q and q.strip():
+        from app.modules.ai.providers import get_embedding_provider
+        from app.modules.ai.analyzer import cosine_similarity
+        from app.models import ProblemEmbedding
+
+        q_clean = q.strip()
+        q_embedding = None
+        try:
+            embedding_provider = get_embedding_provider()
+            q_embedding = await embedding_provider.embed(q_clean)
+        except Exception:
+            pass
+
+        if q_embedding:
+            # Fetch all problems matching base filters
+            stmt = select(Problem).where(*filters)
+            problems_list = session.exec(stmt).all()
+
+            scored_candidates = []
+            keyword_pattern = q_clean.lower()
+            for problem in problems_list:
+                # Query embedding if exists
+                prob_emb = session.get(ProblemEmbedding, problem.id)
+                sim_score = 0.0
+                if prob_emb:
+                    sim_score = cosine_similarity(q_embedding, prob_emb.embedding)
+
+                # Direct match boost
+                boost = 0.0
+                title_lower = (problem.title or "").lower()
+                text_lower = (problem.raw_text or "").lower()
+                transcript_lower = (problem.transcript or "").lower()
+
+                if keyword_pattern in title_lower:
+                    boost += 0.3
+                if keyword_pattern in text_lower or keyword_pattern in transcript_lower:
+                    boost += 0.15
+
+                final_score = sim_score + boost
+                scored_candidates.append((problem, final_score))
+
+            # Filter relevant or containing keyword pattern
+            scored_candidates = [
+                c for c in scored_candidates if c[1] >= 0.3 or any(
+                    keyword_pattern in (c[0].title or "").lower() or
+                    keyword_pattern in (c[0].raw_text or "").lower() or
+                    keyword_pattern in (c[0].transcript or "").lower()
+                    for _ in [1]
+                )
+            ]
+            scored_candidates.sort(key=lambda x: x[1], reverse=True)
+
+            count = len(scored_candidates)
+            paginated = scored_candidates[skip : skip + limit]
+            problems = [item[0] for item in paginated]
+        else:
+            # Fallback to pure keyword search using ILIKE
+            pattern = f"%{q_clean}%"
+            filters.append(
+                (Problem.title.ilike(pattern))
+                | (Problem.raw_text.ilike(pattern))
+                | (Problem.transcript.ilike(pattern))
+            )
+
+            count_statement = select(func.count()).select_from(Problem).where(*filters)
+            count = session.exec(count_statement).one()
+
+            statement = (
+                select(Problem)
+                .where(*filters)
+                .order_by(Problem.created_at.desc())
+                .offset(skip)
+                .limit(limit)
+            )
+            problems = session.exec(statement).all()
+    else:
+        count_statement = select(func.count()).select_from(Problem).where(*filters)
+        count = session.exec(count_statement).one()
+
+        statement = (
+            select(Problem)
+            .where(*filters)
+            .order_by(Problem.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+        )
+        problems = session.exec(statement).all()
     problem_ids = [problem.id for problem in problems]
     voted_problem_ids = set()
     comment_counts = {}
@@ -481,8 +627,9 @@ def merge_problem(
 
 
 @router.put("/{problem_id}/vote", status_code=204)
+@limiter.limit("20/minute")
 def vote_problem(
-    *, session: SessionDep, current_user: CurrentUser, problem_id: uuid.UUID
+    *, session: SessionDep, request: Request, current_user: CurrentUser, problem_id: uuid.UUID
 ) -> None:
     problem = session.get(Problem, problem_id)
     if not problem:
@@ -495,13 +642,20 @@ def vote_problem(
     session.add(Vote(user_id=current_user.id, problem_id=problem_id))
     problem.vote_count += 1
     session.add(problem)
+    
+    author = session.get(User, problem.author_id)
+    if author:
+        author.reputation = max(author.reputation + 1, 0)
+        session.add(author)
+
     session.commit()
     return None
 
 
 @router.delete("/{problem_id}/vote")
+@limiter.limit("20/minute")
 def unvote_problem(
-    *, session: SessionDep, current_user: CurrentUser, problem_id: uuid.UUID
+    *, session: SessionDep, request: Request, current_user: CurrentUser, problem_id: uuid.UUID
 ) -> Message:
     problem = session.get(Problem, problem_id)
     if not problem:
@@ -512,6 +666,12 @@ def unvote_problem(
         session.delete(vote)
         problem.vote_count = max(problem.vote_count - 1, 0)
         session.add(problem)
+        
+        author = session.get(User, problem.author_id)
+        if author:
+            author.reputation = max(author.reputation - 1, 0)
+            session.add(author)
+
         session.commit()
     return Message(message="Vote removed")
 
@@ -540,9 +700,11 @@ def read_comments(
 
 
 @router.post("/{problem_id}/comments", response_model=Comment, status_code=201)
+@limiter.limit("20/minute")
 def create_comment(
     *,
     session: SessionDep,
+    request: Request,
     current_user: CurrentUser,
     problem_id: uuid.UUID,
     comment_in: CommentCreate,
@@ -555,6 +717,10 @@ def create_comment(
         update={"problem_id": problem_id, "user_id": current_user.id},
     )
     session.add(comment)
+    
+    current_user.reputation = max(current_user.reputation + 2, 0)
+    session.add(current_user)
+
     session.commit()
     session.refresh(comment)
     return comment

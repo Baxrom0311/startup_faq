@@ -310,7 +310,7 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       args:
-        - VITE_API_URL=https://api.${DOMAIN?Variable not set}
+        - VITE_API_URL=${VITE_API_URL:-https://solutionlab.boos.uz}
         - NODE_ENV=production
     labels:
       - traefik.enable=true
