@@ -74,7 +74,7 @@ export const Route = createFileRoute("/_layout/problems/$problemId")({
 })
 
 function ProblemDetail() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user } = useAuth()
   const { problemId } = Route.useParams()
   const [problem, setProblem] = useState<Problem | null>(null)
@@ -506,11 +506,15 @@ function ProblemDetail() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none">—</SelectItem>
-                {sectors.map((s) => (
-                  <SelectItem key={s.id} value={String(s.id)}>
-                    {s.icon} {s.name_uz}
-                  </SelectItem>
-                ))}
+                {sectors.map((s) => {
+                  const lang = i18n.language?.slice(0, 2)
+                  const name = (lang === "ru" ? s.name_ru : lang === "en" ? s.name_en : null) ?? t(`sector_${s.slug}` as any, s.name_uz)
+                  return (
+                    <SelectItem key={s.id} value={String(s.id)}>
+                      {s.icon} {name}
+                    </SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
             <Select
