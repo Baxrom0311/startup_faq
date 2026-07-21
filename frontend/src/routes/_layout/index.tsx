@@ -614,6 +614,12 @@ function InboxCard({
             )
           })
         )}
+        <Link
+          to="/notifications"
+          className="block rounded-md border border-dashed px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+        >
+          {t("dashboard_inbox_see_all")}
+        </Link>
       </CardContent>
     </Card>
   )

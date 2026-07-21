@@ -19,6 +19,7 @@ import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutProjectsRouteImport } from './routes/_layout/projects'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects/index'
 import { Route as LayoutProjectsProjectIdRouteImport } from './routes/_layout/projects/$projectId'
 import { Route as LayoutProblemsProblemIdRouteImport } from './routes/_layout/problems.$problemId'
@@ -72,6 +73,11 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutProjectsIndexRoute = LayoutProjectsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/items': typeof LayoutItemsRoute
+  '/notifications': typeof LayoutNotificationsRoute
   '/projects': typeof LayoutProjectsRouteWithChildren
   '/settings': typeof LayoutSettingsRoute
   '/problems/$problemId': typeof LayoutProblemsProblemIdRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/items': typeof LayoutItemsRoute
+  '/notifications': typeof LayoutNotificationsRoute
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
   '/problems/$problemId': typeof LayoutProblemsProblemIdRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/items': typeof LayoutItemsRoute
+  '/_layout/notifications': typeof LayoutNotificationsRoute
   '/_layout/projects': typeof LayoutProjectsRouteWithChildren
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/': typeof LayoutIndexRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/items'
+    | '/notifications'
     | '/projects'
     | '/settings'
     | '/problems/$problemId'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/items'
+    | '/notifications'
     | '/settings'
     | '/'
     | '/problems/$problemId'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_layout/admin'
     | '/_layout/items'
+    | '/_layout/notifications'
     | '/_layout/projects'
     | '/_layout/settings'
     | '/_layout/'
@@ -249,6 +261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutItemsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/notifications': {
+      id: '/_layout/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof LayoutNotificationsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/admin': {
       id: '/_layout/admin'
       path: '/admin'
@@ -297,6 +316,7 @@ const LayoutProjectsRouteWithChildren = LayoutProjectsRoute._addFileChildren(
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
+  LayoutNotificationsRoute: typeof LayoutNotificationsRoute
   LayoutProjectsRoute: typeof LayoutProjectsRouteWithChildren
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
@@ -306,6 +326,7 @@ interface LayoutRouteChildren {
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutItemsRoute: LayoutItemsRoute,
+  LayoutNotificationsRoute: LayoutNotificationsRoute,
   LayoutProjectsRoute: LayoutProjectsRouteWithChildren,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,

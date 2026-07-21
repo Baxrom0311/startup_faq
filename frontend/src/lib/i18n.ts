@@ -284,9 +284,17 @@ const uz = {
 
   // Dashboard sidebar
   dashboard_inbox: "Inbox",
+  dashboard_inbox_see_all: "Barchasini ko'rish",
   dashboard_pipeline: "Oqim",
   dashboard_pipeline_inbox: "Kiruvchi",
   dashboard_pipeline_active: "Faol",
+
+  // Notifications page
+  notif_page_title: "Bildirishnomalar",
+  notif_page_unread_only: "Faqat o'qilmaganlar",
+  notif_page_all: "Hammasi",
+  notif_page_empty: "Bildirishnoma yo'q",
+  notif_mark_all_read: "Barchasini o'qilgan deb belgilash",
 
   // Admin
   admin_merge_placeholder: "Qidirish yoki ID kiriting...",
@@ -618,9 +626,17 @@ const ru: typeof uz = {
 
   // Dashboard sidebar
   dashboard_inbox: "Входящие",
+  dashboard_inbox_see_all: "Смотреть все",
   dashboard_pipeline: "Поток",
   dashboard_pipeline_inbox: "Входящие",
   dashboard_pipeline_active: "Активные",
+
+  // Notifications page
+  notif_page_title: "Уведомления",
+  notif_page_unread_only: "Только непрочитанные",
+  notif_page_all: "Все",
+  notif_page_empty: "Нет уведомлений",
+  notif_mark_all_read: "Отметить все как прочитанные",
 
   // Admin
   admin_merge_placeholder: "Поиск или введите ID...",
@@ -953,9 +969,17 @@ const en: typeof uz = {
 
   // Dashboard sidebar
   dashboard_inbox: "Inbox",
+  dashboard_inbox_see_all: "See all",
   dashboard_pipeline: "Flow",
   dashboard_pipeline_inbox: "Inbox",
   dashboard_pipeline_active: "Active",
+
+  // Notifications page
+  notif_page_title: "Notifications",
+  notif_page_unread_only: "Unread only",
+  notif_page_all: "All",
+  notif_page_empty: "No notifications",
+  notif_mark_all_read: "Mark all as read",
 
   // Admin
   admin_merge_placeholder: "Search or paste ID...",

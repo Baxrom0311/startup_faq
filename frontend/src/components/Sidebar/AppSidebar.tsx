@@ -1,4 +1,4 @@
-import { Briefcase, LayoutDashboard, Shield } from "lucide-react"
+import { Bell, Briefcase, LayoutDashboard, Shield } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -71,9 +71,14 @@ export function AppSidebar() {
       icon: LayoutDashboard,
       title: t("nav_signals"),
       path: "/",
-      badge: unreadCount > 0 ? unreadCount : undefined,
     },
     { icon: Briefcase, title: t("nav_projects"), path: "/projects" },
+    {
+      icon: Bell,
+      title: t("dashboard_inbox"),
+      path: "/notifications",
+      badge: unreadCount > 0 ? unreadCount : undefined,
+    },
   ]
 
   const items = currentUser?.is_superuser
