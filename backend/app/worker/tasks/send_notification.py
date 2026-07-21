@@ -44,6 +44,8 @@ _LABELS: dict[str, dict[str, str]] = {
 
 
 def _render_notification_text(notification: Notification, lang: str = "uz") -> str:
+    from app.core.config import settings
+
     title = notification.payload.get("project_title")
     project_title = title if isinstance(title, str) and title else "Loyiha"
     problem_title = notification.payload.get("title")
@@ -51,7 +53,22 @@ def _render_notification_text(notification: Notification, lang: str = "uz") -> s
 
     locale = lang if lang in _LABELS else "uz"
     template = _LABELS[locale].get(notification.type, notification.type)
-    return template.format(project=project_title, problem=ptitle)
+    text = template.format(project=project_title, problem=ptitle)
+
+    # Build a deep link to the relevant page
+    base = settings.FRONTEND_HOST.rstrip("/")
+    project_id = notification.payload.get("project_id")
+    problem_id = notification.payload.get("problem_id")
+    target_problem_id = notification.payload.get("target_problem_id")
+
+    if notification.type == "problem.merged" and target_problem_id:
+        text += f"\n\n{base}/problems/{target_problem_id}"
+    elif project_id:
+        text += f"\n\n{base}/projects/{project_id}"
+    elif problem_id:
+        text += f"\n\n{base}/problems/{problem_id}"
+
+    return text
 
 
 async def _send_telegram_message(*, telegram_id: int, text: str) -> None:
