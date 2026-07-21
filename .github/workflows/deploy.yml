@@ -48,6 +48,11 @@ jobs:
             # Restore production .env (never committed, but just in case)
             cp /tmp/.env.prod.bak .env
 
+            # Update landing page (served by nginx directly, not Docker)
+            echo "==> Updating landing page..."
+            mkdir -p /var/www/solutionlab
+            cp landing/index.html /var/www/solutionlab/index.html
+
             # Rebuild images and restart containers
             echo "==> Building images..."
             docker compose -f compose.yml build backend frontend bot
