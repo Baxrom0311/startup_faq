@@ -1,8 +1,10 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router"
 import {
+  AlertCircle,
   Archive,
   BarChart3,
   Bot,
+  CheckCircle2,
   Download,
   GitMerge,
   PieChart,
@@ -58,7 +60,7 @@ function Admin() {
 
   const loadReview = useCallback(async () => {
     const response = await apiJson<ProblemsResponse>(
-      "/problems/?status=published&limit=50",
+      "/problems/?status=needs_review&limit=50",
     )
     setProblems(response.data)
     const analysisPairs = await Promise.all(
@@ -144,8 +146,13 @@ function Admin() {
 
         <Tabs defaultValue="moderation" className="w-full flex flex-col gap-4">
           <TabsList className="mr-auto">
-            <TabsTrigger value="moderation">
+            <TabsTrigger value="moderation" className="gap-1.5">
               {t("admin_tab_moderation")}
+              {overviewAnalytics && overviewAnalytics.needs_review_problems > 0 && (
+                <Badge variant="destructive" className="h-4 min-w-4 px-1 text-[10px] leading-none">
+                  {overviewAnalytics.needs_review_problems}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="broadcasts">
               {t("admin_tab_broadcasts")}
@@ -167,7 +174,7 @@ function Admin() {
               <CardContent className="p-0">
                 {problems.length === 0 ? (
                   <div className="p-6">
-                    <EmptyState />
+                    <EmptyState message={t("admin_moderation_empty")} />
                   </div>
                 ) : (
                   <div className="divide-y">
@@ -200,6 +207,13 @@ function Admin() {
                         <div className="flex flex-wrap gap-2">
                           <Button
                             size="sm"
+                            onClick={() => runAction(problem.id, "publish")}
+                          >
+                            <CheckCircle2 />
+                            {t("problem_publish")}
+                          </Button>
+                          <Button
+                            size="sm"
                             variant="outline"
                             onClick={() => runAction(problem.id, "reanalyze")}
                           >
@@ -215,6 +229,14 @@ function Admin() {
                             {t("admin_archive")}
                           </Button>
                         </div>
+                        {analyses[problem.id]?.summary_json?.moderation_reason && (
+                          <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-950">
+                            <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                            <span className="text-xs text-amber-800 dark:text-amber-200">
+                              {String(analyses[problem.id]!.summary_json.moderation_reason)}
+                            </span>
+                          </div>
+                        )}
                         <MergeTargetPicker
                           aiSuggestedId={
                             typeof analyses[problem.id]?.summary_json
@@ -251,7 +273,7 @@ function Admin() {
             </div>
 
             {overviewAnalytics && (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <Card className="bg-background shadow-none">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-xs font-medium text-muted-foreground uppercase">
@@ -261,6 +283,18 @@ function Admin() {
                   <CardContent>
                     <div className="text-2xl font-bold">
                       {overviewAnalytics.submitted_problems}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-background shadow-none">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium text-muted-foreground uppercase">
+                      {t("status_needs_review")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-2xl font-bold ${overviewAnalytics.needs_review_problems > 0 ? "text-amber-600 dark:text-amber-400" : ""}`}>
+                      {overviewAnalytics.needs_review_problems}
                     </div>
                   </CardContent>
                 </Card>

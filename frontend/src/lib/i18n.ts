@@ -97,7 +97,7 @@ const uz = {
 
   // Admin
   admin_title: "Admin",
-  admin_feed_title: "Oxirgi muammolar",
+  admin_feed_title: "Tekshiruvni kutayotgan muammolar",
   admin_tab_moderation: "Moderatsiya",
   admin_tab_broadcasts: "Telegram E'lonlar",
   admin_tab_analytics: "Analitika",
@@ -107,6 +107,7 @@ const uz = {
   analytics_claim_solve_rate: "Hal qilish darajasi",
   analytics_no_data: "Ma'lumotlar yo'q",
   admin_export_problems: "Muammolarni yuklab olish (CSV)",
+  admin_moderation_empty: "Tekshiruv navbati bo'sh — barcha muammolar ko'rib chiqilgan",
   admin_reanalyze: "AI tahlil",
   admin_archive: "Arxivlash",
   admin_users_title: "Foydalanuvchilar",
@@ -405,7 +406,7 @@ const ru: typeof uz = {
   project_complete_toast: "Проект завершён!",
 
   admin_title: "Админ",
-  admin_feed_title: "Последние проблемы",
+  admin_feed_title: "Проблемы на рассмотрении",
   admin_tab_moderation: "Модерация",
   admin_tab_broadcasts: "Telegram рассылки",
   admin_tab_analytics: "Аналитика",
@@ -415,6 +416,7 @@ const ru: typeof uz = {
   analytics_claim_solve_rate: "Процент решений",
   analytics_no_data: "Нет данных",
   admin_export_problems: "Экспортировать проблемы (CSV)",
+  admin_moderation_empty: "Очередь пуста — все проблемы рассмотрены",
   admin_reanalyze: "AI анализ",
   admin_archive: "Архивировать",
   admin_users_title: "Пользователи",
@@ -708,7 +710,7 @@ const en: typeof uz = {
   project_complete_toast: "Project completed!",
 
   admin_title: "Admin",
-  admin_feed_title: "Latest problems",
+  admin_feed_title: "Problems pending review",
   admin_tab_moderation: "Moderation",
   admin_tab_broadcasts: "Telegram Broadcasts",
   admin_tab_analytics: "Analytics",
@@ -718,6 +720,7 @@ const en: typeof uz = {
   analytics_claim_solve_rate: "Solve Rate",
   analytics_no_data: "No data available",
   admin_export_problems: "Export Problems (CSV)",
+  admin_moderation_empty: "Review queue is clear — all problems have been handled",
   admin_reanalyze: "AI analysis",
   admin_archive: "Archive",
   admin_users_title: "Users",
