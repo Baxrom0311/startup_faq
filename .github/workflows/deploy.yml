@@ -40,10 +40,12 @@ jobs:
             # Pull latest code from main
             echo "==> Fetching latest code..."
             git fetch origin main
-            git checkout main 2>/dev/null || git checkout -b main --track origin/main
-            git reset --hard origin/main
 
-            # Restore production .env (git must not overwrite it)
+            # Force checkout — overwrites any untracked/modified files
+            # -f: overwrite local untracked files, -B: create or reset branch
+            git checkout -f -B main origin/main
+
+            # Restore production .env (never committed, but just in case)
             cp /tmp/.env.prod.bak .env
 
             # Rebuild images and restart containers
