@@ -503,12 +503,17 @@ function ProblemDetail() {
             <DialogTitle>{t("problem_edit_title")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 py-2">
-            <Textarea
-              value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              rows={6}
-              className="resize-none"
-            />
+            <div className="grid gap-1">
+              <Textarea
+                value={editText}
+                onChange={(e) => setEditText(e.target.value.slice(0, 5000))}
+                rows={6}
+                className="resize-none"
+              />
+              <span className={`text-right text-xs ${editText.length > 4500 ? "text-destructive" : "text-muted-foreground"}`}>
+                {editText.length}/5000
+              </span>
+            </div>
             <Select
               value={editSectorId || "__none"}
               onValueChange={(v) => setEditSectorId(v === "__none" ? "" : v)}
@@ -545,13 +550,22 @@ function ProblemDetail() {
                 ))}
               </SelectContent>
             </Select>
-            <LoadingButton
-              loading={saving}
-              disabled={!editText.trim()}
-              onClick={saveEdit}
-            >
-              {t("problem_edit_save")}
-            </LoadingButton>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                variant="outline"
+                onClick={() => setEditOpen(false)}
+                disabled={saving}
+              >
+                {t("cancel")}
+              </Button>
+              <LoadingButton
+                loading={saving}
+                disabled={!editText.trim()}
+                onClick={saveEdit}
+              >
+                {t("problem_edit_save")}
+              </LoadingButton>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
