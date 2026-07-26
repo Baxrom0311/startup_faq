@@ -68,6 +68,13 @@ function Layout() {
         <header className="bg-background/95 sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b px-4 backdrop-blur">
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
           <button
+            className="flex md:hidden items-center p-2 text-muted-foreground"
+            onClick={() => setSearchOpen(true)}
+            aria-label={t("layout_search")}
+          >
+            <Search className="size-5" />
+          </button>
+          <button
             onClick={() => setSearchOpen(true)}
             className="bg-muted/60 text-muted-foreground hidden h-9 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md border px-3 text-sm md:flex hover:bg-muted/80 transition-colors"
           >

@@ -49,6 +49,7 @@ const AUDIO_TYPES = new Set([
 const PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 const MAX_AUDIO_SIZE = 10 * 1024 * 1024
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024
+const MAX_RECORD_SECONDS = 120
 
 function formatSize(size: number) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`
@@ -76,6 +77,9 @@ export function SubmitProblemDialog({
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const waveformRef = useRef<HTMLCanvasElement | null>(null)
+  const audioCtxRef = useRef<AudioContext | null>(null)
 
   useEffect(() => {
     fetchSectors()
@@ -120,6 +124,8 @@ export function SubmitProblemDialog({
         recorderRef.current.stop()
       }
       if (timerRef.current) clearInterval(timerRef.current)
+      audioCtxRef.current?.close()
+      analyserRef.current = null
       setIsRecording(false)
       setRecordSeconds(0)
       setDuplicateProblem(null)
@@ -131,6 +137,41 @@ export function SubmitProblemDialog({
     }
   }, [open, isRecording])
 
+  useEffect(() => {
+    if (!isRecording) return
+    let frameId: number
+    const draw = () => {
+      const canvas = waveformRef.current
+      const an = analyserRef.current
+      if (canvas && an) {
+        const ctx = canvas.getContext("2d")
+        if (ctx) {
+          const bufferLength = an.frequencyBinCount
+          const dataArray = new Uint8Array(bufferLength)
+          an.getByteTimeDomainData(dataArray)
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
+          ctx.lineWidth = 1.5
+          ctx.strokeStyle = "#ef4444"
+          ctx.beginPath()
+          const sliceWidth = canvas.width / bufferLength
+          let x = 0
+          for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0
+            const y = (v * canvas.height) / 2
+            if (i === 0) ctx.moveTo(x, y)
+            else ctx.lineTo(x, y)
+            x += sliceWidth
+          }
+          ctx.lineTo(canvas.width, canvas.height / 2)
+          ctx.stroke()
+        }
+      }
+      frameId = requestAnimationFrame(draw)
+    }
+    frameId = requestAnimationFrame(draw)
+    return () => cancelAnimationFrame(frameId)
+  }, [isRecording])
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -141,17 +182,34 @@ export function SubmitProblemDialog({
       }
       recorder.onstop = () => {
         stream.getTracks().forEach((t) => t.stop())
+        audioCtxRef.current?.close()
+        analyserRef.current = null
         const blob = new Blob(chunksRef.current, { type: "audio/webm" })
         const file = new File([blob], `recording-${Date.now()}.webm`, { type: "audio/webm" })
         setAudioFile(file)
         setIsRecording(false)
         if (timerRef.current) clearInterval(timerRef.current)
       }
+      const audioCtx = new AudioContext()
+      const source = audioCtx.createMediaStreamSource(stream)
+      const analyser = audioCtx.createAnalyser()
+      analyser.fftSize = 256
+      source.connect(analyser)
+      analyserRef.current = analyser
+      audioCtxRef.current = audioCtx
       recorder.start()
       recorderRef.current = recorder
       setIsRecording(true)
       setRecordSeconds(0)
-      timerRef.current = setInterval(() => setRecordSeconds((s) => s + 1), 1000)
+      timerRef.current = setInterval(() => {
+        setRecordSeconds((s) => {
+          if (s + 1 >= MAX_RECORD_SECONDS) {
+            recorderRef.current?.stop()
+            return s + 1
+          }
+          return s + 1
+        })
+      }, 1000)
     } catch {
       toast.error(t("audio_record_error"))
     }
@@ -352,7 +410,7 @@ export function SubmitProblemDialog({
                 onClick={stopRecording}
               >
                 <MicOff className="size-3.5" />
-                {Math.floor(recordSeconds / 60).toString().padStart(2, "0")}:{(recordSeconds % 60).toString().padStart(2, "0")}
+                {recordSeconds}/{MAX_RECORD_SECONDS}s
               </Button>
             ) : (
               <Button
@@ -368,6 +426,22 @@ export function SubmitProblemDialog({
               </Button>
             )}
           </div>
+          {isRecording && (
+            <div className="space-y-1">
+              <div className="h-1 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-destructive transition-all duration-1000"
+                  style={{ width: `${(recordSeconds / MAX_RECORD_SECONDS) * 100}%` }}
+                />
+              </div>
+              <canvas
+                ref={waveformRef}
+                width={600}
+                height={32}
+                className="h-8 w-full rounded"
+              />
+            </div>
+          )}
           {audioFile && audioPreviewUrl && (
             <div className="flex items-center gap-3 rounded-md border p-3">
               <Volume2 className="text-muted-foreground size-4 shrink-0" />

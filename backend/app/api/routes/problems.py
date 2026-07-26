@@ -166,6 +166,7 @@ async def create_problem(
     request: Request,
     current_user: CurrentUser,
     problem_in: ProblemCreate,
+    background_tasks: BackgroundTasks,
 ) -> Any:
     # Validate sector if provided
     sector: Sector | None = None
@@ -244,6 +245,7 @@ async def create_problem(
     )
     session.commit()
     session.refresh(problem)
+    background_tasks.add_task(enqueue_analyze_problem_best_effort, problem.id)
     return _problem_public(session=session, current_user=current_user, problem=problem)
 
 
@@ -509,6 +511,14 @@ async def update_problem(
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=moderation.reason or "Muammo matni qabul qilinmadi.",
+            )
+
+    if problem_in.sector_id is not None:
+        sector = session.get(Sector, problem_in.sector_id)
+        if not sector:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Sektor topilmadi.",
             )
 
     update_data = problem_in.model_dump(exclude_unset=True)

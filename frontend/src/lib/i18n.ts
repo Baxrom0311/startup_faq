@@ -7,6 +7,7 @@ const uz = {
   nav_signals: "Signallar",
   nav_projects: "Loyihalar",
   nav_admin: "Admin",
+  nav_profile: "Profilim",
   nav_settings: "Sozlamalar",
   nav_logout: "Chiqish",
 
@@ -247,6 +248,7 @@ const uz = {
   profile_no_problems: "Muammolar yo'q",
   profile_no_projects: "Loyihalar yo'q",
   profile_reputation: "Obro'",
+  profile_not_found: "Foydalanuvchi topilmadi",
 
   // Audio recording
   audio_record: "Yozish",
@@ -401,6 +403,7 @@ const ru: typeof uz = {
   nav_signals: "Сигналы",
   nav_projects: "Проекты",
   nav_admin: "Админ",
+  nav_profile: "Мой профиль",
   nav_settings: "Настройки",
   nav_logout: "Выйти",
 
@@ -630,6 +633,7 @@ const ru: typeof uz = {
   profile_no_problems: "Нет проблем",
   profile_no_projects: "Нет проектов",
   profile_reputation: "Репутация",
+  profile_not_found: "Пользователь не найден",
 
   // Audio recording
   audio_record: "Запись",
@@ -783,6 +787,7 @@ const en: typeof uz = {
   nav_signals: "Signals",
   nav_projects: "Projects",
   nav_admin: "Admin",
+  nav_profile: "My Profile",
   nav_settings: "Settings",
   nav_logout: "Logout",
 
@@ -1013,6 +1018,7 @@ const en: typeof uz = {
   profile_no_problems: "No problems yet",
   profile_no_projects: "No projects yet",
   profile_reputation: "Reputation",
+  profile_not_found: "User not found",
 
   // Audio recording
   audio_record: "Record",

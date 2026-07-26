@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next"
 
 import { EmptyState, LoadingState, StatusBadge } from "@/components/Product/StatusBadge"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   apiJson,
@@ -60,7 +60,7 @@ function UserProfile() {
   if (notFound) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
-        <p className="text-muted-foreground text-sm">Foydalanuvchi topilmadi.</p>
+        <p className="text-muted-foreground text-sm">{t("profile_not_found")}</p>
       </div>
     )
   }
