@@ -12,6 +12,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { apiJson, shortDate, type Project, type ProjectsResponse } from "@/lib/product-api"
 
 export const Route = createFileRoute("/_layout/projects/")({
@@ -34,6 +41,7 @@ function Projects() {
   const [mine, setMine] = useState<Project[] | null>(null)
   const [query, setQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
   const [tab, setTab] = useState<Tab>("all")
   const abortRef = useRef<AbortController | null>(null)
 
@@ -45,7 +53,8 @@ function Projects() {
   const loadAll = useCallback(
     async (currentSkip = 0) => {
       const q = debouncedQuery.trim() ? `&q=${encodeURIComponent(debouncedQuery.trim())}` : ""
-      const res = await apiJson<ProjectsResponse>(`/projects?limit=${PAGE_SIZE}&skip=${currentSkip}${q}`)
+      const s = statusFilter ? `&status=${statusFilter}` : ""
+      const res = await apiJson<ProjectsResponse>(`/projects?limit=${PAGE_SIZE}&skip=${currentSkip}${q}${s}`)
       if (currentSkip === 0) {
         setAll(res.data)
       } else {
@@ -53,7 +62,7 @@ function Projects() {
       }
       setAllTotal(res.count)
     },
-    [debouncedQuery],
+    [debouncedQuery, statusFilter],
   )
 
   useEffect(() => {
@@ -86,7 +95,7 @@ function Projects() {
     }
 
     load()
-  }, [debouncedQuery, loadAll])
+  }, [debouncedQuery, statusFilter, loadAll])
 
   const handleLoadMore = async () => {
     const nextSkip = allSkip + PAGE_SIZE
@@ -130,14 +139,30 @@ function Projects() {
             {t("nav_projects")}
           </h1>
         </div>
-        <div className="relative lg:w-[360px]">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-          <Input
-            className="bg-background pl-9"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("dashboard_search")}
-          />
+        <div className="flex flex-col sm:flex-row gap-2 lg:w-auto">
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v === "_all" ? "" : v); setAllSkip(0) }}>
+            <SelectTrigger className="bg-background h-9 text-sm sm:w-[180px]">
+              <SelectValue placeholder={t("project_filter_all_statuses")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_all">{t("project_filter_all_statuses")}</SelectItem>
+              <SelectItem value="proposed">{t("status_proposed")}</SelectItem>
+              <SelectItem value="approved">{t("status_approved")}</SelectItem>
+              <SelectItem value="in_progress">{t("status_in_progress")}</SelectItem>
+              <SelectItem value="piloting">{t("status_piloting")}</SelectItem>
+              <SelectItem value="completed">{t("status_completed")}</SelectItem>
+              <SelectItem value="rejected">{t("status_rejected")}</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="relative lg:w-[300px]">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <Input
+              className="bg-background pl-9"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("dashboard_search")}
+            />
+          </div>
         </div>
       </div>
 

@@ -107,6 +107,7 @@ class Settings(BaseSettings):
     TG_BOT_USERNAME: str = ""
     TG_WEBHOOK_SECRET: str = ""
     BACKEND_INTERNAL_URL: str = "http://backend:8000/api/v1"
+    GOOGLE_CLIENT_ID: str = ""
 
     JWT_ACCESS_TTL_SECONDS: int = 900
     JWT_REFRESH_TTL_DAYS: int = 60

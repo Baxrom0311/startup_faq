@@ -425,6 +425,9 @@ function IssuesTab({ projectId, currentUserId, isLead }: IssuesTabProps) {
                     <span className="text-sm font-medium truncate">{issue.title}</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
+                    {issue.author_name && (
+                      <span className="font-medium text-foreground/70">{issue.author_name} · </span>
+                    )}
                     {shortDate(issue.created_at)}
                   </p>
                 </div>
@@ -485,7 +488,8 @@ function ProjectChatTab({ projectId, currentUserId }: ProjectChatTabProps) {
   const loadChat = useCallback(async () => {
     try {
       const res = await apiJson<ProjectIssuesResponse>(`/projects/${projectId}/issues`)
-      setMessages(res.data)
+      // Only show "question" kind issues as chat messages
+      setMessages(res.data.filter((i) => i.kind === "question"))
     } catch {
       // ignore
     }
@@ -544,12 +548,12 @@ function ProjectChatTab({ projectId, currentUserId }: ProjectChatTabProps) {
                   }`}
                 >
                   <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
-                    {msg.author_id === currentUserId ? t("project_chat_me")[0] : "U"}
+                    {(msg.author_name ?? (msg.author_id === currentUserId ? t("project_chat_me") : t("project_chat_user"))).charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-semibold text-foreground">
-                        {msg.author_id === currentUserId ? t("project_chat_me") : t("project_chat_user")}
+                        {msg.author_name ?? (msg.author_id === currentUserId ? t("project_chat_me") : t("project_chat_user"))}
                       </span>
                       <span className="text-[11px] text-muted-foreground">
                         {shortDate(msg.created_at)}
@@ -723,6 +727,15 @@ function ProjectDetail() {
       await loadProject()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("error_milestone_toggle"))
+    }
+  }
+
+  const deleteMilestone = async (milestoneId: string) => {
+    try {
+      await apiMutation(`/milestones/${milestoneId}`, undefined, "DELETE")
+      await loadProject()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("error_action"))
     }
   }
 
@@ -1116,6 +1129,16 @@ function ProjectDetail() {
                         </p>
                       </div>
                       <span className="shrink-0 text-xs text-muted-foreground">{statusLabel(milestone.status)}</span>
+                      {canManage && (
+                        <button
+                          type="button"
+                          onClick={() => deleteMilestone(milestone.id)}
+                          className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                          title={t("milestone_delete")}
+                        >
+                          <XCircle className="size-4" />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>

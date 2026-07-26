@@ -157,6 +157,7 @@ export type ProjectIssue = {
   id: string
   project_id: string
   author_id: string
+  author_name?: string | null
   title: string
   body?: string | null
   kind: "bug" | "feature" | "task" | "question" | string

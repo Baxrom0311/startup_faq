@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.routes import (
     analytics,
     broadcasts,
+    google_auth,
     health,
     login,
     media,
@@ -24,6 +25,7 @@ api_router.include_router(login.router)
 api_router.include_router(users.router)
 api_router.include_router(utils.router)
 api_router.include_router(telegram_auth.router)
+api_router.include_router(google_auth.router)
 api_router.include_router(sectors.router)
 api_router.include_router(regions.router)
 api_router.include_router(problems.router)

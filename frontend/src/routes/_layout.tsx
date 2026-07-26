@@ -37,11 +37,18 @@ export const Route = createFileRoute("/_layout")({
   errorComponent: ({ error, reset }) => (
     <LayoutError error={error as Error} reset={reset} />
   ),
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     if (!isLoggedIn()) {
       throw redirect({
         to: "/login",
       })
+    }
+    // Gate Google-authenticated users who have not yet linked Telegram
+    if (
+      localStorage.getItem("needs_telegram_link") === "1" &&
+      location.pathname !== "/connect-telegram"
+    ) {
+      throw redirect({ to: "/connect-telegram" })
     }
   },
 })

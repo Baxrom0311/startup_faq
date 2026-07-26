@@ -230,6 +230,12 @@ const uz = {
   login_status_expired: "Sessiya tugadi. Qaytadan urinib ko'ring.",
   login_status_phone_mismatch: "Telefon raqami mos kelmadi.",
   login_status_timed_out: "Vaqt tugadi. Qaytadan urinib ko'ring.",
+  login_google: "Google bilan kirish",
+  login_or: "yoki",
+  connect_tg_title: "Telegram'ni ulang",
+  connect_tg_sub: "Bot orqali xabarnomalar olish uchun Telegram'ni ulang",
+  connect_tg_btn: "Telegram'ni ulash",
+  connect_tg_skip: "Keyinroq",
 
   // Layout
   layout_error: "Xatolik yuz berdi",
@@ -264,6 +270,7 @@ const uz = {
   audio_only: "Audio",
   view: "Ko'rish",
   votes: "ovoz",
+  save: "Saqlash",
   cancel: "Bekor qilish",
   error_vote: "Ovoz berib bo'lmadi",
   error_load_project: "Loyiha yuklanmadi",
@@ -344,6 +351,10 @@ const uz = {
   admin_score: "ball",
 
   // Issues
+  milestone_delete: "O'chirish",
+  project_filter_status: "Holat bo'yicha",
+  project_filter_all_statuses: "Barcha holatlar",
+
   issue_new: "Yangi masala",
   issue_all: "Barchasi",
   issue_open: "Ochiq",
@@ -615,6 +626,12 @@ const ru: typeof uz = {
   login_status_expired: "Сессия истекла. Попробуйте снова.",
   login_status_phone_mismatch: "Номер телефона не совпадает.",
   login_status_timed_out: "Время вышло. Попробуйте снова.",
+  login_google: "Войти через Google",
+  login_or: "или",
+  connect_tg_title: "Привяжите Telegram",
+  connect_tg_sub: "Привяжите Telegram для уведомлений через бот",
+  connect_tg_btn: "Привязать Telegram",
+  connect_tg_skip: "Позже",
 
   // Layout
   layout_error: "Произошла ошибка",
@@ -648,6 +665,7 @@ const ru: typeof uz = {
   audio_only: "Аудио",
   view: "Открыть",
   votes: "голосов",
+  save: "Сохранить",
   cancel: "Отмена",
   error_vote: "Не удалось проголосовать",
   error_load_project: "Не удалось загрузить проект",
@@ -728,6 +746,10 @@ const ru: typeof uz = {
   admin_score: "балл",
 
   // Issues
+  milestone_delete: "Удалить",
+  project_filter_status: "По статусу",
+  project_filter_all_statuses: "Все статусы",
+
   issue_new: "Новый вопрос",
   issue_all: "Все",
   issue_open: "Открытые",
@@ -1000,6 +1022,12 @@ const en: typeof uz = {
   login_status_expired: "Session expired. Try again.",
   login_status_phone_mismatch: "Phone number does not match.",
   login_status_timed_out: "Timed out. Try again.",
+  login_google: "Sign in with Google",
+  login_or: "or",
+  connect_tg_title: "Connect Telegram",
+  connect_tg_sub: "Link Telegram to receive bot notifications",
+  connect_tg_btn: "Link Telegram",
+  connect_tg_skip: "Skip for now",
 
   // Layout
   layout_error: "Something went wrong",
@@ -1033,6 +1061,7 @@ const en: typeof uz = {
   audio_only: "Audio",
   view: "View",
   votes: "votes",
+  save: "Save",
   cancel: "Cancel",
   error_vote: "Failed to vote",
   error_load_project: "Failed to load project",
@@ -1113,6 +1142,10 @@ const en: typeof uz = {
   admin_score: "score",
 
   // Issues
+  milestone_delete: "Delete",
+  project_filter_status: "Filter by status",
+  project_filter_all_statuses: "All statuses",
+
   issue_new: "New issue",
   issue_all: "All",
   issue_open: "Open",
