@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, func, select
 
 from app.models import (
@@ -62,7 +63,16 @@ def claim_problem(
         update={"problem_id": problem.id, "lead_id": lead.id, "status": "proposed"},
     )
     session.add(project)
-    session.flush()
+    try:
+        session.flush()
+    except IntegrityError:
+        # The partial unique index (uq_active_project_per_lead) rejected a
+        # concurrent duplicate claim that passed the check above.
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="You already have an active project for this problem",
+        )
     session.add(ProjectMember(project_id=project.id, user_id=lead.id, role="lead"))
     notification = create_notification(
         session=session,
