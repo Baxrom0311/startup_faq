@@ -479,6 +479,69 @@ footer a:hover{color:var(--tx)}
 }
 [data-theme="dark"] .mock-bar{background:rgba(19,19,40,.8)}
 [data-theme="dark"] .pcard{background:rgba(19,19,40,.7)}
+
+/* ── LIGHT MODE: richer visuals ── */
+[data-theme="light"] .ambient .amb{opacity:.18}
+[data-theme="light"] nav{
+  box-shadow:0 1px 0 rgba(0,0,0,.06),0 4px 24px rgba(0,0,0,.04)
+}
+[data-theme="light"] .step{
+  background:#ffffff;
+  box-shadow:0 2px 16px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.04);
+  border-color:rgba(0,0,0,.08)
+}
+[data-theme="light"] .step:hover{
+  border-color:var(--p);
+  box-shadow:0 8px 32px rgba(124,58,237,.12),0 2px 8px rgba(0,0,0,.06)
+}
+[data-theme="light"] .ben{
+  background:#ffffff;
+  box-shadow:0 2px 16px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.04);
+  border-color:rgba(0,0,0,.08)
+}
+[data-theme="light"] .ben:hover{
+  border-color:var(--p);
+  box-shadow:0 8px 32px rgba(124,58,237,.10),0 2px 8px rgba(0,0,0,.05)
+}
+[data-theme="light"] .wc{
+  background:#ffffff;
+  box-shadow:0 2px 16px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.04);
+  border-color:rgba(0,0,0,.08)
+}
+[data-theme="light"] .oc{
+  background:#ffffff;
+  box-shadow:0 2px 12px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04);
+  border-color:rgba(0,0,0,.08)
+}
+[data-theme="light"] .oc:hover{border-color:var(--p);box-shadow:0 6px 24px rgba(124,58,237,.1)}
+[data-theme="light"] .stats-inner{
+  background:#ffffff;
+  box-shadow:0 4px 32px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.05)
+}
+[data-theme="light"] .mock-frame{
+  background:#ffffff;
+  box-shadow:0 24px 80px rgba(0,0,0,.14),0 4px 24px rgba(124,58,237,.08),0 0 0 1px rgba(0,0,0,.06)
+}
+[data-theme="light"] .float-badge{
+  box-shadow:0 8px 32px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.06)
+}
+[data-theme="light"] .cta-inner{
+  background:linear-gradient(160deg,rgba(124,58,237,.09) 0%,rgba(8,145,178,.06) 50%,rgba(217,119,6,.05) 100%);
+  border-color:rgba(124,58,237,.2);
+  box-shadow:0 0 80px rgba(124,58,237,.08),0 8px 40px rgba(0,0,0,.06)
+}
+[data-theme="light"] .stats-strip{
+  background:var(--s2)
+}
+[data-theme="light"] .alt-bg{
+  background:var(--s2)
+}
+[data-theme="light"] .chip{
+  background:#fff;border-color:rgba(0,0,0,.12)
+}
+[data-theme="light"] .chip.hi{
+  background:rgba(124,58,237,.07);border-color:rgba(124,58,237,.2)
+}
   </style>
 </head>
 <body>
@@ -547,10 +610,10 @@ footer a:hover{color:var(--tx)}
         <div class="pcard">
           <div class="ptag">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Toshkent · 🏛️ Davlat
+            <span data-i18n="mock_loc1">Toshkent · 🏛️ Davlat</span>
           </div>
-          <div class="ptitle">Startap ro'yxatdan o'tkazish jarayoni haddan tashqari murakkab</div>
-          <div class="pdesc">Asoschillar 10+ idoraga borishi kerak, 3-4 hafta ketadi...</div>
+          <div class="ptitle" data-i18n="mock_t1">Startap ro'yxatdan o'tkazish jarayoni haddan tashqari murakkab</div>
+          <div class="pdesc" data-i18n="mock_d1">Asoschillar 10+ idoraga borishi kerak, 3-4 hafta ketadi...</div>
           <div class="pfoot">
             <div class="pvote">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
@@ -558,9 +621,9 @@ footer a:hover{color:var(--tx)}
             </div>
             <div class="pai">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><path d="M3 17v2a2 2 0 0 0 2 2h2"/></svg>
-              AI tahlil qilindi
+              <span data-i18n="mock_ai">AI tahlil qilindi</span>
             </div>
-            <span class="ptime">2 kun oldin</span>
+            <span class="ptime" data-i18n="mock_ago2">2 kun oldin</span>
           </div>
         </div>
 
@@ -568,14 +631,14 @@ footer a:hover{color:var(--tx)}
         <div class="pcard" style="margin-bottom:.75rem">
           <div class="ptag" style="background:rgba(34,211,238,.12);color:var(--cy)">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-            Samarqand · 🎓 Ta'lim
+            <span data-i18n="mock_loc2">Samarqand · 🎓 Ta'lim</span>
           </div>
-          <div class="ptitle">Maktablarda raqamli ta'lim resurslari yetishmaydi</div>
-          <div class="pdesc">O'qituvchilar interaktiv materiallar yarata olmaydi...</div>
+          <div class="ptitle" data-i18n="mock_t2">Maktablarda raqamli ta'lim resurslari yetishmaydi</div>
+          <div class="pdesc" data-i18n="mock_d2">O'qituvchilar interaktiv materiallar yarata olmaydi...</div>
           <div class="pfoot">
             <div class="pvote"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>42</div>
-            <div class="pai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><path d="M3 17v2a2 2 0 0 0 2 2h2"/></svg>AI tahlil qilindi</div>
-            <span class="ptime">5 kun oldin</span>
+            <div class="pai"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><path d="M3 17v2a2 2 0 0 0 2 2h2"/></svg><span data-i18n="mock_ai">AI tahlil qilindi</span></div>
+            <span class="ptime" data-i18n="mock_ago5">5 kun oldin</span>
           </div>
         </div>
 
@@ -584,9 +647,9 @@ footer a:hover{color:var(--tx)}
           <div class="proj-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
           <div>
             <div class="proj-name">GovTech Starter Kit</div>
-            <div class="proj-meta">3 milestone · 2 hafta qoldi</div>
+            <div class="proj-meta" data-i18n="mock_proj_meta">3 milestone · 2 hafta qoldi</div>
           </div>
-          <div class="proj-status">Faol</div>
+          <div class="proj-status" data-i18n="mock_proj_status">Faol</div>
         </div>
 
       </div>
@@ -596,7 +659,7 @@ footer a:hover{color:var(--tx)}
       <div class="fbi" style="background:rgba(16,185,129,.15)">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gn)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
       </div>
-      <span>+3 yechim bugun</span>
+      <span data-i18n="mock_badge">+3 yechim bugun</span>
     </div>
   </div>
 </div>
@@ -659,10 +722,10 @@ footer a:hover{color:var(--tx)}
         <h3 data-i18n="ft1h">AI Moderatsiya va Tahlil</h3>
         <p data-i18n="ft1p">Har bir muammo avtomatik tahlil qilinadi. Dublikatlar aniqlanadi, sektor va mintaqa belgilanadi, xavflilik darajasi baholanadi. Inson kuchi tejab, sifat oshiriladi.</p>
         <div class="chips">
-          <span class="chip hi">Dublikat aniqlash</span>
-          <span class="chip hi">Sektorni belgilash</span>
-          <span class="chip">Urgency score</span>
-          <span class="chip">Xavf darajasi</span>
+          <span class="chip hi" data-i18n="chip1">Dublikat aniqlash</span>
+          <span class="chip hi" data-i18n="chip2">Sektorni belgilash</span>
+          <span class="chip" data-i18n="chip3">Urgency score</span>
+          <span class="chip" data-i18n="chip4">Xavf darajasi</span>
         </div>
       </div>
       <div class="ben">
@@ -755,7 +818,7 @@ footer a:hover{color:var(--tx)}
 <div class="cta-wrap" id="cta">
   <div class="cta-inner">
     <div class="badge" style="margin-bottom:1.25rem"><span class="dot"></span><span data-i18n="ct_badge">Bepul boshlang</span></div>
-    <h2>O'zbekistoni birgalikda<br><span class="gr" data-i18n="ct_gr">yaxshilaymiz</span></h2>
+    <h2><span data-i18n="ct_h2">O'zbekistoni birgalikda</span><br><span class="gr" data-i18n="ct_gr">yaxshilaymiz</span></h2>
     <p data-i18n="ct_p">Muammoingiz bormi? Yoki yechimingiz? Har ikki holatda ham bu — sizning joyingiz.</p>
     <div class="cta-btns">
       <a href="/login" class="btn btn-p btn-lg">
@@ -813,9 +876,16 @@ const T={
     o1t:"Davlat va NGOlar",o1p:"Analytics, muammo statistikasi, loyiha monitoring.",
     o2t:"Talabalar va Yoshlar",o2p:"Real muammo, hackathon va akselerator uchun ideal asos.",
     o3t:"Xalqaro Tashkilotlar",o3p:"UNDP, World Bank — mahalliy muammolar bazasi.",
-    ct_badge:"Bepul boshlang",ct_gr:"yaxshilaymiz",
+    ct_badge:"Bepul boshlang",ct_h2:"O'zbekistoni birgalikda",ct_gr:"yaxshilaymiz",
     ct_p:"Muammoingiz bormi? Yoki yechimingiz? Har ikki holatda ham bu — sizning joyingiz.",
-    ct_b1:"Platformaga kirish",ct_b2:"Muammo e'lon qilish",ct_note:"Ro'yxatdan o'tish — Telegram orqali, 30 soniyada"
+    ct_b1:"Platformaga kirish",ct_b2:"Muammo e'lon qilish",ct_note:"Ro'yxatdan o'tish — Telegram orqali, 30 soniyada",
+    mock_loc1:"Toshkent · 🏛️ Davlat",mock_t1:"Startap ro'yxatdan o'tkazish jarayoni haddan tashqari murakkab",
+    mock_d1:"Asoschillar 10+ idoraga borishi kerak, 3-4 hafta ketadi...",
+    mock_ai:"AI tahlil qilindi",mock_ago2:"2 kun oldin",
+    mock_loc2:"Samarqand · 🎓 Ta'lim",mock_t2:"Maktablarda raqamli ta'lim resurslari yetishmaydi",
+    mock_d2:"O'qituvchilar interaktiv materiallar yarata olmaydi...",mock_ago5:"5 kun oldin",
+    mock_proj_meta:"3 milestone · 2 hafta qoldi",mock_proj_status:"Faol",mock_badge:"+3 yechim bugun",
+    chip1:"Dublikat aniqlash",chip2:"Sektorni belgilash",chip3:"Urgency score",chip4:"Xavf darajasi"
   },
   ru:{
     n_how:"Как работает",n_feat:"Возможности",n_who:"Для кого",n_cta:"Начать",
@@ -843,9 +913,16 @@ const T={
     o1t:"Государство и НКО",o1p:"Аналитика, статистика проблем, мониторинг.",
     o2t:"Студенты и Молодёжь",o2p:"Реальная проблема для стартапа. Идеально для хакатонов.",
     o3t:"Международные организации",o3p:"UNDP, World Bank — база местных проблем.",
-    ct_badge:"Начните бесплатно",ct_gr:"улучшаем вместе",
+    ct_badge:"Начните бесплатно",ct_h2:"Узбекистан — вместе",ct_gr:"улучшаем",
     ct_p:"Есть проблема? Или решение? В любом случае — это ваше место.",
-    ct_b1:"Войти в платформу",ct_b2:"Опубликовать проблему",ct_note:"Регистрация через Telegram — 30 секунд"
+    ct_b1:"Войти в платформу",ct_b2:"Опубликовать проблему",ct_note:"Регистрация через Telegram — 30 секунд",
+    mock_loc1:"Ташкент · 🏛️ Государство",mock_t1:"Регистрация стартапа — слишком сложный процесс",
+    mock_d1:"Основатели посещают 10+ ведомств, уходит 3-4 недели...",
+    mock_ai:"AI проанализировал",mock_ago2:"2 дня назад",
+    mock_loc2:"Самарканд · 🎓 Образование",mock_t2:"В школах не хватает цифровых учебных ресурсов",
+    mock_d2:"Учителя не могут создавать интерактивные материалы...",mock_ago5:"5 дней назад",
+    mock_proj_meta:"3 milestone · осталось 2 недели",mock_proj_status:"Активен",mock_badge:"+3 решения сегодня",
+    chip1:"Поиск дублей",chip2:"Определение сектора",chip3:"Urgency score",chip4:"Уровень риска"
   },
   en:{
     n_how:"How it works",n_feat:"Features",n_who:"Who it's for",n_cta:"Get started",
@@ -873,9 +950,16 @@ const T={
     o1t:"Government & NGOs",o1p:"Analytics, problem stats, project monitoring.",
     o2t:"Students & Youth",o2p:"Real problems for your startup. Perfect for hackathons.",
     o3t:"International Orgs",o3p:"UNDP, World Bank — local problem database.",
-    ct_badge:"Start for free",ct_gr:"better together",
+    ct_badge:"Start for free",ct_h2:"Uzbekistan — together",ct_gr:"we improve",
     ct_p:"Have a problem? Have a solution? Either way — this is your place.",
-    ct_b1:"Enter platform",ct_b2:"Post a problem",ct_note:"Sign up via Telegram — 30 seconds"
+    ct_b1:"Enter platform",ct_b2:"Post a problem",ct_note:"Sign up via Telegram — 30 seconds",
+    mock_loc1:"Tashkent · 🏛️ Gov",mock_t1:"Startup registration process is overly complex",
+    mock_d1:"Founders must visit 10+ agencies, takes 3-4 weeks...",
+    mock_ai:"AI analyzed",mock_ago2:"2 days ago",
+    mock_loc2:"Samarkand · 🎓 Education",mock_t2:"Schools lack digital learning resources",
+    mock_d2:"Teachers cannot create interactive materials...",mock_ago5:"5 days ago",
+    mock_proj_meta:"3 milestones · 2 weeks left",mock_proj_status:"Active",mock_badge:"+3 solutions today",
+    chip1:"Duplicate detection",chip2:"Sector tagging",chip3:"Urgency score",chip4:"Risk level"
   }
 };
 
