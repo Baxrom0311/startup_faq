@@ -70,7 +70,7 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
 
   const goTo = (path: string, params: Record<string, string>) => {
     onOpenChange(false)
-    navigate({ to: path as any, params })
+    navigate({ to: path as any, params: params as any })
   }
 
   const hasResults = results && (results.problems.length > 0 || results.projects.length > 0)
