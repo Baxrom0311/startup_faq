@@ -220,17 +220,32 @@ def _validate_structured_data(data: dict[str, Any], text: str, *, has_audio: boo
         return DeterministicLLMProvider().structure_problem_sync(text, has_audio=has_audio)
 
 
+_RETRYABLE_STATUS = {408, 409, 425, 429, 500, 502, 503, 504}
+
+
 async def _with_retry(operation: Callable[[], Awaitable[httpx.Response]]) -> httpx.Response:
     last_error: Exception | None = None
-    for _attempt in range(3):
+    for attempt in range(3):
         try:
             response = await operation()
-            if response.status_code not in {408, 409, 425, 429, 500, 502, 503, 504}:
-                response.raise_for_status()
-                return response
             response.raise_for_status()
-        except (httpx.HTTPError, httpx.TimeoutException) as error:
+            return response
+        except httpx.HTTPStatusError as error:
             last_error = error
+            # Non-retryable client errors (401, 400, 422, ...) can never
+            # succeed on retry — fail fast instead of hammering the provider.
+            if error.response.status_code not in _RETRYABLE_STATUS:
+                raise
+        except (httpx.TimeoutException, httpx.TransportError) as error:
+            last_error = error
+        # Exponential backoff between attempts (0.5s, 1s), honoring Retry-After.
+        if attempt < 2:
+            delay = 0.5 * (2**attempt)
+            if isinstance(last_error, httpx.HTTPStatusError):
+                retry_after = last_error.response.headers.get("Retry-After")
+                if retry_after and retry_after.isdigit():
+                    delay = max(delay, float(retry_after))
+            await asyncio.sleep(delay)
     if last_error:
         raise last_error
     raise RuntimeError("LLM provider request failed")
@@ -263,13 +278,16 @@ class WhisperLocalSTTProvider:
         return cls._model
 
     async def transcribe(self, object_key: str) -> str:
-        model = self._get_model()
+        # Model construction downloads/loads weights (tens of seconds on first
+        # run) — keep it off the event loop so other worker jobs keep running.
+        model = await asyncio.to_thread(self._get_model)
         if not model:
             return ""
 
         suffix = Path(object_key).suffix or ".audio"
         with tempfile.NamedTemporaryFile(suffix=suffix) as media_file:
-            download_media_object(
+            await asyncio.to_thread(
+                download_media_object,
                 object_key=object_key,
                 destination_path=media_file.name,
             )
@@ -292,7 +310,8 @@ class ApiSTTProvider:
 
         suffix = Path(object_key).suffix or ".audio"
         with tempfile.NamedTemporaryFile(suffix=suffix) as media_file:
-            download_media_object(
+            await asyncio.to_thread(
+                download_media_object,
                 object_key=object_key,
                 destination_path=media_file.name,
             )

@@ -1,11 +1,12 @@
 import asyncio
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError, TelegramForbiddenError
 from aiogram.types import BufferedInputFile, InlineKeyboardButton, InlineKeyboardMarkup
+from sqlalchemy import update
 from sqlmodel import Session, select
 
 from app.core.config import settings
@@ -14,6 +15,10 @@ from app.models import Broadcast, User
 from app.modules.media.service import create_s3_client
 
 logger = logging.getLogger(__name__)
+
+# A broadcast left in "sending" longer than this is treated as abandoned
+# (worker crashed / redeployed mid-send) and may be re-claimed and resumed.
+STALE_SENDING_MINUTES = 30
 
 
 async def _fetch_photo_bytes(photo_key: str) -> bytes | None:
@@ -44,14 +49,34 @@ async def send_broadcast(ctx: dict, broadcast_id: str) -> None:
             logger.error("Broadcast with id=%s not found", broadcast_id)
             return
 
-        if broadcast.status in ("sending", "completed"):
-            logger.warning("Broadcast already in state %s; skipping", broadcast.status)
+        if broadcast.status == "completed":
+            logger.warning("Broadcast already completed; skipping")
             return
 
-        broadcast.status = "sending"
-        broadcast.started_at = datetime.now(timezone.utc)
-        session.add(broadcast)
+        now = datetime.now(timezone.utc)
+        stale_before = now - timedelta(minutes=STALE_SENDING_MINUTES)
+        # Atomically claim the broadcast: succeed only if it is still 'pending'
+        # OR it has been stuck in 'sending' past the stale threshold (previous
+        # worker crashed). The conditional WHERE closes the double-send race
+        # between two workers picking up the same job.
+        claim = session.execute(
+            update(Broadcast)
+            .where(Broadcast.id == broadcast.id)
+            .where(
+                (Broadcast.status == "pending")
+                | ((Broadcast.status == "sending") & (Broadcast.started_at < stale_before))
+            )
+            .values(status="sending", started_at=now)
+        )
         session.commit()
+        if claim.rowcount == 0:
+            logger.warning(
+                "Broadcast %s not claimable (status=%s); skipping",
+                broadcast_id,
+                broadcast.status,
+            )
+            return
+        session.refresh(broadcast)
 
         # 2. Select target users
         statement = select(User).where(User.telegram_id != None)

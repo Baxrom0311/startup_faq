@@ -4,13 +4,20 @@ from fastapi import Request
 from app.core.config import settings
 
 def get_real_client_ip(request: Request) -> str:
-    # Check X-Forwarded-For header to handle reverse proxies (Traefik, Nginx, etc.)
+    # X-Forwarded-For is "client, proxy1, proxy2, ...". The LEFTMOST value is
+    # attacker-controlled (a client can send any XFF), so keying rate limits on
+    # it lets an attacker present a fresh IP per request and bypass the limit.
+    # Trust only the entry appended by our own reverse proxy: the Nth from the
+    # right, where N = number of trusted proxies in front of the app.
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
-        return forwarded.split(",")[0].strip()
+        parts = [p.strip() for p in forwarded.split(",") if p.strip()]
+        if parts:
+            idx = min(settings.TRUSTED_PROXY_COUNT, len(parts))
+            return parts[-idx]
     real_ip = request.headers.get("X-Real-IP")
     if real_ip:
-        return real_ip
+        return real_ip.strip()
     return request.client.host if request.client else "127.0.0.1"
 
 import sys

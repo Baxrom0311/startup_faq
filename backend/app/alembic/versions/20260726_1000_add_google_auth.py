@@ -16,17 +16,12 @@ depends_on = None
 
 def upgrade() -> None:
     op.add_column('user', sa.Column('google_id', sa.String(length=255), nullable=True))
-    try:
-        op.create_unique_constraint('uq_user_google_id', 'user', ['google_id'])
-        op.create_index('ix_user_google_id', 'user', ['google_id'], unique=True)
-    except Exception:
-        pass
+    # The model declares google_id as unique+indexed, which is a single unique
+    # index. (A try/except around DDL aborts the whole transaction on Postgres,
+    # so it is not used here.)
+    op.create_index('ix_user_google_id', 'user', ['google_id'], unique=True)
 
 
 def downgrade() -> None:
-    try:
-        op.drop_index('ix_user_google_id', table_name='user')
-        op.drop_constraint('uq_user_google_id', 'user', type_='unique')
-    except Exception:
-        pass
+    op.drop_index('ix_user_google_id', table_name='user')
     op.drop_column('user', 'google_id')

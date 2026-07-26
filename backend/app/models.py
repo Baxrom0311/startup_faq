@@ -104,7 +104,7 @@ class AuthSession(SQLModel, table=True):
     phone_entered: str | None = Field(default=None, index=True, max_length=32)
     status: str = Field(default="pending", index=True, max_length=32)
     telegram_id: int | None = Field(default=None, sa_column=Column(BigInteger))
-    user_id: uuid.UUID | None = Field(default=None, foreign_key="user.id")
+    user_id: uuid.UUID | None = Field(default=None, foreign_key="user.id", ondelete="SET NULL")
     client: str | None = Field(default=None, max_length=32)
     ip: str | None = Field(default=None, max_length=64)
     created_at: datetime = Field(
@@ -118,7 +118,7 @@ class RefreshToken(SQLModel, table=True):
     __tablename__ = "refresh_tokens"
 
     jti: uuid.UUID = Field(primary_key=True, default_factory=uuid.uuid4)
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", index=True, ondelete="CASCADE")
     family: uuid.UUID = Field(index=True)
     revoked: bool = Field(default=False)
     expires_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
@@ -126,7 +126,9 @@ class RefreshToken(SQLModel, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-    auth_session_token: str | None = Field(default=None, foreign_key="auth_session.token", index=True)
+    auth_session_token: str | None = Field(
+        default=None, foreign_key="auth_session.token", index=True, ondelete="SET NULL"
+    )
 
 
 class Sector(SQLModel, table=True):
@@ -166,6 +168,14 @@ class ProblemUpdate(SQLModel):
     region_id: int | None = None
     sector_id: int | None = None
 
+    @model_validator(mode="after")
+    def _reject_blank_text(self) -> "ProblemUpdate":
+        # An empty/whitespace raw_text would blank the problem while skipping
+        # moderation; require None (no change) or real content.
+        if self.raw_text is not None and not self.raw_text.strip():
+            raise ValueError("raw_text cannot be empty")
+        return self
+
 
 class ProblemMergeRequest(SQLModel):
     target_problem_id: uuid.UUID
@@ -173,7 +183,7 @@ class ProblemMergeRequest(SQLModel):
 
 class Problem(ProblemBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, index=True, ondelete="CASCADE")
     sector_id: int | None = Field(default=None, foreign_key="sector.id")
     transcript: str | None = None
     title: str | None = Field(default=None, max_length=120)
@@ -184,7 +194,7 @@ class Problem(ProblemBase, table=True):
     status: str = Field(default="ai_processing", index=True, max_length=32)
     severity_score: float | None = None
     vote_count: int = 0
-    duplicate_of: uuid.UUID | None = Field(default=None, foreign_key="problem.id")
+    duplicate_of: uuid.UUID | None = Field(default=None, foreign_key="problem.id", ondelete="SET NULL")
     published_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
     created_at: datetime = Field(
         default_factory=get_datetime_utc,
@@ -204,7 +214,7 @@ class ProblemStatusLog(SQLModel, table=True):
     problem_id: uuid.UUID = Field(foreign_key="problem.id", nullable=False, ondelete="CASCADE")
     from_status: str | None = Field(default=None, max_length=32)
     to_status: str = Field(max_length=32)
-    actor_id: uuid.UUID | None = Field(default=None, foreign_key="user.id")
+    actor_id: uuid.UUID | None = Field(default=None, foreign_key="user.id", ondelete="SET NULL")
     reason: str | None = Field(default=None, max_length=500)
     created_at: datetime = Field(
         default_factory=get_datetime_utc,
@@ -216,7 +226,7 @@ class AIAnalysis(SQLModel, table=True):
     __tablename__ = "ai_analysis"
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    problem_id: uuid.UUID = Field(foreign_key="problem.id", nullable=False, ondelete="CASCADE")
+    problem_id: uuid.UUID = Field(foreign_key="problem.id", nullable=False, index=True, ondelete="CASCADE")
     model: str = Field(max_length=120)
     summary_json: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
     created_at: datetime = Field(
@@ -294,8 +304,8 @@ class CommentCreate(CommentBase):
 
 class Comment(CommentBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    problem_id: uuid.UUID = Field(foreign_key="problem.id", nullable=False, ondelete="CASCADE")
-    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    problem_id: uuid.UUID = Field(foreign_key="problem.id", nullable=False, index=True, ondelete="CASCADE")
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     created_at: datetime = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -362,8 +372,8 @@ class ProjectUpdate(SQLModel):
 
 class Project(ProjectBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    problem_id: uuid.UUID = Field(foreign_key="problem.id", nullable=False)
-    lead_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    problem_id: uuid.UUID = Field(foreign_key="problem.id", nullable=False, index=True, ondelete="CASCADE")
+    lead_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     status: str = Field(default="proposed", index=True, max_length=32)
     created_at: datetime = Field(
         default_factory=get_datetime_utc,
@@ -391,7 +401,7 @@ class ProjectsPublic(SQLModel):
 
 class ProjectMember(SQLModel, table=True):
     project_id: uuid.UUID = Field(foreign_key="project.id", primary_key=True, ondelete="CASCADE")
-    user_id: uuid.UUID = Field(foreign_key="user.id", primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", primary_key=True, ondelete="CASCADE")
     role: str = Field(default="member", max_length=32)
 
 
@@ -447,7 +457,7 @@ class ProjectUpdateLog(ProjectUpdateBase, table=True):
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     project_id: uuid.UUID = Field(foreign_key="project.id", nullable=False, ondelete="CASCADE")
-    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     created_at: datetime = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -486,7 +496,7 @@ class ReviewCreate(ReviewBase):
 class Review(ReviewBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     project_id: uuid.UUID = Field(foreign_key="project.id", nullable=False, ondelete="CASCADE")
-    reviewer_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    reviewer_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     created_at: datetime = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -514,8 +524,18 @@ class ProjectIssueBase(SQLModel):
     status: str = Field(default="open", max_length=32)  # open | closed
 
 
+_ISSUE_KINDS = {"bug", "feature", "task", "question"}
+_ISSUE_STATUSES = {"open", "closed"}
+
+
 class ProjectIssueCreate(ProjectIssueBase):
-    pass
+    @model_validator(mode="after")
+    def _validate_kind_status(self) -> "ProjectIssueCreate":
+        if self.kind not in _ISSUE_KINDS:
+            raise ValueError(f"kind must be one of {sorted(_ISSUE_KINDS)}")
+        if self.status not in _ISSUE_STATUSES:
+            raise ValueError(f"status must be one of {sorted(_ISSUE_STATUSES)}")
+        return self
 
 
 class ProjectIssueUpdate(SQLModel):
@@ -524,11 +544,19 @@ class ProjectIssueUpdate(SQLModel):
     kind: str | None = Field(default=None, max_length=32)
     status: str | None = Field(default=None, max_length=32)
 
+    @model_validator(mode="after")
+    def _validate_kind_status(self) -> "ProjectIssueUpdate":
+        if self.kind is not None and self.kind not in _ISSUE_KINDS:
+            raise ValueError(f"kind must be one of {sorted(_ISSUE_KINDS)}")
+        if self.status is not None and self.status not in _ISSUE_STATUSES:
+            raise ValueError(f"status must be one of {sorted(_ISSUE_STATUSES)}")
+        return self
+
 
 class ProjectIssue(ProjectIssueBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    project_id: uuid.UUID = Field(foreign_key="project.id", nullable=False, index=True)
-    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    project_id: uuid.UUID = Field(foreign_key="project.id", nullable=False, index=True, ondelete="CASCADE")
+    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     comment_count: int = Field(default=0)
     created_at: datetime = Field(
         default_factory=get_datetime_utc,
@@ -571,8 +599,8 @@ class IssueCommentCreate(IssueCommentBase):
 
 class IssueComment(IssueCommentBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    issue_id: uuid.UUID = Field(foreign_key="projectissue.id", nullable=False, index=True)
-    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    issue_id: uuid.UUID = Field(foreign_key="projectissue.id", nullable=False, index=True, ondelete="CASCADE")
+    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     created_at: datetime = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),

@@ -1,15 +1,22 @@
-import uuid
 import csv
 import io
+import uuid
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
+from sqlalchemy import update
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import func, select
 
+from app.api.deps import (
+    CurrentUser,
+    CurrentUserFromQuery,
+    OptionalCurrentUser,
+    SessionDep,
+)
 from app.core.limiter import limiter
-
-from app.api.deps import CurrentUser, CurrentUserFromQuery, SessionDep
 from app.models import (
     AIAnalysis,
     Comment,
@@ -22,8 +29,8 @@ from app.models import (
     ProblemMedia,
     ProblemMergeRequest,
     ProblemPublic,
-    ProblemUpdate,
     ProblemsPublic,
+    ProblemUpdate,
     Project,
     Sector,
     User,
@@ -179,7 +186,10 @@ async def create_problem(
             )
 
     media_keys = [key for key in [problem_in.raw_audio_key, *problem_in.photo_keys] if key]
-    duplicate = find_duplicate_problem(
+    # find_duplicate_problem runs SequenceMatcher over up to 100 rows — CPU-heavy
+    # enough to stall the event loop in this async route, so offload it.
+    duplicate = await run_in_threadpool(
+        find_duplicate_problem,
         session=session,
         problem_in_text=problem_in.raw_text,
     )
@@ -211,7 +221,8 @@ async def create_problem(
         return result
 
     # AI content moderation (synchronous — user gets instant feedback)
-    if problem_in.raw_text:
+    has_text = bool(problem_in.raw_text)
+    if has_text:
         sector_name = sector.name_uz if sector else "Umumiy"
         moderation = await moderate_content(text=problem_in.raw_text, sector_name=sector_name)
         if not moderation.approved:
@@ -230,13 +241,25 @@ async def create_problem(
     )
     session.add(problem)
     session.flush()
-    transition_problem(
-        session=session,
-        problem=problem,
-        to_status="published",
-        actor_id=current_user.id,
-        reason="ai_approved",
-    )
+    # Text submissions passed synchronous moderation -> publish immediately.
+    # Audio/photo-only submissions have no moderated text yet, so they must go
+    # through the worker (transcribe + moderate) before becoming public.
+    if has_text:
+        transition_problem(
+            session=session,
+            problem=problem,
+            to_status="published",
+            actor_id=current_user.id,
+            reason="ai_approved",
+        )
+    else:
+        transition_problem(
+            session=session,
+            problem=problem,
+            to_status="ai_processing",
+            actor_id=current_user.id,
+            reason="pending_ai_moderation",
+        )
     _attach_owned_media(
         session=session,
         current_user=current_user,
@@ -333,9 +356,9 @@ async def read_problems(
         filters.append(Problem.author_id == author_id)
 
     if q and q.strip():
-        from app.modules.ai.providers import get_embedding_provider
-        from app.modules.ai.analyzer import cosine_similarity
         from app.models import ProblemEmbedding
+        from app.modules.ai.analyzer import cosine_similarity
+        from app.modules.ai.providers import get_embedding_provider
 
         q_clean = q.strip()
         q_embedding = None
@@ -525,8 +548,8 @@ async def update_problem(
     for field, value in update_data.items():
         setattr(problem, field, value)
 
-    if text_changed and problem.status == "needs_review":
-        # Text passed moderation — restore to published
+    if text_changed and problem_in.raw_text and problem.status == "needs_review":
+        # Republish only when moderation actually ran (non-empty new text).
         transition_problem(
             session=session,
             problem=problem,
@@ -662,6 +685,21 @@ def merge_problem(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Problem cannot be merged into itself",
         )
+    # Never merge into an archived problem or one that is itself a duplicate —
+    # that would strand votes/comments on a hidden row and build a duplicate_of
+    # chain no code resolves.
+    if target.status == "archived" or target.duplicate_of is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Target problem is archived or already a duplicate",
+        )
+
+    # Re-point the source's projects at the target so project_count stays
+    # correct and project teams follow the surviving problem.
+    projects = session.exec(select(Project).where(Project.problem_id == source.id)).all()
+    for project in projects:
+        project.problem_id = target.id
+        session.add(project)
 
     source_voters = session.exec(select(Vote).where(Vote.problem_id == source.id)).all()
     for vote in source_voters:
@@ -718,19 +756,27 @@ def vote_problem(
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
 
-    vote = session.get(Vote, (current_user.id, problem_id))
-    if vote:
+    # Insert the vote first and let the composite PK enforce one-vote-per-user.
+    # Two concurrent requests race here; the loser hits IntegrityError and is
+    # treated as "already voted" (idempotent), so counts never double-increment.
+    session.add(Vote(user_id=current_user.id, problem_id=problem_id))
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
         return None
 
-    session.add(Vote(user_id=current_user.id, problem_id=problem_id))
-    problem.vote_count += 1
-    session.add(problem)
-    
-    author = session.get(User, problem.author_id)
-    if author:
-        author.reputation = max(author.reputation + 1, 0)
-        session.add(author)
-
+    # Atomic SQL increments avoid the read-modify-write lost-update race.
+    session.execute(
+        update(Problem)
+        .where(Problem.id == problem_id)
+        .values(vote_count=Problem.vote_count + 1)
+    )
+    session.execute(
+        update(User)
+        .where(User.id == problem.author_id)
+        .values(reputation=User.reputation + 1)
+    )
     session.commit()
     return None
 
@@ -744,28 +790,48 @@ def unvote_problem(
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
 
-    vote = session.get(Vote, (current_user.id, problem_id))
-    if vote:
-        session.delete(vote)
-        problem.vote_count = max(problem.vote_count - 1, 0)
-        session.add(problem)
-        
-        author = session.get(User, problem.author_id)
-        if author:
-            author.reputation = max(author.reputation - 1, 0)
-            session.add(author)
-
-        session.commit()
+    # Delete atomically and only adjust counters when a row was actually
+    # removed (rowcount==1), so concurrent unvotes cannot underflow the count.
+    deleted = session.execute(
+        Vote.__table__.delete().where(
+            Vote.user_id == current_user.id, Vote.problem_id == problem_id
+        )
+    )
+    if deleted.rowcount:
+        session.execute(
+            update(Problem)
+            .where(Problem.id == problem_id, Problem.vote_count > 0)
+            .values(vote_count=Problem.vote_count - 1)
+        )
+        session.execute(
+            update(User)
+            .where(User.id == problem.author_id, User.reputation > 0)
+            .values(reputation=User.reputation - 1)
+        )
+    session.commit()
     return Message(message="Vote removed")
 
 
 @router.get("/{problem_id}/comments", response_model=CommentsPublic)
 def read_comments(
-    session: SessionDep, problem_id: uuid.UUID, skip: int = 0, limit: int = 100
+    *,
+    session: SessionDep,
+    current_user: OptionalCurrentUser,
+    problem_id: uuid.UUID,
+    skip: int = 0,
+    limit: int = 100,
 ) -> Any:
     problem = session.get(Problem, problem_id)
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
+    # Public problems' comments are readable by anyone; hidden problems
+    # (draft/needs_review/ai_processing) expose comments only to their author
+    # and superusers — same visibility as read_problem.
+    if problem.status not in _PUBLIC_STATUSES:
+        if not current_user or (
+            not current_user.is_superuser and problem.author_id != current_user.id
+        ):
+            raise HTTPException(status_code=404, detail="Problem not found")
 
     count_statement = (
         select(func.count()).select_from(Comment).where(Comment.problem_id == problem_id)
@@ -816,8 +882,11 @@ def create_comment(
     )
     session.add(comment)
 
-    current_user.reputation = max(current_user.reputation + 2, 0)
-    session.add(current_user)
+    # Reputation only for engaging with OTHER people's problems — commenting on
+    # your own problem must not farm reputation.
+    if problem.author_id != current_user.id:
+        current_user.reputation = max(current_user.reputation + 2, 0)
+        session.add(current_user)
 
     session.commit()
     session.refresh(comment)

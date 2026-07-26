@@ -36,6 +36,14 @@ async def verify_google_token(
             "https://oauth2.googleapis.com/tokeninfo",
             params={"id_token": body.credential},
         )
+    # Fail closed: without a configured client ID we cannot validate the
+    # token's audience, so any Google-signed token would be accepted.
+    if not settings.GOOGLE_CLIENT_ID:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Google login is not configured",
+        )
+
     if resp.status_code != 200:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token"
@@ -43,10 +51,23 @@ async def verify_google_token(
 
     info = resp.json()
 
-    # Verify audience matches our client ID
-    if settings.GOOGLE_CLIENT_ID and info.get("aud") != settings.GOOGLE_CLIENT_ID:
+    # Verify audience matches our client ID (audience-confusion prevention)
+    if info.get("aud") != settings.GOOGLE_CLIENT_ID:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token audience mismatch"
+        )
+
+    # Verify the issuer is genuinely Google
+    if info.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token issuer"
+        )
+
+    # tokeninfo returns email_verified as the string "true"/"false"
+    if info.get("email_verified") not in (True, "true"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Google email is not verified",
         )
 
     google_id = info.get("sub")
@@ -106,7 +127,9 @@ async def verify_google_token(
         family=family,
         expires_at=new_expires_at,
         revoked=False,
-        auth_session_token=f"google:{google_id}",
+        # No AuthSession backs a Google login; the FK column is nullable and
+        # a fake "google:..." value would violate the FK to auth_session.token.
+        auth_session_token=None,
     )
     session.add(db_token)
     session.commit()

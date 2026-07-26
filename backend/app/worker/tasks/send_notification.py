@@ -2,11 +2,23 @@ import uuid
 from datetime import datetime, timezone
 
 import httpx
+from arq import Retry
 from sqlmodel import Session
 
 from app.core.config import settings
 from app.core.db import engine
 from app.models import Notification, User
+
+
+def _is_transient(exc: Exception) -> bool:
+    """Timeouts, connection errors, 429 flood-wait and 5xx are worth retrying;
+    permanent errors (403 bot blocked, 400 chat not found) are not."""
+    if isinstance(exc, (httpx.TimeoutException, httpx.TransportError)):
+        return True
+    if isinstance(exc, httpx.HTTPStatusError):
+        code = exc.response.status_code
+        return code == 429 or code >= 500
+    return False
 
 
 _LABELS: dict[str, dict[str, str]] = {
@@ -119,6 +131,12 @@ async def send_notification(ctx: dict, notification_id: str) -> None:
                 text=_render_notification_text(notification, lang=user.language or "uz"),
             )
         except Exception as exc:
+            if _is_transient(exc) and ctx.get("job_try", 1) <= 3:
+                # Leave the row pending and let arq retry with backoff.
+                notification.delivery_error = str(exc)[:500]
+                session.add(notification)
+                session.commit()
+                raise Retry(defer=ctx.get("job_try", 1) * 15)
             notification.delivery_status = "failed"
             notification.delivery_error = str(exc)[:500]
         else:

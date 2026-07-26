@@ -1,4 +1,3 @@
-import asyncio
 import uuid
 from typing import Any
 
@@ -8,7 +7,7 @@ from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.config import settings
-from app.models import Message, ProblemMedia
+from app.models import Message, Problem, ProblemMedia
 from app.modules.media.schemas import PresignRequest, PresignResponse
 from app.modules.media.service import (
     build_object_key,
@@ -44,6 +43,15 @@ def presign_media_upload(
     validate_media(kind=body.kind, content_type=body.content_type, size=body.size)
     object_key = build_object_key(kind=body.kind, content_type=body.content_type)
     problem_id = uuid.UUID(body.problem_id) if body.problem_id else None
+    # Never attach an upload to a problem the caller does not own — otherwise
+    # any user could inject media onto another user's published problem.
+    if problem_id is not None:
+        problem = session.get(Problem, problem_id)
+        if not problem or problem.author_id != current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="Cannot attach media to this problem",
+            )
     media = ProblemMedia(
         problem_id=problem_id,
         uploaded_by=current_user.id,

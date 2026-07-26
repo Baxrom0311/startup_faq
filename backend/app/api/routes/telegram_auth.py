@@ -1,3 +1,4 @@
+import secrets as _secrets
 from datetime import timedelta
 
 from fastapi import APIRouter, Header, HTTPException, Request, status
@@ -26,6 +27,21 @@ from app.modules.auth.service import (
 )
 
 router = APIRouter(prefix="/auth/telegram", tags=["telegram-auth"])
+
+
+def _require_bot_secret(provided: str | None) -> None:
+    """Validate the bot -> backend shared secret. Fails closed: an unset
+    server secret rejects every request instead of skipping the check."""
+    configured = settings.TG_WEBHOOK_SECRET
+    if not configured:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Telegram webhook secret is not configured",
+        )
+    if not provided or not _secrets.compare_digest(provided, configured):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Invalid bot secret"
+        )
 
 
 def _status_response(session: SessionDep, auth_session) -> TelegramAuthStatusResponse:
@@ -58,8 +74,9 @@ def start_telegram_auth(
 
 
 @router.get("/status/{session_id}", response_model=TelegramAuthStatusResponse)
+@limiter.limit("60/minute")
 def telegram_auth_status(
-    *, session: SessionDep, session_id: str
+    *, session: SessionDep, request: Request, session_id: str
 ) -> TelegramAuthStatusResponse:
     auth_session = get_auth_session(session=session, token=session_id)
     if not auth_session:
@@ -75,8 +92,7 @@ def mark_start(
     session_id: str,
     x_telegram_webhook_secret: str | None = Header(default=None),
 ) -> TelegramAuthStatusResponse:
-    if settings.TG_WEBHOOK_SECRET and x_telegram_webhook_secret != settings.TG_WEBHOOK_SECRET:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid bot secret")
+    _require_bot_secret(x_telegram_webhook_secret)
     auth_session = mark_telegram_start_used(session=session, token=session_id)
     return _status_response(session, auth_session)
 
@@ -88,8 +104,7 @@ def verify_contact(
     body: TelegramContactVerifyRequest,
     x_telegram_webhook_secret: str | None = Header(default=None),
 ) -> TelegramAuthStatusResponse:
-    if settings.TG_WEBHOOK_SECRET and x_telegram_webhook_secret != settings.TG_WEBHOOK_SECRET:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid bot secret")
+    _require_bot_secret(x_telegram_webhook_secret)
 
     auth_session = verify_telegram_contact(
         session=session,
@@ -111,11 +126,13 @@ def refresh_access_token(
     *, session: SessionDep, request: Request, body: TokenRefreshRequest
 ) -> TokenRefreshResponse:
     """Exchange a valid refresh token for a new access token, with rotation and revocation."""
-    from app.core import security as sec
-    from app.models import User, RefreshToken
-    from sqlmodel import select
-    from datetime import datetime, timezone
     import uuid
+    from datetime import datetime, timezone
+
+    from sqlmodel import select
+
+    from app.core import security as sec
+    from app.models import RefreshToken, User
 
     try:
         payload = sec.decode_refresh_token(body.refresh_token)
@@ -165,9 +182,29 @@ def refresh_access_token(
         )
 
     # Valid token -> rotate!
-    # 1. Revoke the used token
-    db_token.revoked = True
-    session.add(db_token)
+    # 1. Atomically revoke the used token. The conditional UPDATE ... WHERE
+    #    revoked=false lets exactly one of two concurrent requests win; the
+    #    loser sees rowcount==0, which is reuse -> revoke the whole family.
+    from sqlmodel import update
+
+    revoked_now = session.execute(
+        update(RefreshToken)
+        .where(RefreshToken.jti == jti)
+        .where(RefreshToken.revoked == False)  # noqa: E712
+        .values(revoked=True)
+    )
+    if revoked_now.rowcount == 0:
+        family_tokens = session.exec(
+            select(RefreshToken).where(RefreshToken.family == db_token.family)
+        ).all()
+        for t in family_tokens:
+            t.revoked = True
+            session.add(t)
+        session.commit()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or revoked refresh token",
+        )
 
     # 2. Create a new token in the same family
     new_jti = uuid.uuid4()
@@ -207,9 +244,10 @@ def logout(
     *, session: SessionDep, body: TokenRefreshRequest
 ) -> Message:
     """Revoke the provided refresh token to log out."""
+    import uuid
+
     from app.core import security as sec
     from app.models import RefreshToken
-    import uuid
 
     try:
         payload = sec.decode_refresh_token(body.refresh_token)

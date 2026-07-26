@@ -26,6 +26,13 @@ async def analyze_problem(ctx: dict, problem_id: str) -> None:
             await analyze_problem_with_ai(session=session, problem=problem)
         except Exception as exc:
             logger.exception("analyze_problem failed for problem_id=%s", problem_id)
+            # A DB error inside the analyzer leaves the session in a
+            # rollback-required state; discard partial work before writing the
+            # error record, otherwise the final commit raises PendingRollbackError.
+            session.rollback()
+            problem = session.get(Problem, parsed_problem_id)
+            if not problem:
+                return
             session.add(
                 AIAnalysis(
                     problem_id=problem.id,

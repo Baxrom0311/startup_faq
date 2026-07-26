@@ -2,17 +2,17 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
-from sqlalchemy import or_
+from sqlalchemy import or_, update
 from sqlmodel import func, select
 
-from app.core.limiter import limiter
-
 from app.api.deps import CurrentUser, SessionDep
+from app.core.limiter import limiter
 from app.models import (
     IssueComment,
     IssueCommentCreate,
     IssueCommentPublic,
     IssueCommentsPublic,
+    Message,
     Problem,
     ProblemMedia,
     Project,
@@ -50,6 +50,7 @@ from app.modules.projects.service import (
     complete_project_with_review,
     ensure_project_manageable,
     ensure_project_manager,
+    ensure_project_participant,
     mark_project_in_progress,
     reject_project,
     start_piloting,
@@ -217,11 +218,11 @@ def update_project_endpoint(
         raise HTTPException(status_code=404, detail="Project not found")
     if project.lead_id != current_user.id and not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Not enough permissions")
-    
+
     update_data = project_in.model_dump(exclude_unset=True)
     if not update_data:
         return project
-    
+
     project.sqlmodel_update(update_data)
     project.updated_at = get_datetime_utc()
     session.add(project)
@@ -337,8 +338,13 @@ def create_issue(
     project = session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+    ensure_project_participant(session=session, project=project, actor=current_user)
+    data = body.model_dump()
+    # An issue is always born open — clients cannot create a pre-closed issue
+    # (which would leave closed_at permanently None).
+    data["status"] = "open"
     issue = ProjectIssue(
-        **body.model_dump(),
+        **data,
         project_id=project_id,
         author_id=current_user.id,
     )
@@ -438,15 +444,20 @@ def create_issue_comment(
     issue = session.exec(select(ProjectIssue).where(ProjectIssue.id == issue_id, ProjectIssue.project_id == project_id)).first()
     if not issue:
         raise HTTPException(status_code=404, detail="Issue not found")
+    project = session.get(Project, project_id)
+    ensure_project_participant(session=session, project=project, actor=current_user)
     comment = IssueComment(
         text=body.text,
         issue_id=issue_id,
         author_id=current_user.id,
     )
     session.add(comment)
-    issue.comment_count += 1
-    issue.updated_at = get_datetime_utc()
-    session.add(issue)
+    # Atomic increment avoids the read-modify-write lost-update on concurrent comments.
+    session.execute(
+        update(ProjectIssue)
+        .where(ProjectIssue.id == issue_id)
+        .values(comment_count=ProjectIssue.comment_count + 1, updated_at=get_datetime_utc())
+    )
     session.commit()
     session.refresh(comment)
     return comment
@@ -529,6 +540,26 @@ def update_project_milestone(
     session.commit()
     session.refresh(milestone)
     return milestone
+
+
+@router.delete("/milestones/{milestone_id}", response_model=Message)
+def delete_project_milestone(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    milestone_id: uuid.UUID,
+) -> Any:
+    milestone = session.get(ProjectMilestone, milestone_id)
+    if not milestone:
+        raise HTTPException(status_code=404, detail="Milestone not found")
+    project = session.get(Project, milestone.project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    ensure_project_manager(project=project, actor=current_user)
+    ensure_project_manageable(project=project)
+    session.delete(milestone)
+    session.commit()
+    return Message(message="Milestone deleted")
 
 
 @router.get("/projects/{project_id}/updates", response_model=ProjectUpdatesPublic)

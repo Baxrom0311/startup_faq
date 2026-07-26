@@ -38,10 +38,13 @@ def transition_problem(
     problem.status = to_status
     now = datetime.now(timezone.utc)
     problem.updated_at = now
-    if to_status == "published" and problem.published_at is None:
+    first_publish = to_status == "published" and problem.published_at is None
+    if first_publish:
         problem.published_at = now
 
-    if to_status == "published":
+    # Reputation is granted only on the FIRST publication, never on every
+    # re-publish cycle (reanalyze / author-edit / unclaim would otherwise farm it).
+    if first_publish:
         from app.models import User
         author = session.get(User, problem.author_id)
         if author:

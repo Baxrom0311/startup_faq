@@ -108,6 +108,9 @@ class Settings(BaseSettings):
     TG_WEBHOOK_SECRET: str = ""
     BACKEND_INTERNAL_URL: str = "http://backend:8000/api/v1"
     GOOGLE_CLIENT_ID: str = ""
+    # Number of trusted reverse proxies in front of the app. Used to pick the
+    # real client IP from X-Forwarded-For (rightmost-N) for rate limiting.
+    TRUSTED_PROXY_COUNT: int = 1
 
     JWT_ACCESS_TTL_SECONDS: int = 900
     JWT_REFRESH_TTL_DAYS: int = 60
@@ -146,6 +149,18 @@ class Settings(BaseSettings):
             else:
                 raise ValueError(message)
 
+    def _require_configured(self, var_name: str, value: str | None) -> None:
+        """Fail closed: a security-critical secret must be set outside local."""
+        if not value:
+            message = (
+                f"{var_name} must be configured for a "
+                f"{self.ENVIRONMENT} deployment."
+            )
+            if self.ENVIRONMENT == "local":
+                warnings.warn(message, stacklevel=1)
+            else:
+                raise ValueError(message)
+
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
@@ -153,6 +168,12 @@ class Settings(BaseSettings):
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )
+
+        # The Telegram bot -> backend shared secret must never be empty in a
+        # real deployment: an empty secret disables the header check on
+        # /auth/telegram/verify-contact and /mark-start (account takeover).
+        if self.AUTH_PROVIDER == "telegram":
+            self._require_configured("TG_WEBHOOK_SECRET", self.TG_WEBHOOK_SECRET)
 
         return self
 

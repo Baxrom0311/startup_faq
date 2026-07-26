@@ -54,6 +54,21 @@ async def _pop_token(telegram_id: int) -> str | None:
         return None
 
 
+async def _peek_token(telegram_id: int) -> str | None:
+    try:
+        return await _get_redis().get(_redis_key(telegram_id))
+    except Exception as exc:
+        logger.warning("Redis peek token failed: %s", exc)
+        return None
+
+
+async def _delete_token(telegram_id: int) -> None:
+    try:
+        await _get_redis().delete(_redis_key(telegram_id))
+    except Exception as exc:
+        logger.warning("Redis delete token failed: %s", exc)
+
+
 @router.message(CommandStart(deep_link=False))
 async def start_no_token(message: Message) -> None:
     frontend = settings.FRONTEND_HOST.rstrip("/")
@@ -126,7 +141,9 @@ async def verify_contact(message: Message) -> None:
         await message.answer("Kontakt kelmadi. Qaytadan urinib ko'ring.")
         return
 
-    token = await _pop_token(message.from_user.id)
+    # Read the token WITHOUT consuming it — a transient backend failure below
+    # must not burn the single-use token, or the "try again" retry would fail.
+    token = await _peek_token(message.from_user.id)
     if not token:
         await message.answer("Login sessiya topilmadi yoki muddati tugagan. Saytga qaytib qaytadan urinib ko'ring.")
         return
@@ -161,6 +178,9 @@ async def verify_contact(message: Message) -> None:
         logger.warning("Telegram contact verification failed: %s %s", response.status_code, response.text)
         await message.answer("Tasdiqlashda xatolik bo'ldi. Saytga qaytib qaytadan urinib ko'ring.")
         return
+
+    # Success — now safe to consume the single-use token.
+    await _delete_token(message.from_user.id)
 
     frontend = settings.FRONTEND_HOST.rstrip("/")
     keyboard = InlineKeyboardMarkup(inline_keyboard=[

@@ -142,6 +142,21 @@ def ensure_project_manager(*, project: Project, actor: User) -> None:
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
 
+def ensure_project_participant(*, session: Session, project: Project, actor: User) -> None:
+    """Allow the lead, project members, the problem's author, or a superuser.
+    Used to gate the team-internal issues/chat so any logged-in user cannot
+    post into another team's workspace."""
+    if actor.is_superuser or project.lead_id == actor.id:
+        return
+    member = session.get(ProjectMember, (project.id, actor.id))
+    if member:
+        return
+    problem = session.get(Problem, project.problem_id)
+    if problem and problem.author_id == actor.id:
+        return
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+
+
 def ensure_project_manageable(*, project: Project) -> None:
     if project.status in MANAGEABLE_PROJECT_STATUSES:
         return
@@ -213,7 +228,7 @@ def complete_project_with_review(
     )
     session.add(project)
     session.add(review)
-    
+
     lead = session.get(User, project.lead_id)
     if lead:
         lead.reputation = max(lead.reputation + 20, 0)
