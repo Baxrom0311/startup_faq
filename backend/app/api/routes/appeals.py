@@ -293,7 +293,8 @@ HAR DOIM FAQAT shunday yagona JSON obyekt qaytar:
 async def voice_chat(body: VoiceChatRequest) -> VoiceChatResponse:
     """Interactive Gemini Voice AI assistant endpoint for civic appeals."""
     api_key = settings.GEMINI_API_KEY or "AIzaSyB10Cl-vb91H6znU2_j-9evrnTY-Lncz9k"
-    model_name = settings.GEMINI_MODEL or "gemini-2.5-flash"
+    model_name = "gemini-1.5-flash"
+
 
     contents = [{"role": "user", "parts": [{"text": VOICE_SYSTEM_PROMPT}]}]
     for msg in body.messages:
