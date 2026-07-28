@@ -15,7 +15,7 @@ from app.modules.ai.providers import _extract_json_object, _with_retry
 logger = logging.getLogger(__name__)
 
 _PROMPT = """\
-Siz O'zbekiston startup muammolar platformasi uchun kontent moderatorsiz.
+Siz O'zbekiston SolutionLab jamoatchilik va shahar muammolari platformasi uchun kontent moderatorsiz.
 
 Soha: {sector}
 Muammo matni: {text}
