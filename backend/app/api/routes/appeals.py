@@ -6,12 +6,17 @@ endpoint with track="civic"; the AI worker routes them to an agency and flags
 emergencies. These endpoints let officials list, track execution, and see
 aggregate statistics in one place.
 """
+import json
 from datetime import datetime, timezone
 from typing import Any
 
+import httpx
 from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import select
+
+from app.core.config import settings
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
@@ -226,3 +231,131 @@ def reroute_appeal(
     session.commit()
     session.refresh(problem)
     return _appeal_public(problem, None)
+
+
+class VoiceChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class VoiceChatRequest(BaseModel):
+    messages: list[VoiceChatMessage]
+    language: str = "uz"
+
+
+class CollectedData(BaseModel):
+    citizen_name: str | None = None
+    phone: str | None = None
+    location: str | None = None
+    problem_description: str | None = None
+    suggested_agency_slug: str | None = None
+    is_emergency: bool = False
+
+
+class VoiceChatResponse(BaseModel):
+    reply_text: str
+    ready_to_submit: bool = False
+    collected_data: CollectedData | None = None
+
+
+VOICE_SYSTEM_PROMPT = """Sen "SolutionLab Ovozli AI Yordamchisi"san. Vazifang — fuqarolardan murojaat va shikoyatlarni ovozli muloqot orqali qabul qilish va ularga ko'maklashish.
+
+Muloqot va javob berish qoidalari:
+1. Har doim fuqaroning tilida (o'zbek tilida: "uz", rus tilida: "ru", ingliz tilida: "en") xushmuomalalik va hurmat bilan javob ber ("Assalomu aleykum hurmatli fuqaro!...").
+2. Fuqaro murojaatining mazmunini (muammosini) tahlil qil va tushunib ol.
+3. Murojaatni to'liq shakllantirish uchun fuqarodan quyidagi ma'lumotlar borligini tekshir:
+   - Muammo tavsifi (nimadan shikoyat qilmoqda)
+   - Fuqaroning ismi (Ism-familiya)
+   - Telefon raqami
+   - Manzili (Tuman, shahar yoki mahalla)
+4. Agar ism, telefon raqami yoki manzil hali aytilmagan bo'lsa, fuqarodan bularni qisqa va aniq so'ra (masalan: "Muammoingiz tushunarli. Iltimos, ismingiz, telefon raqamingiz va manzilingizni ham aytib o'tsangiz, murojaatingizni rasmiylashtiramiz...").
+5. Tizim idoralarini quyidagi sluglardan biriga mosla: "suv", "elektr", "gaz", "issiqlik", "yol", "kommunal", "obodonlashtirish", "transport", "mahalla", "iib", "soglik", "talim", "ekologiya", "ijtimoiy", "aloqa", "boshqa".
+6. Shoshilinch xavf (gaz sizib chiqishi, sim uzilishi, suv toshishi, inson hayotiga xavf) bo'lsa: "is_emergency": true qil.
+7. Ma'lumotlar yetarli bo'lgach (muammo va fuqaro aloqa ma'lumotlari bo'lsa), fuqaroga murojaat qabul qilinganini ayt va "ready_to_submit": true deb o'rnat.
+
+HAR DOIM FAQAT shunday yagona JSON obyekt qaytar:
+{
+  "reply_text": "<Fuqaroga ovoz bilan o'qiladigan javob matni>",
+  "ready_to_submit": false,
+  "collected_data": {
+    "citizen_name": "<ism yoki null>",
+    "phone": "<telefon yoki null>",
+    "location": "<manzil yoki null>",
+    "problem_description": "<muammo matni yoki null>",
+    "suggested_agency_slug": "<slug yoki null>",
+    "is_emergency": false
+  }
+}
+"""
+
+
+@router.post("/voice-chat", response_model=VoiceChatResponse)
+async def voice_chat(body: VoiceChatRequest) -> VoiceChatResponse:
+    """Interactive Gemini Voice AI assistant endpoint for civic appeals."""
+    api_key = settings.GEMINI_API_KEY or "AIzaSyB10Cl-vb91H6znU2_j-9evrnTY-Lncz9k"
+    model_name = settings.GEMINI_MODEL or "gemini-2.5-flash"
+
+    contents = [{"role": "user", "parts": [{"text": VOICE_SYSTEM_PROMPT}]}]
+    for msg in body.messages:
+        role = "user" if msg.role == "user" else "model"
+        contents.append({"role": role, "parts": [{"text": msg.content}]})
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            res = await client.post(
+                url,
+                params={"key": api_key},
+                json={
+                    "contents": contents,
+                    "generationConfig": {
+                        "responseMimeType": "application/json",
+                        "temperature": 0.2,
+                    },
+                },
+            )
+
+            # Fallback model check if 2.5-flash returns 404 or error
+            if res.status_code != 200:
+                fallback_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+                res = await client.post(
+                    fallback_url,
+                    params={"key": api_key},
+                    json={
+                        "contents": contents,
+                        "generationConfig": {
+                            "responseMimeType": "application/json",
+                            "temperature": 0.2,
+                        },
+                    },
+                )
+
+            if res.status_code == 200:
+                payload = res.json()
+                raw_text = "".join(
+                    part.get("text", "")
+                    for candidate in payload.get("candidates", [])
+                    for part in candidate.get("content", {}).get("parts", [])
+                )
+                try:
+                    data = json.loads(raw_text)
+                    return VoiceChatResponse(
+                        reply_text=data.get(
+                            "reply_text", "Rahmat, murojaatingiz tushunarli."
+                        ),
+                        ready_to_submit=bool(data.get("ready_to_submit", False)),
+                        collected_data=data.get("collected_data"),
+                    )
+                except Exception:
+                    pass
+    except Exception as e:
+        print(f"Gemini Voice Chat Error: {e}")
+
+    last_user_msg = body.messages[-1].content if body.messages else ""
+    return VoiceChatResponse(
+        reply_text="Assalomu aleykum hurmatli fuqaro! Murojaatingizni va shaxsiy ma'lumotlaringizni (ism, telefon, manzil) yozib yoki so'zlab bering, biz uni tegishli idoraga yuboramiz.",
+        ready_to_submit=len(last_user_msg) > 30,
+        collected_data=CollectedData(problem_description=last_user_msg),
+    )
+

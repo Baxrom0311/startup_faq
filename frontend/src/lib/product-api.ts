@@ -638,3 +638,32 @@ export function agencyName(agency: Agency, lang?: string) {
     agency.name_uz
   )
 }
+
+export type VoiceChatMessage = {
+  role: "user" | "assistant"
+  content: string
+}
+
+export type VoiceChatResponse = {
+  reply_text: string
+  ready_to_submit: boolean
+  collected_data?: {
+    citizen_name?: string
+    phone?: string
+    location?: string
+    problem_description?: string
+    suggested_agency_slug?: string
+    is_emergency?: boolean
+  }
+}
+
+export function voiceChatAppeal(
+  messages: VoiceChatMessage[],
+  language = "uz",
+): Promise<VoiceChatResponse> {
+  return apiMutation<VoiceChatResponse>("/appeals/voice-chat", {
+    messages,
+    language,
+  })
+}
+
