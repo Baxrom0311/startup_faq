@@ -312,6 +312,7 @@ services:
       dockerfile: frontend/Dockerfile
       args:
         - VITE_API_URL=${VITE_API_URL:-https://solutionlab.boos.uz}
+        - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID:-}
         - NODE_ENV=production
     labels:
       - traefik.enable=true
