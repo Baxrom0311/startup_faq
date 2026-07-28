@@ -136,34 +136,64 @@ function AppealSubmit() {
     }
   }, [])
 
-  // ── Speech Synthesis (TTS) ────────────────────────────────────────────────
+  // ── Speech Synthesis (Natural Uzbek TTS) ──────────────────────────────────
   const speakText = (text: string, onEnd?: () => void) => {
-    if (!("speechSynthesis" in window)) {
+    const lang = i18n.language?.slice(0, 2) ?? "uz"
+    setAiState("speaking")
+
+    const finish = () => {
+      setAiState("idle")
       if (onEnd) onEnd()
+    }
+
+    // Try Google TTS Audio stream first for 100% natural human Uzbek voice
+    try {
+      const ttsLang = lang === "ru" ? "ru" : lang === "en" ? "en" : "uz"
+      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${ttsLang}&client=tw-ob`
+      const audio = new Audio(ttsUrl)
+      audio.onended = finish
+      audio.onerror = () => {
+        fallbackSpeechSynthesis(text, lang, finish)
+      }
+      const playPromise = audio.play()
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          fallbackSpeechSynthesis(text, lang, finish)
+        })
+      }
+    } catch {
+      fallbackSpeechSynthesis(text, lang, finish)
+    }
+  }
+
+  const fallbackSpeechSynthesis = (
+    text: string,
+    lang: string,
+    finish: () => void,
+  ) => {
+    if (!("speechSynthesis" in window)) {
+      finish()
       return
     }
     window.speechSynthesis.cancel()
     const utterance = new SpeechSynthesisUtterance(text)
-    const lang = i18n.language?.slice(0, 2)
     utterance.lang = lang === "ru" ? "ru-RU" : lang === "en" ? "en-US" : "uz-UZ"
     utterance.rate = 0.95
 
-    utterance.onstart = () => {
-      setAiState("speaking")
-    }
+    const voices = window.speechSynthesis.getVoices()
+    const bestVoice = voices.find(
+      (v) =>
+        v.lang.startsWith(lang) ||
+        v.lang.includes("uz") ||
+        v.lang.includes("tr"),
+    )
+    if (bestVoice) utterance.voice = bestVoice
 
-    utterance.onend = () => {
-      setAiState("idle")
-      if (onEnd) onEnd()
-    }
-
-    utterance.onerror = () => {
-      setAiState("idle")
-      if (onEnd) onEnd()
-    }
-
+    utterance.onend = finish
+    utterance.onerror = finish
     window.speechSynthesis.speak(utterance)
   }
+
 
   // ── Speech Recognition (STT) ──────────────────────────────────────────────
   const startListening = () => {
