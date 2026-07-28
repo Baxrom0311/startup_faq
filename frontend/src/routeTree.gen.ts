@@ -9,22 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ConnectTelegramRouteImport } from './routes/connect-telegram'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ConnectTelegramRouteImport } from './routes/connect-telegram'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutProjectsRouteImport } from './routes/_layout/projects'
-import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
-import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
+import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
+import { Route as LayoutAppealRouteImport } from './routes/_layout/appeal'
+import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects/index'
+import { Route as LayoutAppealsIndexRouteImport } from './routes/_layout/appeals/index'
+import { Route as LayoutUsersUserIdRouteImport } from './routes/_layout/users.$userId'
 import { Route as LayoutProjectsProjectIdRouteImport } from './routes/_layout/projects/$projectId'
 import { Route as LayoutProblemsProblemIdRouteImport } from './routes/_layout/problems.$problemId'
-import { Route as LayoutUsersUserIdRouteImport } from './routes/_layout/users.$userId'
+import { Route as LayoutAppealsAppealIdRouteImport } from './routes/_layout/appeals/$appealId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -41,14 +44,14 @@ const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
   path: '/recover-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConnectTelegramRoute = ConnectTelegramRouteImport.update({
-  id: '/connect-telegram',
-  path: '/connect-telegram',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConnectTelegramRoute = ConnectTelegramRouteImport.update({
+  id: '/connect-telegram',
+  path: '/connect-telegram',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutRoute = LayoutRouteImport.update({
@@ -70,9 +73,19 @@ const LayoutProjectsRoute = LayoutProjectsRouteImport.update({
   path: '/projects',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
   id: '/items',
   path: '/items',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutAppealRoute = LayoutAppealRouteImport.update({
+  id: '/appeal',
+  path: '/appeal',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
@@ -80,15 +93,20 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutProjectsIndexRoute = LayoutProjectsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LayoutProjectsRoute,
+} as any)
+const LayoutAppealsIndexRoute = LayoutAppealsIndexRouteImport.update({
+  id: '/appeals/',
+  path: '/appeals/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutUsersUserIdRoute = LayoutUsersUserIdRouteImport.update({
+  id: '/users/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutProjectsProjectIdRoute = LayoutProjectsProjectIdRouteImport.update({
   id: '/$projectId',
@@ -100,9 +118,9 @@ const LayoutProblemsProblemIdRoute = LayoutProblemsProblemIdRouteImport.update({
   path: '/problems/$problemId',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutUsersUserIdRoute = LayoutUsersUserIdRouteImport.update({
-  id: '/users/$userId',
-  path: '/users/$userId',
+const LayoutAppealsAppealIdRoute = LayoutAppealsAppealIdRouteImport.update({
+  id: '/appeals/$appealId',
+  path: '/appeals/$appealId',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -114,13 +132,16 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/appeal': typeof LayoutAppealRoute
   '/items': typeof LayoutItemsRoute
   '/notifications': typeof LayoutNotificationsRoute
   '/projects': typeof LayoutProjectsRouteWithChildren
   '/settings': typeof LayoutSettingsRoute
+  '/appeals/$appealId': typeof LayoutAppealsAppealIdRoute
   '/problems/$problemId': typeof LayoutProblemsProblemIdRoute
-  '/users/$userId': typeof LayoutUsersUserIdRoute
   '/projects/$projectId': typeof LayoutProjectsProjectIdRoute
+  '/users/$userId': typeof LayoutUsersUserIdRoute
+  '/appeals/': typeof LayoutAppealsIndexRoute
   '/projects/': typeof LayoutProjectsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -130,13 +151,16 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/appeal': typeof LayoutAppealRoute
   '/items': typeof LayoutItemsRoute
   '/notifications': typeof LayoutNotificationsRoute
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
+  '/appeals/$appealId': typeof LayoutAppealsAppealIdRoute
   '/problems/$problemId': typeof LayoutProblemsProblemIdRoute
-  '/users/$userId': typeof LayoutUsersUserIdRoute
   '/projects/$projectId': typeof LayoutProjectsProjectIdRoute
+  '/users/$userId': typeof LayoutUsersUserIdRoute
+  '/appeals': typeof LayoutAppealsIndexRoute
   '/projects': typeof LayoutProjectsIndexRoute
 }
 export interface FileRoutesById {
@@ -148,14 +172,17 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
+  '/_layout/appeal': typeof LayoutAppealRoute
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/notifications': typeof LayoutNotificationsRoute
   '/_layout/projects': typeof LayoutProjectsRouteWithChildren
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/appeals/$appealId': typeof LayoutAppealsAppealIdRoute
   '/_layout/problems/$problemId': typeof LayoutProblemsProblemIdRoute
-  '/_layout/users/$userId': typeof LayoutUsersUserIdRoute
   '/_layout/projects/$projectId': typeof LayoutProjectsProjectIdRoute
+  '/_layout/users/$userId': typeof LayoutUsersUserIdRoute
+  '/_layout/appeals/': typeof LayoutAppealsIndexRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
 }
 export interface FileRouteTypes {
@@ -168,13 +195,16 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/appeal'
     | '/items'
     | '/notifications'
     | '/projects'
     | '/settings'
+    | '/appeals/$appealId'
     | '/problems/$problemId'
-    | '/users/$userId'
     | '/projects/$projectId'
+    | '/users/$userId'
+    | '/appeals/'
     | '/projects/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -184,13 +214,16 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/appeal'
     | '/items'
     | '/notifications'
     | '/settings'
     | '/'
+    | '/appeals/$appealId'
     | '/problems/$problemId'
-    | '/users/$userId'
     | '/projects/$projectId'
+    | '/users/$userId'
+    | '/appeals'
     | '/projects'
   id:
     | '__root__'
@@ -201,20 +234,23 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_layout/admin'
+    | '/_layout/appeal'
     | '/_layout/items'
     | '/_layout/notifications'
     | '/_layout/projects'
     | '/_layout/settings'
     | '/_layout/'
+    | '/_layout/appeals/$appealId'
     | '/_layout/problems/$problemId'
-    | '/_layout/users/$userId'
     | '/_layout/projects/$projectId'
+    | '/_layout/users/$userId'
+    | '/_layout/appeals/'
     | '/_layout/projects/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  ConnectTelegramRoute: typeof ConnectTelegramRoute
   LayoutRoute: typeof LayoutRouteWithChildren
+  ConnectTelegramRoute: typeof ConnectTelegramRoute
   LoginRoute: typeof LoginRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -223,13 +259,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/connect-telegram': {
-      id: '/connect-telegram'
-      path: '/connect-telegram'
-      fullPath: '/connect-telegram'
-      preLoaderRoute: typeof ConnectTelegramRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -256,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/connect-telegram': {
+      id: '/connect-telegram'
+      path: '/connect-telegram'
+      fullPath: '/connect-telegram'
+      preLoaderRoute: typeof ConnectTelegramRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout': {
@@ -286,6 +322,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProjectsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/notifications': {
+      id: '/_layout/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof LayoutNotificationsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/items': {
       id: '/_layout/items'
       path: '/items'
@@ -293,11 +336,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutItemsRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/notifications': {
-      id: '/_layout/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof LayoutNotificationsRouteImport
+    '/_layout/appeal': {
+      id: '/_layout/appeal'
+      path: '/appeal'
+      fullPath: '/appeal'
+      preLoaderRoute: typeof LayoutAppealRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/admin': {
@@ -314,6 +357,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProjectsIndexRouteImport
       parentRoute: typeof LayoutProjectsRoute
     }
+    '/_layout/appeals/': {
+      id: '/_layout/appeals/'
+      path: '/appeals'
+      fullPath: '/appeals/'
+      preLoaderRoute: typeof LayoutAppealsIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/users/$userId': {
+      id: '/_layout/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/users/$userId'
+      preLoaderRoute: typeof LayoutUsersUserIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/projects/$projectId': {
       id: '/_layout/projects/$projectId'
       path: '/$projectId'
@@ -328,11 +385,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProblemsProblemIdRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/users/$userId': {
-      id: '/_layout/users/$userId'
-      path: '/users/$userId'
-      fullPath: '/users/$userId'
-      preLoaderRoute: typeof LayoutUsersUserIdRouteImport
+    '/_layout/appeals/$appealId': {
+      id: '/_layout/appeals/$appealId'
+      path: '/appeals/$appealId'
+      fullPath: '/appeals/$appealId'
+      preLoaderRoute: typeof LayoutAppealsAppealIdRouteImport
       parentRoute: typeof LayoutRoute
     }
   }
@@ -354,32 +411,38 @@ const LayoutProjectsRouteWithChildren = LayoutProjectsRoute._addFileChildren(
 
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
+  LayoutAppealRoute: typeof LayoutAppealRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutNotificationsRoute: typeof LayoutNotificationsRoute
   LayoutProjectsRoute: typeof LayoutProjectsRouteWithChildren
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutAppealsAppealIdRoute: typeof LayoutAppealsAppealIdRoute
   LayoutProblemsProblemIdRoute: typeof LayoutProblemsProblemIdRoute
   LayoutUsersUserIdRoute: typeof LayoutUsersUserIdRoute
+  LayoutAppealsIndexRoute: typeof LayoutAppealsIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutAppealRoute: LayoutAppealRoute,
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutNotificationsRoute: LayoutNotificationsRoute,
   LayoutProjectsRoute: LayoutProjectsRouteWithChildren,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutAppealsAppealIdRoute: LayoutAppealsAppealIdRoute,
   LayoutProblemsProblemIdRoute: LayoutProblemsProblemIdRoute,
   LayoutUsersUserIdRoute: LayoutUsersUserIdRoute,
+  LayoutAppealsIndexRoute: LayoutAppealsIndexRoute,
 }
 
 const LayoutRouteWithChildren =
   LayoutRoute._addFileChildren(LayoutRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  ConnectTelegramRoute: ConnectTelegramRoute,
   LayoutRoute: LayoutRouteWithChildren,
+  ConnectTelegramRoute: ConnectTelegramRoute,
   LoginRoute: LoginRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,

@@ -146,6 +146,25 @@ class Region(SQLModel, table=True):
     parent_id: int | None = Field(default=None, foreign_key="region.id")
 
 
+class Agency(SQLModel, table=True):
+    """A responsible government body (idora) a civic appeal can be routed to."""
+    id: int = Field(primary_key=True)
+    slug: str = Field(unique=True, index=True, max_length=80)
+    name_uz: str = Field(max_length=255)
+    name_ru: str | None = Field(default=None, max_length=255)
+    name_en: str | None = Field(default=None, max_length=255)
+    icon: str | None = Field(default=None, max_length=80)
+
+
+class AgencyPublic(SQLModel):
+    id: int
+    slug: str
+    name_uz: str
+    name_ru: str | None = None
+    name_en: str | None = None
+    icon: str | None = None
+
+
 class ProblemBase(SQLModel):
     raw_text: str | None = Field(default=None, max_length=5000)
     raw_audio_key: str | None = Field(default=None, max_length=512)
@@ -155,11 +174,17 @@ class ProblemBase(SQLModel):
 class ProblemCreate(ProblemBase):
     sector_id: int | None = None
     photo_keys: list[str] = Field(default_factory=list)
+    # "startup" (default, existing flow) or "civic" (government appeal — routed
+    # to an agency by AI and tracked for execution). Additive; does not change
+    # the startup pipeline.
+    track: str = Field(default="startup", max_length=16)
 
     @model_validator(mode="after")
     def _require_text_or_audio(self) -> "ProblemCreate":
         if not self.raw_text and not self.raw_audio_key and not self.photo_keys:
             raise ValueError("raw_text, raw_audio_key or photo_keys is required")
+        if self.track not in ("startup", "civic"):
+            raise ValueError("track must be 'startup' or 'civic'")
         return self
 
 
@@ -194,6 +219,14 @@ class Problem(ProblemBase, table=True):
     status: str = Field(default="ai_processing", index=True, max_length=32)
     severity_score: float | None = None
     vote_count: int = 0
+    # ── Civic-appeal / government routing layer (additive; startup flow ignores these) ──
+    track: str = Field(default="startup", index=True, max_length=16)  # startup | civic
+    agency_id: int | None = Field(default=None, foreign_key="agency.id", index=True)  # AI-assigned responsible idora
+    report_count: int = Field(default=1)  # how many times this appeal was submitted
+    is_emergency: bool = Field(default=False, index=True)  # AI-flagged dangerous/urgent
+    appeal_status: str | None = Field(default=None, index=True, max_length=20)  # routed|accepted|in_progress|resolved|rejected
+    appeal_due_date: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
+    appeal_resolved_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
     duplicate_of: uuid.UUID | None = Field(default=None, foreign_key="problem.id", ondelete="SET NULL")
     published_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))
     created_at: datetime = Field(
@@ -341,6 +374,13 @@ class ProblemPublic(SQLModel):
     vote_count: int
     comment_count: int = 0
     project_count: int = 0
+    track: str = "startup"
+    agency_id: int | None = None
+    report_count: int = 1
+    is_emergency: bool = False
+    appeal_status: str | None = None
+    appeal_due_date: datetime | None = None
+    appeal_resolved_at: datetime | None = None
     duplicate_of: uuid.UUID | None = None
     is_duplicate: bool = False
     has_voted: bool = False
@@ -352,6 +392,64 @@ class ProblemPublic(SQLModel):
 class ProblemsPublic(SQLModel):
     data: list[ProblemPublic]
     count: int
+
+
+# ── Civic appeal execution tracking (government-facing) ──────────────────────
+
+APPEAL_STATUSES = ("routed", "accepted", "in_progress", "resolved", "rejected")
+
+
+class AppealActionLog(SQLModel, table=True):
+    """History of execution actions on a civic appeal (who moved it where)."""
+    __tablename__ = "appeal_action_log"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    problem_id: uuid.UUID = Field(foreign_key="problem.id", nullable=False, index=True, ondelete="CASCADE")
+    agency_id: int | None = Field(default=None, foreign_key="agency.id")
+    from_status: str | None = Field(default=None, max_length=20)
+    to_status: str = Field(max_length=20)
+    note: str | None = Field(default=None, max_length=1000)
+    actor_id: uuid.UUID | None = Field(default=None, foreign_key="user.id", ondelete="SET NULL")
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class AppealActionLogPublic(SQLModel):
+    id: uuid.UUID
+    problem_id: uuid.UUID
+    agency_id: int | None = None
+    from_status: str | None = None
+    to_status: str
+    note: str | None = None
+    actor_id: uuid.UUID | None = None
+    created_at: datetime
+
+
+class AppealActionLogsPublic(SQLModel):
+    data: list[AppealActionLogPublic]
+    count: int
+
+
+class AppealStatusUpdate(SQLModel):
+    """Government action: move an appeal along its execution track."""
+    status: str = Field(max_length=20)
+    agency_id: int | None = None
+    note: str | None = Field(default=None, max_length=1000)
+    due_date: datetime | None = None
+
+    @model_validator(mode="after")
+    def _validate_status(self) -> "AppealStatusUpdate":
+        if self.status not in APPEAL_STATUSES:
+            raise ValueError(f"status must be one of {list(APPEAL_STATUSES)}")
+        return self
+
+
+class AppealRouteUpdate(SQLModel):
+    """Government action: (re)assign the responsible agency and/or emergency flag."""
+    agency_id: int | None = None
+    is_emergency: bool | None = None
 
 
 class ProjectBase(SQLModel):

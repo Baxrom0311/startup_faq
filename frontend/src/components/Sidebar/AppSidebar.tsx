@@ -1,4 +1,11 @@
-import { Bell, Briefcase, LayoutDashboard, Shield } from "lucide-react"
+import {
+  Bell,
+  Briefcase,
+  Landmark,
+  LayoutDashboard,
+  MessageSquarePlus,
+  Shield,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -74,6 +81,11 @@ export function AppSidebar() {
     },
     { icon: Briefcase, title: t("nav_projects"), path: "/projects" },
     {
+      icon: MessageSquarePlus,
+      title: t("nav_appeal_new"),
+      path: "/appeal",
+    },
+    {
       icon: Bell,
       title: t("dashboard_inbox"),
       path: "/notifications",
@@ -81,17 +93,28 @@ export function AppSidebar() {
     },
   ]
 
-  const items = currentUser?.is_superuser
-    ? [
-        ...baseItems,
-        {
-          icon: Shield,
-          title: t("nav_admin"),
-          path: "/admin",
-          badge: needsReviewCount > 0 ? needsReviewCount : undefined,
-        },
-      ]
-    : baseItems
+  const isOfficial =
+    currentUser?.is_superuser ||
+    (currentUser?.roles ?? []).some((role) =>
+      ["official", "gov", "moderator"].includes(role),
+    )
+
+  const items: Item[] = [...baseItems]
+  if (isOfficial) {
+    items.push({
+      icon: Landmark,
+      title: t("nav_appeals"),
+      path: "/appeals",
+    })
+  }
+  if (currentUser?.is_superuser) {
+    items.push({
+      icon: Shield,
+      title: t("nav_admin"),
+      path: "/admin",
+      badge: needsReviewCount > 0 ? needsReviewCount : undefined,
+    })
+  }
 
   return (
     <Sidebar collapsible="icon">

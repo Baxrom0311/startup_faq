@@ -106,7 +106,9 @@ function Admin() {
 
   useEffect(() => {
     const q = debouncedUserQuery.trim()
-    const url = q ? `/users/?q=${encodeURIComponent(q)}&limit=100` : "/users/?limit=100"
+    const url = q
+      ? `/users/?q=${encodeURIComponent(q)}&limit=100`
+      : "/users/?limit=100"
     apiJson<{ data: UserPublic[]; count: number }>(url)
       .then((res) => setUsers(res.data))
       .catch(() => setUsers([]))
@@ -162,11 +164,15 @@ function Admin() {
           <TabsList className="mr-auto">
             <TabsTrigger value="moderation" className="gap-1.5">
               {t("admin_tab_moderation")}
-              {overviewAnalytics && overviewAnalytics.needs_review_problems > 0 && (
-                <Badge variant="destructive" className="h-4 min-w-4 px-1 text-[10px] leading-none">
-                  {overviewAnalytics.needs_review_problems}
-                </Badge>
-              )}
+              {overviewAnalytics &&
+                overviewAnalytics.needs_review_problems > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="h-4 min-w-4 px-1 text-[10px] leading-none"
+                  >
+                    {overviewAnalytics.needs_review_problems}
+                  </Badge>
+                )}
             </TabsTrigger>
             <TabsTrigger value="broadcasts">
               {t("admin_tab_broadcasts")}
@@ -243,7 +249,8 @@ function Admin() {
                             {t("admin_archive")}
                           </Button>
                         </div>
-                        {typeof problem.structured_desc?.moderation_reason === "string" && (
+                        {typeof problem.structured_desc?.moderation_reason ===
+                          "string" && (
                           <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-950">
                             <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
                             <span className="text-xs text-amber-800 dark:text-amber-200">
@@ -307,7 +314,9 @@ function Admin() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className={`text-2xl font-bold ${overviewAnalytics.needs_review_problems > 0 ? "text-amber-600 dark:text-amber-400" : ""}`}>
+                    <div
+                      className={`text-2xl font-bold ${overviewAnalytics.needs_review_problems > 0 ? "text-amber-600 dark:text-amber-400" : ""}`}
+                    >
                       {overviewAnalytics.needs_review_problems}
                     </div>
                   </CardContent>
@@ -441,7 +450,9 @@ function Admin() {
                       </div>
                       <div className="flex justify-between text-[10px] text-muted-foreground px-0.5">
                         <span>{trendAnalytics[0]?.date}</span>
-                        <span>{trendAnalytics[trendAnalytics.length - 1]?.date}</span>
+                        <span>
+                          {trendAnalytics[trendAnalytics.length - 1]?.date}
+                        </span>
                       </div>
                     </div>
                   ) : (
@@ -482,27 +493,27 @@ function Admin() {
             ) : (
               <div className="divide-y max-h-[60vh] overflow-y-auto">
                 {users.map((user) => (
-                    <div key={user.id} className="grid gap-2 px-4 py-3">
-                      <p className="truncate text-sm font-medium">
-                        {user.full_name || user.phone || user.email}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {user.is_superuser && (
-                          <Badge variant="outline">{t("settings_admin")}</Badge>
-                        )}
-                        <Badge variant={user.is_active ? "secondary" : "outline"}>
-                          {user.is_active
-                            ? t("settings_active")
-                            : t("settings_inactive")}
-                        </Badge>
-                        {user.telegram_username && (
-                          <span className="text-muted-foreground text-xs">
-                            @{user.telegram_username}
-                          </span>
-                        )}
-                      </div>
+                  <div key={user.id} className="grid gap-2 px-4 py-3">
+                    <p className="truncate text-sm font-medium">
+                      {user.full_name || user.phone || user.email}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {user.is_superuser && (
+                        <Badge variant="outline">{t("settings_admin")}</Badge>
+                      )}
+                      <Badge variant={user.is_active ? "secondary" : "outline"}>
+                        {user.is_active
+                          ? t("settings_active")
+                          : t("settings_inactive")}
+                      </Badge>
+                      {user.telegram_username && (
+                        <span className="text-muted-foreground text-xs">
+                          @{user.telegram_username}
+                        </span>
+                      )}
                     </div>
-                  ))}
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>

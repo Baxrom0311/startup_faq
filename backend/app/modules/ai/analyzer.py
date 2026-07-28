@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from sqlmodel import Session, select
 
 from app.models import (
+    Agency,
     AIAnalysis,
     Comment,
     Problem,
@@ -146,6 +147,20 @@ async def analyze_problem_with_ai(*, session: Session, problem: Problem) -> AIRe
         pain_level=structured.pain_level,
         duplicate_signal=duplicate is not None,
     )
+
+    # Civic-appeal routing: AI assigns the responsible agency + emergency flag,
+    # and the appeal enters the execution track as "routed". (Startup track
+    # ignores all of this.)
+    if problem.track == "civic":
+        problem.is_emergency = bool(structured.is_emergency)
+        slug = structured.responsible_agency or "boshqa"
+        agency = session.exec(select(Agency).where(Agency.slug == slug)).first()
+        if not agency:
+            agency = session.exec(select(Agency).where(Agency.slug == "boshqa")).first()
+        if agency:
+            problem.agency_id = agency.id
+        if problem.appeal_status is None:
+            problem.appeal_status = "routed"
 
     session.merge(
         ProblemEmbedding(

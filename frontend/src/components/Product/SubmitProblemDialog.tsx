@@ -185,7 +185,9 @@ export function SubmitProblemDialog({
         audioCtxRef.current?.close()
         analyserRef.current = null
         const blob = new Blob(chunksRef.current, { type: "audio/webm" })
-        const file = new File([blob], `recording-${Date.now()}.webm`, { type: "audio/webm" })
+        const file = new File([blob], `recording-${Date.now()}.webm`, {
+          type: "audio/webm",
+        })
         setAudioFile(file)
         setIsRecording(false)
         if (timerRef.current) clearInterval(timerRef.current)
@@ -336,7 +338,9 @@ export function SubmitProblemDialog({
             <label className="text-sm font-medium" htmlFor="raw-text">
               {t("submit_text_label")}
             </label>
-            <span className={`text-xs ${rawText.length > 4500 ? "text-destructive" : "text-muted-foreground"}`}>
+            <span
+              className={`text-xs ${rawText.length > 4500 ? "text-destructive" : "text-muted-foreground"}`}
+            >
               {rawText.length}/5000
             </span>
           </div>
@@ -431,7 +435,9 @@ export function SubmitProblemDialog({
               <div className="h-1 overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full bg-destructive transition-all duration-1000"
-                  style={{ width: `${(recordSeconds / MAX_RECORD_SECONDS) * 100}%` }}
+                  style={{
+                    width: `${(recordSeconds / MAX_RECORD_SECONDS) * 100}%`,
+                  }}
                 />
               </div>
               <canvas

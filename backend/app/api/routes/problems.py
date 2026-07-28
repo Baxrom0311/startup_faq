@@ -195,6 +195,14 @@ async def create_problem(
     )
     if duplicate:
         _add_vote_if_needed(session=session, current_user=current_user, problem=duplicate)
+        # A civic appeal re-submitted counts as another report — raises its
+        # priority for the government without creating a duplicate row.
+        if problem_in.track == "civic":
+            session.execute(
+                update(Problem)
+                .where(Problem.id == duplicate.id)
+                .values(report_count=Problem.report_count + 1)
+            )
         if media_keys:
             _attach_owned_media(
                 session=session,

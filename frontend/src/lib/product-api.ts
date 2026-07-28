@@ -38,6 +38,78 @@ export type Problem = {
   has_voted: boolean
   severity_score?: number | null
   created_at: string
+  // Civic-appeal fields (track === "civic")
+  track?: string
+  agency_id?: number | null
+  report_count?: number
+  is_emergency?: boolean
+  appeal_status?: string | null
+  appeal_due_date?: string | null
+  appeal_resolved_at?: string | null
+}
+
+export type Agency = {
+  id: number
+  slug: string
+  name_uz: string
+  name_ru: string | null
+  name_en: string | null
+  icon: string | null
+}
+
+export type AppealActionLog = {
+  id: string
+  problem_id: string
+  agency_id?: number | null
+  from_status?: string | null
+  to_status: string
+  note?: string | null
+  actor_id?: string | null
+  created_at: string
+}
+
+export type AppealStats = {
+  total: number
+  emergency: number
+  open: number
+  resolved: number
+  resolution_rate: number
+  by_status: Record<string, number>
+  by_agency: Record<string, number>
+  by_region: Record<string, number>
+}
+
+export type AppealHistoryResponse = {
+  data: AppealActionLog[]
+  count: number
+}
+
+export type AppealsResponse = {
+  data: Problem[]
+  count: number
+}
+
+export type AppealsQuery = {
+  agency_id?: number
+  appeal_status?: string
+  region_id?: number
+  is_emergency?: boolean
+  q?: string
+  sort?: "urgent" | "reports" | "newest"
+  skip?: number
+  limit?: number
+}
+
+export type AppealStatusUpdate = {
+  status: string
+  agency_id?: number
+  note?: string
+  due_date?: string
+}
+
+export type AppealRouteUpdate = {
+  agency_id?: number
+  is_emergency?: boolean
 }
 
 export type ProblemsResponse = {
@@ -480,4 +552,89 @@ export function fetchRegions(): Promise<Region[]> {
 export function structuredSummary(problem: Problem) {
   const summary = problem.structured_desc?.summary
   return typeof summary === "string" && summary ? summary : null
+}
+
+// ── Civic appeals ───────────────────────────────────────────────────────────
+
+// A citizen files a civic appeal via the existing problem endpoint with
+// track:"civic". The AI assigns agency + emergency automatically — the citizen
+// picks nothing else (no sector, agency or severity).
+export function submitCivicAppeal(body: {
+  raw_text?: string
+  raw_audio_key?: string
+  photo_keys?: string[]
+  region_id?: number
+}): Promise<Problem> {
+  return apiMutation<Problem>("/problems/", {
+    photo_keys: [],
+    ...body,
+    track: "civic",
+  })
+}
+
+export function fetchAgencies(): Promise<Agency[]> {
+  return apiJson<Agency[]>("/appeals/agencies")
+}
+
+export function fetchAppeals(
+  params: AppealsQuery = {},
+): Promise<AppealsResponse> {
+  const search = new URLSearchParams()
+  if (params.agency_id != null)
+    search.set("agency_id", String(params.agency_id))
+  if (params.appeal_status) search.set("appeal_status", params.appeal_status)
+  if (params.region_id != null)
+    search.set("region_id", String(params.region_id))
+  if (params.is_emergency != null)
+    search.set("is_emergency", String(params.is_emergency))
+  if (params.q) search.set("q", params.q)
+  if (params.sort) search.set("sort", params.sort)
+  if (params.skip != null) search.set("skip", String(params.skip))
+  if (params.limit != null) search.set("limit", String(params.limit))
+  const qs = search.toString()
+  return apiJson<AppealsResponse>(`/appeals${qs ? `?${qs}` : ""}`)
+}
+
+export function fetchAppealStats(): Promise<AppealStats> {
+  return apiJson<AppealStats>("/appeals/stats")
+}
+
+export function fetchAppealHistory(
+  problemId: string,
+): Promise<AppealHistoryResponse> {
+  return apiJson<AppealHistoryResponse>(`/appeals/${problemId}/history`)
+}
+
+export function updateAppealStatus(
+  problemId: string,
+  body: AppealStatusUpdate,
+): Promise<Problem> {
+  return apiMutation<Problem>(`/appeals/${problemId}/status`, body)
+}
+
+export function rerouteAppeal(
+  problemId: string,
+  body: AppealRouteUpdate,
+): Promise<Problem> {
+  return apiMutation<Problem>(`/appeals/${problemId}/route`, body)
+}
+
+export function appealStatusLabel(status: string) {
+  const t = _t()
+  const labels: Record<string, string> = {
+    routed: t("appeal_status_routed"),
+    accepted: t("appeal_status_accepted"),
+    in_progress: t("appeal_status_in_progress"),
+    resolved: t("appeal_status_resolved"),
+    rejected: t("appeal_status_rejected"),
+  }
+  return labels[status] || status
+}
+
+export function agencyName(agency: Agency, lang?: string) {
+  const l = (lang ?? i18n.language?.slice(0, 2) ?? "uz") as string
+  return (
+    (l === "ru" ? agency.name_ru : l === "en" ? agency.name_en : null) ??
+    agency.name_uz
+  )
 }

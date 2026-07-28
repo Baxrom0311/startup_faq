@@ -3,9 +3,13 @@ import { CalendarDays, FolderKanban, Star, ThumbsUp } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { EmptyState, LoadingState, StatusBadge } from "@/components/Product/StatusBadge"
+import {
+  EmptyState,
+  LoadingState,
+  StatusBadge,
+} from "@/components/Product/StatusBadge"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   apiJson,
@@ -60,7 +64,9 @@ function UserProfile() {
   if (notFound) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
-        <p className="text-muted-foreground text-sm">{t("profile_not_found")}</p>
+        <p className="text-muted-foreground text-sm">
+          {t("profile_not_found")}
+        </p>
       </div>
     )
   }
@@ -118,7 +124,10 @@ function UserProfile() {
           <TabsTrigger value="problems" className="gap-1.5">
             {t("profile_problems")}
             {problems !== null && (
-              <Badge variant="secondary" className="h-4 min-w-4 px-1 text-[10px] leading-none">
+              <Badge
+                variant="secondary"
+                className="h-4 min-w-4 px-1 text-[10px] leading-none"
+              >
                 {problems.length}
               </Badge>
             )}
@@ -126,7 +135,10 @@ function UserProfile() {
           <TabsTrigger value="projects" className="gap-1.5">
             {t("profile_projects")}
             {projects !== null && (
-              <Badge variant="secondary" className="h-4 min-w-4 px-1 text-[10px] leading-none">
+              <Badge
+                variant="secondary"
+                className="h-4 min-w-4 px-1 text-[10px] leading-none"
+              >
                 {projects.length}
               </Badge>
             )}
@@ -194,7 +206,9 @@ function UserProfile() {
                     >
                       <FolderKanban className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{proj.title}</p>
+                        <p className="truncate text-sm font-medium">
+                          {proj.title}
+                        </p>
                         <div className="mt-1 flex flex-wrap items-center gap-2">
                           <StatusBadge status={proj.status} />
                           <span className="text-xs text-muted-foreground">

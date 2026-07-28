@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 import { Send } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -206,7 +206,9 @@ function ConnectTelegram() {
                 <Send className="size-5 text-primary" />
               </div>
               <p className="text-sm font-medium">{t("login_status_pending")}</p>
-              <p className="text-xs text-muted-foreground">{t("login_tg_instruction")}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("login_tg_instruction")}
+              </p>
               <a
                 href={session.deep_link}
                 target="_blank"

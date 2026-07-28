@@ -46,7 +46,8 @@ const uz = {
 
   // Problem detail
   problem_back: "Signallar",
-  problem_needs_review_note: "Muammoyingiz moderator tomonidan ko'rib chiqilmoqda. Nashr qilinganda xabardor qilinasiz.",
+  problem_needs_review_note:
+    "Muammoyingiz moderator tomonidan ko'rib chiqilmoqda. Nashr qilinganda xabardor qilinasiz.",
   problem_merged_note: "Bu muammo birlashtirilib arxivlandi",
   problem_merged_link: "Asl muammo",
   problem_discuss: "Muhokama",
@@ -131,7 +132,8 @@ const uz = {
   analytics_claim_solve_rate: "Hal qilish darajasi",
   analytics_no_data: "Ma'lumotlar yo'q",
   admin_export_problems: "Muammolarni yuklab olish (CSV)",
-  admin_moderation_empty: "Tekshiruv navbati bo'sh — barcha muammolar ko'rib chiqilgan",
+  admin_moderation_empty:
+    "Tekshiruv navbati bo'sh — barcha muammolar ko'rib chiqilgan",
   admin_reanalyze: "AI tahlil",
   admin_archive: "Arxivlash",
   admin_users_title: "Foydalanuvchilar",
@@ -223,7 +225,8 @@ const uz = {
   login_send: "Telegram orqali kirish",
   login_retry: "Qaytadan urinish",
   login_open_telegram: "Telegram'ni ochish →",
-  login_tg_instruction: "Quyidagi tugmani bosing, Telegram ochiladi va «START» tugmasini bosing.",
+  login_tg_instruction:
+    "Quyidagi tugmani bosing, Telegram ochiladi va «START» tugmasini bosing.",
   login_status_pending: "Telegram'da «START» ni bosing...",
   login_status_started: "Telegram ochilmoqda...",
   login_status_verified: "Kirildi!",
@@ -408,6 +411,55 @@ const uz = {
   sector_gov: "Davlat xizmatlari",
   sector_legal: "Huquq va yuridik xizmat",
   sector_hr: "HR va bandlik",
+
+  // Civic appeals — nav
+  nav_appeals: "Murojaatlar",
+  nav_appeal_new: "Murojaat yuborish",
+
+  // Civic appeals — statuses
+  appeal_status_routed: "Yo'naltirildi",
+  appeal_status_accepted: "Qabul qilindi",
+  appeal_status_in_progress: "Jarayonda",
+  appeal_status_resolved: "Hal etildi",
+  appeal_status_rejected: "Rad etildi",
+  appeal_emergency: "Favqulodda",
+
+  // Civic appeals — citizen submit
+  appeal_submit_title: "Murojaat yuborish",
+  appeal_submit_hint:
+    "Muammoingizni ayting yoki yozing — qolganini AI o'zi qiladi",
+  appeal_submit_send: "Yuborish",
+  appeal_submit_success: "Murojaatingiz qabul qilindi",
+  appeal_voice: "Ovozli xabar",
+  appeal_photo: "Rasm biriktirish",
+  appeal_typing_placeholder: "Muammoingizni yozing...",
+
+  // Civic appeals — government dashboard
+  appeals_title: "Murojaatlar",
+  appeals_stat_total: "Jami",
+  appeals_stat_emergency: "Favqulodda",
+  appeals_stat_open: "Ochiq",
+  appeals_stat_resolved: "Hal etilgan",
+  appeals_stat_rate: "Hal etish darajasi",
+  appeals_filter_agency: "Idora",
+  appeals_filter_status: "Holat",
+  appeals_filter_region: "Hudud",
+  appeals_filter_emergency: "Favqulodda",
+  appeals_filter_all: "Barchasi",
+  appeals_sort_urgent: "Shoshilinch",
+  appeals_sort_reports: "Ko'p yuborilgan",
+  appeals_sort_newest: "Yangi",
+  appeals_report_count: "marta yuborilgan",
+  appeals_empty: "Murojaatlar topilmadi",
+
+  // Civic appeals — government detail
+  appeal_route_title: "Yo'naltirish",
+  appeal_reassign_agency: "Idorani o'zgartirish",
+  appeal_mark_emergency: "Favqulodda deb belgilash",
+  appeal_status_update: "Holatni yangilash",
+  appeal_add_note: "Izoh qo'shish",
+  appeal_history_title: "Harakatlar tarixi",
+  appeal_due_date: "Muddat",
 }
 
 const ru: typeof uz = {
@@ -449,7 +501,8 @@ const ru: typeof uz = {
   submit_duplicate_view: "Открыть",
 
   problem_back: "Сигналы",
-  problem_needs_review_note: "Ваша проблема рассматривается модератором. Вы получите уведомление после публикации.",
+  problem_needs_review_note:
+    "Ваша проблема рассматривается модератором. Вы получите уведомление после публикации.",
   problem_merged_note: "Эта проблема объединена и заархивирована",
   problem_merged_link: "Исходная проблема",
   problem_discuss: "Обсуждение",
@@ -619,7 +672,8 @@ const ru: typeof uz = {
   login_send: "Войти через Telegram",
   login_retry: "Попробовать снова",
   login_open_telegram: "Открыть Telegram →",
-  login_tg_instruction: "Нажмите кнопку ниже, откроется Telegram — нажмите «START».",
+  login_tg_instruction:
+    "Нажмите кнопку ниже, откроется Telegram — нажмите «START».",
   login_status_pending: "Нажмите «START» в Telegram...",
   login_status_started: "Telegram открывается...",
   login_status_verified: "Вход выполнен!",
@@ -803,6 +857,55 @@ const ru: typeof uz = {
   sector_gov: "Государственные услуги",
   sector_legal: "Право и юруслуги",
   sector_hr: "HR и занятость",
+
+  // Civic appeals — nav
+  nav_appeals: "Обращения",
+  nav_appeal_new: "Отправить обращение",
+
+  // Civic appeals — statuses
+  appeal_status_routed: "Направлено",
+  appeal_status_accepted: "Принято",
+  appeal_status_in_progress: "В процессе",
+  appeal_status_resolved: "Решено",
+  appeal_status_rejected: "Отклонено",
+  appeal_emergency: "Чрезвычайное",
+
+  // Civic appeals — citizen submit
+  appeal_submit_title: "Отправить обращение",
+  appeal_submit_hint:
+    "Расскажите или напишите о проблеме — остальное сделает ИИ",
+  appeal_submit_send: "Отправить",
+  appeal_submit_success: "Ваше обращение принято",
+  appeal_voice: "Голосовое сообщение",
+  appeal_photo: "Прикрепить фото",
+  appeal_typing_placeholder: "Опишите вашу проблему...",
+
+  // Civic appeals — government dashboard
+  appeals_title: "Обращения",
+  appeals_stat_total: "Всего",
+  appeals_stat_emergency: "Чрезвычайные",
+  appeals_stat_open: "Открытые",
+  appeals_stat_resolved: "Решённые",
+  appeals_stat_rate: "Уровень решения",
+  appeals_filter_agency: "Ведомство",
+  appeals_filter_status: "Статус",
+  appeals_filter_region: "Регион",
+  appeals_filter_emergency: "Чрезвычайные",
+  appeals_filter_all: "Все",
+  appeals_sort_urgent: "Срочные",
+  appeals_sort_reports: "По жалобам",
+  appeals_sort_newest: "Новые",
+  appeals_report_count: "раз отправлено",
+  appeals_empty: "Обращения не найдены",
+
+  // Civic appeals — government detail
+  appeal_route_title: "Направление",
+  appeal_reassign_agency: "Сменить ведомство",
+  appeal_mark_emergency: "Отметить как чрезвычайное",
+  appeal_status_update: "Обновить статус",
+  appeal_add_note: "Добавить примечание",
+  appeal_history_title: "История действий",
+  appeal_due_date: "Срок",
 }
 
 const en: typeof uz = {
@@ -845,7 +948,8 @@ const en: typeof uz = {
   submit_duplicate_view: "View",
 
   problem_back: "Signals",
-  problem_needs_review_note: "Your problem is being reviewed by a moderator. You'll be notified once it's published.",
+  problem_needs_review_note:
+    "Your problem is being reviewed by a moderator. You'll be notified once it's published.",
   problem_merged_note: "This problem was merged and archived",
   problem_merged_link: "Original problem",
   problem_discuss: "Discussion",
@@ -928,7 +1032,8 @@ const en: typeof uz = {
   analytics_claim_solve_rate: "Solve Rate",
   analytics_no_data: "No data available",
   admin_export_problems: "Export Problems (CSV)",
-  admin_moderation_empty: "Review queue is clear — all problems have been handled",
+  admin_moderation_empty:
+    "Review queue is clear — all problems have been handled",
   admin_reanalyze: "AI analysis",
   admin_archive: "Archive",
   admin_users_title: "Users",
@@ -1015,7 +1120,8 @@ const en: typeof uz = {
   login_send: "Sign in with Telegram",
   login_retry: "Try again",
   login_open_telegram: "Open Telegram →",
-  login_tg_instruction: "Click the button below — Telegram opens, then press «START».",
+  login_tg_instruction:
+    "Click the button below — Telegram opens, then press «START».",
   login_status_pending: "Press «START» in Telegram...",
   login_status_started: "Opening Telegram...",
   login_status_verified: "Signed in!",
@@ -1199,6 +1305,54 @@ const en: typeof uz = {
   sector_gov: "Government Services",
   sector_legal: "Law & Legal Services",
   sector_hr: "HR & Recruitment",
+
+  // Civic appeals — nav
+  nav_appeals: "Appeals",
+  nav_appeal_new: "Submit an appeal",
+
+  // Civic appeals — statuses
+  appeal_status_routed: "Routed",
+  appeal_status_accepted: "Accepted",
+  appeal_status_in_progress: "In progress",
+  appeal_status_resolved: "Resolved",
+  appeal_status_rejected: "Rejected",
+  appeal_emergency: "Emergency",
+
+  // Civic appeals — citizen submit
+  appeal_submit_title: "Submit an appeal",
+  appeal_submit_hint: "Speak or type your problem — the AI does the rest",
+  appeal_submit_send: "Send",
+  appeal_submit_success: "Your appeal has been received",
+  appeal_voice: "Voice message",
+  appeal_photo: "Attach photo",
+  appeal_typing_placeholder: "Describe your problem...",
+
+  // Civic appeals — government dashboard
+  appeals_title: "Appeals",
+  appeals_stat_total: "Total",
+  appeals_stat_emergency: "Emergency",
+  appeals_stat_open: "Open",
+  appeals_stat_resolved: "Resolved",
+  appeals_stat_rate: "Resolution rate",
+  appeals_filter_agency: "Agency",
+  appeals_filter_status: "Status",
+  appeals_filter_region: "Region",
+  appeals_filter_emergency: "Emergency",
+  appeals_filter_all: "All",
+  appeals_sort_urgent: "Urgent",
+  appeals_sort_reports: "Most reported",
+  appeals_sort_newest: "Newest",
+  appeals_report_count: "reports",
+  appeals_empty: "No appeals found",
+
+  // Civic appeals — government detail
+  appeal_route_title: "Routing",
+  appeal_reassign_agency: "Reassign agency",
+  appeal_mark_emergency: "Mark as emergency",
+  appeal_status_update: "Update status",
+  appeal_add_note: "Add note",
+  appeal_history_title: "Action history",
+  appeal_due_date: "Due date",
 }
 
 i18n

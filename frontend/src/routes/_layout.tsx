@@ -86,7 +86,9 @@ function Layout() {
             className="bg-muted/60 text-muted-foreground hidden h-9 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md border px-3 text-sm md:flex hover:bg-muted/80 transition-colors"
           >
             <Search className="size-4 shrink-0" />
-            <span className="flex-1 text-left truncate">{t("layout_search")}</span>
+            <span className="flex-1 text-left truncate">
+              {t("layout_search")}
+            </span>
             <kbd className="pointer-events-none hidden select-none items-center gap-0.5 rounded border bg-background px-1.5 py-0.5 text-[11px] font-mono opacity-60 sm:flex">
               <span className="text-xs">⌘</span>K
             </kbd>

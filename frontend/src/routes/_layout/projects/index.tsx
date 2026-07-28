@@ -19,7 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { apiJson, shortDate, type Project, type ProjectsResponse } from "@/lib/product-api"
+import {
+  apiJson,
+  type Project,
+  type ProjectsResponse,
+  shortDate,
+} from "@/lib/product-api"
 
 export const Route = createFileRoute("/_layout/projects/")({
   component: Projects,
@@ -52,9 +57,13 @@ function Projects() {
 
   const loadAll = useCallback(
     async (currentSkip = 0) => {
-      const q = debouncedQuery.trim() ? `&q=${encodeURIComponent(debouncedQuery.trim())}` : ""
+      const q = debouncedQuery.trim()
+        ? `&q=${encodeURIComponent(debouncedQuery.trim())}`
+        : ""
       const s = statusFilter ? `&status=${statusFilter}` : ""
-      const res = await apiJson<ProjectsResponse>(`/projects?limit=${PAGE_SIZE}&skip=${currentSkip}${q}${s}`)
+      const res = await apiJson<ProjectsResponse>(
+        `/projects?limit=${PAGE_SIZE}&skip=${currentSkip}${q}${s}`,
+      )
       if (currentSkip === 0) {
         setAll(res.data)
       } else {
@@ -69,7 +78,9 @@ function Projects() {
     abortRef.current?.abort()
     abortRef.current = new AbortController()
 
-    const q = debouncedQuery.trim() ? `&q=${encodeURIComponent(debouncedQuery.trim())}` : ""
+    const q = debouncedQuery.trim()
+      ? `&q=${encodeURIComponent(debouncedQuery.trim())}`
+      : ""
 
     setAllSkip(0)
     setAll(null)
@@ -81,7 +92,9 @@ function Projects() {
         setAll([])
       }
       try {
-        const res = await apiJson<ProjectsResponse>(`/projects?owner=true&status=proposed${q}`)
+        const res = await apiJson<ProjectsResponse>(
+          `/projects?owner=true&status=proposed${q}`,
+        )
         setIncoming(res.data)
       } catch {
         setIncoming([])
@@ -108,7 +121,12 @@ function Projects() {
     }
   }
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode; count: number | null }[] = [
+  const tabs: {
+    id: Tab
+    label: string
+    icon: React.ReactNode
+    count: number | null
+  }[] = [
     {
       id: "all",
       label: t("projects_all"),
@@ -140,15 +158,25 @@ function Projects() {
           </h1>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 lg:w-auto">
-          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v === "_all" ? "" : v); setAllSkip(0) }}>
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => {
+              setStatusFilter(v === "_all" ? "" : v)
+              setAllSkip(0)
+            }}
+          >
             <SelectTrigger className="bg-background h-9 text-sm sm:w-[180px]">
               <SelectValue placeholder={t("project_filter_all_statuses")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="_all">{t("project_filter_all_statuses")}</SelectItem>
+              <SelectItem value="_all">
+                {t("project_filter_all_statuses")}
+              </SelectItem>
               <SelectItem value="proposed">{t("status_proposed")}</SelectItem>
               <SelectItem value="approved">{t("status_approved")}</SelectItem>
-              <SelectItem value="in_progress">{t("status_in_progress")}</SelectItem>
+              <SelectItem value="in_progress">
+                {t("status_in_progress")}
+              </SelectItem>
               <SelectItem value="piloting">{t("status_piloting")}</SelectItem>
               <SelectItem value="completed">{t("status_completed")}</SelectItem>
               <SelectItem value="rejected">{t("status_rejected")}</SelectItem>

@@ -75,16 +75,29 @@ export const Route = createFileRoute("/_layout/projects/$projectId")({
   }),
 })
 
-const OPEN_STATUSES = new Set(["proposed", "approved", "in_progress", "piloting"])
+const OPEN_STATUSES = new Set([
+  "proposed",
+  "approved",
+  "in_progress",
+  "piloting",
+])
 
-type IssueFilter = "all" | "open" | "closed" | "bug" | "feature" | "task" | "question"
+type IssueFilter =
+  | "all"
+  | "open"
+  | "closed"
+  | "bug"
+  | "feature"
+  | "task"
+  | "question"
 
 function kindBadgeClass(kind: string): string {
   const map: Record<string, string> = {
     bug: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
     feature: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
     task: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-    question: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+    question:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   }
   return map[kind] ?? "bg-muted text-muted-foreground"
 }
@@ -98,7 +111,13 @@ interface IssueDetailProps {
   onUpdated: () => void
 }
 
-function IssueDetail({ issue, projectId, currentUserId, isLead, onUpdated }: IssueDetailProps) {
+function IssueDetail({
+  issue,
+  projectId,
+  currentUserId,
+  isLead,
+  onUpdated,
+}: IssueDetailProps) {
   const { t } = useTranslation()
   const [comments, setComments] = useState<IssueComment[]>([])
   const [commentText, setCommentText] = useState("")
@@ -107,7 +126,7 @@ function IssueDetail({ issue, projectId, currentUserId, isLead, onUpdated }: Iss
   const loadComments = useCallback(async () => {
     try {
       const res = await apiJson<IssueCommentsResponse>(
-        `/projects/${projectId}/issues/${issue.id}/comments`
+        `/projects/${projectId}/issues/${issue.id}/comments`,
       )
       setComments(res.data)
     } catch {
@@ -142,7 +161,7 @@ function IssueDetail({ issue, projectId, currentUserId, isLead, onUpdated }: Iss
       await apiMutation(
         `/projects/${projectId}/issues/${issue.id}`,
         { status: newStatus },
-        "PATCH"
+        "PATCH",
       )
       onUpdated()
     } catch (err) {
@@ -171,7 +190,11 @@ function IssueDetail({ issue, projectId, currentUserId, isLead, onUpdated }: Iss
               <div className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2">
                 <p className="text-sm whitespace-pre-wrap">{c.text}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {c.author_name && <span className="font-medium text-foreground/70">{c.author_name} · </span>}
+                  {c.author_name && (
+                    <span className="font-medium text-foreground/70">
+                      {c.author_name} ·{" "}
+                    </span>
+                  )}
                   {shortDate(c.created_at)}
                 </p>
               </div>
@@ -196,9 +219,13 @@ function IssueDetail({ issue, projectId, currentUserId, isLead, onUpdated }: Iss
             {canToggle && (
               <Button variant="outline" size="sm" onClick={toggleStatus}>
                 {issue.status === "open" ? (
-                  <><XCircle className="size-3.5" /> {t("issue_close")}</>
+                  <>
+                    <XCircle className="size-3.5" /> {t("issue_close")}
+                  </>
                 ) : (
-                  <><CheckCircle2 className="size-3.5" /> {t("issue_reopen")}</>
+                  <>
+                    <CheckCircle2 className="size-3.5" /> {t("issue_reopen")}
+                  </>
                 )}
               </Button>
             )}
@@ -236,7 +263,11 @@ function NewIssueForm({ projectId, onCreated, onCancel }: NewIssueFormProps) {
     if (!title.trim()) return
     setIsSubmitting(true)
     try {
-      await apiMutation(`/projects/${projectId}/issues`, { title: title.trim(), body: body.trim() || null, kind })
+      await apiMutation(`/projects/${projectId}/issues`, {
+        title: title.trim(),
+        body: body.trim() || null,
+        kind,
+      })
       onCreated()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("error_action"))
@@ -249,16 +280,22 @@ function NewIssueForm({ projectId, onCreated, onCancel }: NewIssueFormProps) {
     <Card className="bg-background shadow-none">
       <CardContent className="p-4 grid gap-3">
         <div className="grid gap-1.5">
-          <label className="text-xs font-medium text-muted-foreground">{t("issue_title_label")}</label>
+          <label className="text-xs font-medium text-muted-foreground">
+            {t("issue_title_label")}
+          </label>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={t("issue_title_label")}
-            onKeyDown={(e) => { if (e.key === "Enter") submit() }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submit()
+            }}
           />
         </div>
         <div className="grid gap-1.5">
-          <label className="text-xs font-medium text-muted-foreground">{t("issue_body_label")}</label>
+          <label className="text-xs font-medium text-muted-foreground">
+            {t("issue_body_label")}
+          </label>
           <Textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -267,7 +304,9 @@ function NewIssueForm({ projectId, onCreated, onCancel }: NewIssueFormProps) {
           />
         </div>
         <div className="grid gap-1.5">
-          <label className="text-xs font-medium text-muted-foreground">{t("issue_kind_label")}</label>
+          <label className="text-xs font-medium text-muted-foreground">
+            {t("issue_kind_label")}
+          </label>
           <Select value={kind} onValueChange={setKind}>
             <SelectTrigger className="h-8 text-sm">
               <SelectValue />
@@ -276,13 +315,21 @@ function NewIssueForm({ projectId, onCreated, onCancel }: NewIssueFormProps) {
               <SelectItem value="bug">{t("issue_kind_bug")}</SelectItem>
               <SelectItem value="feature">{t("issue_kind_feature")}</SelectItem>
               <SelectItem value="task">{t("issue_kind_task")}</SelectItem>
-              <SelectItem value="question">{t("issue_kind_question")}</SelectItem>
+              <SelectItem value="question">
+                {t("issue_kind_question")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="flex gap-2 justify-end">
-          <Button variant="outline" size="sm" onClick={onCancel}>{t("cancel")}</Button>
-          <Button size="sm" onClick={submit} disabled={isSubmitting || !title.trim()}>
+          <Button variant="outline" size="sm" onClick={onCancel}>
+            {t("cancel")}
+          </Button>
+          <Button
+            size="sm"
+            onClick={submit}
+            disabled={isSubmitting || !title.trim()}
+          >
             {t("issue_submit")}
           </Button>
         </div>
@@ -307,7 +354,9 @@ function IssuesTab({ projectId, currentUserId, isLead }: IssuesTabProps) {
 
   const loadIssues = useCallback(async () => {
     try {
-      const res = await apiJson<ProjectIssuesResponse>(`/projects/${projectId}/issues`)
+      const res = await apiJson<ProjectIssuesResponse>(
+        `/projects/${projectId}/issues`,
+      )
       setIssues(res.data)
     } catch {
       // ignore
@@ -399,7 +448,9 @@ function IssuesTab({ projectId, currentUserId, isLead }: IssuesTabProps) {
               {/* Issue row */}
               <div
                 className={`flex items-start gap-3 p-3 cursor-pointer hover:bg-muted/30 transition-colors ${
-                  idx < filtered.length - 1 && expandedId !== issue.id ? "border-b" : ""
+                  idx < filtered.length - 1 && expandedId !== issue.id
+                    ? "border-b"
+                    : ""
                 }`}
                 onClick={() =>
                   setExpandedId(expandedId === issue.id ? null : issue.id)
@@ -422,11 +473,15 @@ function IssuesTab({ projectId, currentUserId, isLead }: IssuesTabProps) {
                     >
                       {kindLabel(issue.kind)}
                     </span>
-                    <span className="text-sm font-medium truncate">{issue.title}</span>
+                    <span className="text-sm font-medium truncate">
+                      {issue.title}
+                    </span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {issue.author_name && (
-                      <span className="font-medium text-foreground/70">{issue.author_name} · </span>
+                      <span className="font-medium text-foreground/70">
+                        {issue.author_name} ·{" "}
+                      </span>
                     )}
                     {shortDate(issue.created_at)}
                   </p>
@@ -487,7 +542,9 @@ function ProjectChatTab({ projectId, currentUserId }: ProjectChatTabProps) {
 
   const loadChat = useCallback(async () => {
     try {
-      const res = await apiJson<ProjectIssuesResponse>(`/projects/${projectId}/issues`)
+      const res = await apiJson<ProjectIssuesResponse>(
+        `/projects/${projectId}/issues`,
+      )
       // Only show "question" kind issues as chat messages
       setMessages(res.data.filter((i) => i.kind === "question"))
     } catch {
@@ -548,12 +605,22 @@ function ProjectChatTab({ projectId, currentUserId }: ProjectChatTabProps) {
                   }`}
                 >
                   <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
-                    {(msg.author_name ?? (msg.author_id === currentUserId ? t("project_chat_me") : t("project_chat_user"))).charAt(0).toUpperCase()}
+                    {(
+                      msg.author_name ??
+                      (msg.author_id === currentUserId
+                        ? t("project_chat_me")
+                        : t("project_chat_user"))
+                    )
+                      .charAt(0)
+                      .toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-semibold text-foreground">
-                        {msg.author_name ?? (msg.author_id === currentUserId ? t("project_chat_me") : t("project_chat_user"))}
+                        {msg.author_name ??
+                          (msg.author_id === currentUserId
+                            ? t("project_chat_me")
+                            : t("project_chat_user"))}
                       </span>
                       <span className="text-[11px] text-muted-foreground">
                         {shortDate(msg.created_at)}
@@ -577,7 +644,8 @@ function ProjectChatTab({ projectId, currentUserId }: ProjectChatTabProps) {
                 placeholder={t("project_chat_placeholder")}
                 className="min-h-[60px] resize-none text-sm"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) sendChatMessage()
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey))
+                    sendChatMessage()
                 }}
               />
               <Button
@@ -616,7 +684,9 @@ function ProjectDetail() {
   const [isSendingUpdate, setIsSendingUpdate] = useState(false)
   const [reviewRating, setReviewRating] = useState("5")
   const [reviewText, setReviewText] = useState("")
-  const [tab, setTab] = useState<"overview" | "chat" | "issues" | "milestones" | "activity">("overview")
+  const [tab, setTab] = useState<
+    "overview" | "chat" | "issues" | "milestones" | "activity"
+  >("overview")
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [editTitle, setEditTitle] = useState("")
   const [editPitch, setEditPitch] = useState("")
@@ -726,7 +796,9 @@ function ProjectDetail() {
       )
       await loadProject()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("error_milestone_toggle"))
+      toast.error(
+        err instanceof Error ? err.message : t("error_milestone_toggle"),
+      )
     }
   }
 
@@ -778,20 +850,45 @@ function ProjectDetail() {
   const isOpen = OPEN_STATUSES.has(project.status)
 
   const canReview = isOwner && project.status === "proposed"
-  const canPilot = isLead && ["approved", "in_progress"].includes(project.status)
-  const canManage = isLead && ["approved", "in_progress", "piloting"].includes(project.status)
+  const canPilot =
+    isLead && ["approved", "in_progress"].includes(project.status)
+  const canManage =
+    isLead && ["approved", "in_progress", "piloting"].includes(project.status)
   const canSolve = isOwner && project.status === "piloting"
   const canPostUpdate = (isLead || isOwner) && isOpen
 
   const doneCount = milestones.filter((m) => m.status === "done").length
-  const progressPct = milestones.length > 0 ? Math.round((doneCount / milestones.length) * 100) : 0
+  const progressPct =
+    milestones.length > 0
+      ? Math.round((doneCount / milestones.length) * 100)
+      : 0
 
   const tabs: { key: typeof tab; label: string; icon?: React.ReactNode }[] = [
-    { key: "overview", label: t("project_tab_overview"), icon: <Code2 className="size-3.5" /> },
-    { key: "chat", label: t("project_tab_chat"), icon: <MessageSquare className="size-3.5" /> },
-    { key: "issues", label: t("project_tab_issues"), icon: <AlertCircle className="size-3.5" /> },
-    { key: "milestones", label: t("project_tab_milestones"), icon: <CheckCircle2 className="size-3.5" /> },
-    { key: "activity", label: t("project_tab_activity"), icon: <GitBranch className="size-3.5" /> },
+    {
+      key: "overview",
+      label: t("project_tab_overview"),
+      icon: <Code2 className="size-3.5" />,
+    },
+    {
+      key: "chat",
+      label: t("project_tab_chat"),
+      icon: <MessageSquare className="size-3.5" />,
+    },
+    {
+      key: "issues",
+      label: t("project_tab_issues"),
+      icon: <AlertCircle className="size-3.5" />,
+    },
+    {
+      key: "milestones",
+      label: t("project_tab_milestones"),
+      icon: <CheckCircle2 className="size-3.5" />,
+    },
+    {
+      key: "activity",
+      label: t("project_tab_activity"),
+      icon: <GitBranch className="size-3.5" />,
+    },
   ]
 
   return (
@@ -809,15 +906,25 @@ function ProjectDetail() {
           <CardContent className="p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3 min-w-0 flex-1">
-                <div className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full ${isOpen ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-muted text-muted-foreground"}`}>
-                  {isOpen ? <GitBranch className="size-4" /> : <GitMerge className="size-4" />}
+                <div
+                  className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full ${isOpen ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-muted text-muted-foreground"}`}
+                >
+                  {isOpen ? (
+                    <GitBranch className="size-4" />
+                  ) : (
+                    <GitMerge className="size-4" />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-xl font-semibold">{project.title}</h1>
                     <StatusBadge status={project.status} />
                     <Badge variant="outline" className="gap-1 text-xs">
-                      {isOpen ? <GitBranch className="size-3" /> : <Lock className="size-3" />}
+                      {isOpen ? (
+                        <GitBranch className="size-3" />
+                      ) : (
+                        <Lock className="size-3" />
+                      )}
                       {isOpen ? t("project_open") : t("project_closed")}
                     </Badge>
                   </div>
@@ -831,7 +938,12 @@ function ProjectDetail() {
               <div className="flex items-center gap-2 shrink-0">
                 {project.repo_url && (
                   <Button variant="outline" size="sm" asChild>
-                    <a href={project.repo_url} target="_blank" rel="noopener noreferrer" className="gap-1.5">
+                    <a
+                      href={project.repo_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="gap-1.5"
+                    >
                       <Code2 className="size-4 text-primary" />
                       <span className="hidden sm:inline">GitHub</span>
                       <ExternalLink className="size-3 text-muted-foreground" />
@@ -839,9 +951,16 @@ function ProjectDetail() {
                   </Button>
                 )}
                 {isLead && (
-                  <Button variant="outline" size="sm" onClick={openEditModal} className="gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={openEditModal}
+                    className="gap-1.5"
+                  >
                     <Edit3 className="size-3.5" />
-                    <span className="hidden sm:inline">{t("problem_edit")}</span>
+                    <span className="hidden sm:inline">
+                      {t("problem_edit")}
+                    </span>
                   </Button>
                 )}
               </div>
@@ -871,10 +990,14 @@ function ProjectDetail() {
               {tb.icon}
               {tb.label}
               {tb.key === "activity" && updates.length > 0 && (
-                <Badge variant="secondary" className="ml-1 text-xs">{updates.length}</Badge>
+                <Badge variant="secondary" className="ml-1 text-xs">
+                  {updates.length}
+                </Badge>
               )}
               {tb.key === "milestones" && milestones.length > 0 && (
-                <Badge variant="secondary" className="ml-1 text-xs">{doneCount}/{milestones.length}</Badge>
+                <Badge variant="secondary" className="ml-1 text-xs">
+                  {doneCount}/{milestones.length}
+                </Badge>
               )}
             </button>
           ))}
@@ -892,7 +1015,9 @@ function ProjectDetail() {
                       <Code2 className="size-5" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-muted-foreground">{t("project_repo_label")}</p>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        {t("project_repo_label")}
+                      </p>
                       <a
                         href={project.repo_url}
                         target="_blank"
@@ -905,7 +1030,11 @@ function ProjectDetail() {
                     </div>
                   </div>
                   <Button size="sm" variant="outline" asChild>
-                    <a href={project.repo_url} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={project.repo_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       {t("project_repo_open")}
                     </a>
                   </Button>
@@ -917,8 +1046,12 @@ function ProjectDetail() {
                   <div className="flex items-center gap-3">
                     <Code2 className="size-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">{t("project_repo_missing")}</p>
-                      <p className="text-xs text-muted-foreground">{t("project_repo_missing_hint")}</p>
+                      <p className="text-sm font-medium">
+                        {t("project_repo_missing")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("project_repo_missing_hint")}
+                      </p>
                     </div>
                   </div>
                   <Button size="sm" variant="outline" onClick={openEditModal}>
@@ -936,7 +1069,9 @@ function ProjectDetail() {
                 className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3 transition-colors hover:bg-muted/60"
               >
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-muted-foreground">{t("project_problem_label")}</p>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t("project_problem_label")}
+                  </p>
                   <p className="mt-0.5 truncate text-sm font-medium">
                     {problem.title || problem.raw_text || t("unnamed_problem")}
                   </p>
@@ -947,13 +1082,18 @@ function ProjectDetail() {
             {/* Summary Progress Card */}
             <Card className="bg-background shadow-none">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold">{t("project_overview_title")}</CardTitle>
+                <CardTitle className="text-sm font-semibold">
+                  {t("project_overview_title")}
+                </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
                 {/* Milestones progress */}
                 <div>
                   <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{t("project_progress")} ({doneCount}/{milestones.length} {t("project_milestones_count")})</span>
+                    <span>
+                      {t("project_progress")} ({doneCount}/{milestones.length}{" "}
+                      {t("project_milestones_count")})
+                    </span>
                     <span>{progressPct}%</span>
                   </div>
                   <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -966,16 +1106,28 @@ function ProjectDetail() {
 
                 <div className="grid grid-cols-3 gap-3 pt-2 text-center border-t">
                   <div className="rounded-lg bg-muted/30 p-2.5">
-                    <p className="text-xl font-bold text-primary">{milestones.length}</p>
-                    <p className="text-xs text-muted-foreground">{t("project_tab_milestones")}</p>
+                    <p className="text-xl font-bold text-primary">
+                      {milestones.length}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("project_tab_milestones")}
+                    </p>
                   </div>
                   <div className="rounded-lg bg-muted/30 p-2.5">
-                    <p className="text-xl font-bold text-primary">{updates.length}</p>
-                    <p className="text-xs text-muted-foreground">{t("project_activity_count")}</p>
+                    <p className="text-xl font-bold text-primary">
+                      {updates.length}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("project_activity_count")}
+                    </p>
                   </div>
                   <div className="rounded-lg bg-muted/30 p-2.5">
-                    <p className="text-xl font-bold text-primary">{reviews.length}</p>
-                    <p className="text-xs text-muted-foreground">{t("project_reviews_count")}</p>
+                    <p className="text-xl font-bold text-primary">
+                      {reviews.length}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("project_reviews_count")}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -987,18 +1139,32 @@ function ProjectDetail() {
                 <CardContent className="p-4 flex flex-wrap gap-2">
                   {canReview && (
                     <>
-                      <Button variant="outline" onClick={() => mutateProject(`/projects/${projectId}/approve`)}>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          mutateProject(`/projects/${projectId}/approve`)
+                        }
+                      >
                         <CheckCircle2 className="size-4" />
                         {t("project_approve")}
                       </Button>
-                      <Button variant="outline" onClick={() => mutateProject(`/projects/${projectId}/reject`)}>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          mutateProject(`/projects/${projectId}/reject`)
+                        }
+                      >
                         <XCircle className="size-4" />
                         {t("project_reject")}
                       </Button>
                     </>
                   )}
                   {canPilot && (
-                    <Button onClick={() => mutateProject(`/projects/${projectId}/start-piloting`)}>
+                    <Button
+                      onClick={() =>
+                        mutateProject(`/projects/${projectId}/start-piloting`)
+                      }
+                    >
                       <GitBranch className="size-4" />
                       {t("project_start_pilot")}
                     </Button>
@@ -1006,10 +1172,18 @@ function ProjectDetail() {
                   {canSolve && (
                     <div className="w-full grid gap-3">
                       <div className="flex items-center gap-1">
-                        <span className="text-sm text-muted-foreground mr-1">{t("project_rating")}:</span>
+                        <span className="text-sm text-muted-foreground mr-1">
+                          {t("project_rating")}:
+                        </span>
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <button key={star} type="button" onClick={() => setReviewRating(String(star))}>
-                            <Star className={`size-5 transition-colors cursor-pointer ${star <= Number(reviewRating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground hover:text-amber-300"}`} />
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setReviewRating(String(star))}
+                          >
+                            <Star
+                              className={`size-5 transition-colors cursor-pointer ${star <= Number(reviewRating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground hover:text-amber-300"}`}
+                            />
                           </button>
                         ))}
                       </div>
@@ -1018,7 +1192,9 @@ function ProjectDetail() {
                         onChange={(e) => setReviewText(e.target.value)}
                         placeholder={t("project_review_placeholder")}
                       />
-                      <Button onClick={complete}>{t("project_mark_solved")}</Button>
+                      <Button onClick={complete}>
+                        {t("project_mark_solved")}
+                      </Button>
                     </div>
                   )}
                 </CardContent>
@@ -1029,7 +1205,9 @@ function ProjectDetail() {
             {reviews.length > 0 && (
               <Card className="bg-background shadow-none">
                 <CardHeader>
-                  <CardTitle className="text-sm">{t("project_reviews_title")}</CardTitle>
+                  <CardTitle className="text-sm">
+                    {t("project_reviews_title")}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-3">
                   {reviews.map((review) => (
@@ -1037,13 +1215,20 @@ function ProjectDetail() {
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-0.5">
                           {[1, 2, 3, 4, 5].map((star) => (
-                            <Star key={star} className={`size-3.5 ${star <= review.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+                            <Star
+                              key={star}
+                              className={`size-3.5 ${star <= review.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                            />
                           ))}
                         </div>
-                        <span className="text-muted-foreground text-xs">{shortDate(review.created_at)}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {shortDate(review.created_at)}
+                        </span>
                       </div>
                       {review.text && (
-                        <p className="text-muted-foreground mt-2 whitespace-pre-wrap text-sm">{review.text}</p>
+                        <p className="text-muted-foreground mt-2 whitespace-pre-wrap text-sm">
+                          {review.text}
+                        </p>
                       )}
                     </div>
                   ))}
@@ -1055,10 +1240,7 @@ function ProjectDetail() {
 
         {/* ── Chat tab ── */}
         {tab === "chat" && (
-          <ProjectChatTab
-            projectId={projectId}
-            currentUserId={user?.id}
-          />
+          <ProjectChatTab projectId={projectId} currentUserId={user?.id} />
         )}
 
         {/* ── Issues tab ── */}
@@ -1094,9 +1276,15 @@ function ProjectDetail() {
                     value={milestoneTitle}
                     onChange={(e) => setMilestoneTitle(e.target.value)}
                     placeholder={t("project_milestone_placeholder")}
-                    onKeyDown={(e) => { if (e.key === "Enter") addMilestone() }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") addMilestone()
+                    }}
                   />
-                  <Button variant="outline" onClick={addMilestone} className="shrink-0">
+                  <Button
+                    variant="outline"
+                    onClick={addMilestone}
+                    className="shrink-0"
+                  >
                     {t("project_milestone_add")}
                   </Button>
                 </div>
@@ -1109,13 +1297,19 @@ function ProjectDetail() {
                     <div
                       key={milestone.id}
                       className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors ${
-                        milestone.status === "done" ? "bg-muted/40" : "bg-background"
+                        milestone.status === "done"
+                          ? "bg-muted/40"
+                          : "bg-background"
                       }`}
                     >
                       <button
                         type="button"
                         onClick={() => canManage && toggleMilestone(milestone)}
-                        className={canManage ? "cursor-pointer text-primary" : "cursor-default text-muted-foreground"}
+                        className={
+                          canManage
+                            ? "cursor-pointer text-primary"
+                            : "cursor-default text-muted-foreground"
+                        }
                       >
                         {milestone.status === "done" ? (
                           <CheckCircle2 className="size-4 text-green-600" />
@@ -1124,11 +1318,15 @@ function ProjectDetail() {
                         )}
                       </button>
                       <div className="min-w-0 flex-1">
-                        <p className={`truncate text-sm ${milestone.status === "done" ? "line-through text-muted-foreground" : "font-medium"}`}>
+                        <p
+                          className={`truncate text-sm ${milestone.status === "done" ? "line-through text-muted-foreground" : "font-medium"}`}
+                        >
                           {milestone.title}
                         </p>
                       </div>
-                      <span className="shrink-0 text-xs text-muted-foreground">{statusLabel(milestone.status)}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {statusLabel(milestone.status)}
+                      </span>
                       {canManage && (
                         <button
                           type="button"
@@ -1159,13 +1357,19 @@ function ProjectDetail() {
                     placeholder={t("project_update_placeholder")}
                     className="min-h-[80px] resize-none"
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addUpdate()
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey))
+                        addUpdate()
                     }}
                   />
                   {updatePhotos.length > 0 && (
                     <div className="grid grid-cols-4 gap-2">
                       {updatePhotoPreviews.map((p) => (
-                        <img key={p.id} src={p.url} alt="" className="aspect-square rounded-md border object-cover" />
+                        <img
+                          key={p.id}
+                          src={p.url}
+                          alt=""
+                          className="aspect-square rounded-md border object-cover"
+                        />
                       ))}
                     </div>
                   )}
@@ -1179,11 +1383,19 @@ function ProjectDetail() {
                           accept="image/jpeg,image/png,image/webp"
                           multiple
                           className="hidden"
-                          onChange={(e) => setUpdatePhotos(Array.from(e.target.files || []).slice(0, 5))}
+                          onChange={(e) =>
+                            setUpdatePhotos(
+                              Array.from(e.target.files || []).slice(0, 5),
+                            )
+                          }
                         />
                       </label>
                     </Button>
-                    <Button size="sm" onClick={addUpdate} disabled={isSendingUpdate || !updateText.trim()}>
+                    <Button
+                      size="sm"
+                      onClick={addUpdate}
+                      disabled={isSendingUpdate || !updateText.trim()}
+                    >
                       <Send className="size-4" />
                       {t("project_send")}
                     </Button>
@@ -1201,13 +1413,18 @@ function ProjectDetail() {
             ) : (
               <div className="flex flex-col gap-0 rounded-lg border bg-background overflow-hidden">
                 {updates.map((update, idx) => (
-                  <div key={update.id} className={`p-4 ${idx < updates.length - 1 ? "border-b" : ""}`}>
+                  <div
+                    key={update.id}
+                    className={`p-4 ${idx < updates.length - 1 ? "border-b" : ""}`}
+                  >
                     <div className="flex items-start gap-3">
                       <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
                         {update.author_name?.charAt(0).toUpperCase() ?? "?"}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{update.text}</p>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                          {update.text}
+                        </p>
                         {update.media && update.media.length > 0 && (
                           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                             {update.media.map((media) =>
@@ -1223,7 +1440,11 @@ function ProjectDetail() {
                           </div>
                         )}
                         <p className="text-muted-foreground mt-2 text-xs">
-                          {update.author_name && <span className="font-medium text-foreground/70">{update.author_name} · </span>}
+                          {update.author_name && (
+                            <span className="font-medium text-foreground/70">
+                              {update.author_name} ·{" "}
+                            </span>
+                          )}
                           {shortDate(update.created_at)}
                         </p>
                       </div>
@@ -1269,7 +1490,9 @@ function ProjectDetail() {
                 {project.repo_url}
               </a>
             ) : (
-              <p className="text-xs text-muted-foreground">{t("project_repo_none")}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("project_repo_none")}
+              </p>
             )}
           </CardContent>
         </Card>
@@ -1283,18 +1506,28 @@ function ProjectDetail() {
           </CardHeader>
           <CardContent className="grid gap-2 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">{t("project_status_label")}</span>
+              <span className="text-muted-foreground">
+                {t("project_status_label")}
+              </span>
               <StatusBadge status={project.status} />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">{t("project_visibility")}</span>
+              <span className="text-muted-foreground">
+                {t("project_visibility")}
+              </span>
               <Badge variant="outline" className="gap-1 text-xs">
-                {isOpen ? <GitBranch className="size-3" /> : <Lock className="size-3" />}
+                {isOpen ? (
+                  <GitBranch className="size-3" />
+                ) : (
+                  <Lock className="size-3" />
+                )}
                 {isOpen ? t("project_open") : t("project_closed")}
               </Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">{t("project_created")}</span>
+              <span className="text-muted-foreground">
+                {t("project_created")}
+              </span>
               <span className="text-xs">{shortDate(project.created_at)}</span>
             </div>
           </CardContent>
@@ -1309,7 +1542,9 @@ function ProjectDetail() {
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">{t("project_edit_name_label")}</label>
+              <label className="text-xs font-medium text-muted-foreground">
+                {t("project_edit_name_label")}
+              </label>
               <Input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
@@ -1317,7 +1552,9 @@ function ProjectDetail() {
               />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">{t("project_edit_pitch_label")}</label>
+              <label className="text-xs font-medium text-muted-foreground">
+                {t("project_edit_pitch_label")}
+              </label>
               <Textarea
                 value={editPitch}
                 onChange={(e) => setEditPitch(e.target.value)}
@@ -1326,7 +1563,9 @@ function ProjectDetail() {
               />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">{t("project_repo_label")} URL</label>
+              <label className="text-xs font-medium text-muted-foreground">
+                {t("project_repo_label")} URL
+              </label>
               <Input
                 value={editRepoUrl}
                 onChange={(e) => setEditRepoUrl(e.target.value)}
@@ -1334,10 +1573,18 @@ function ProjectDetail() {
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" size="sm" onClick={() => setShowEditDialog(false)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowEditDialog(false)}
+              >
                 {t("cancel")}
               </Button>
-              <Button size="sm" onClick={handleSaveProject} disabled={isUpdating || !editTitle.trim()}>
+              <Button
+                size="sm"
+                onClick={handleSaveProject}
+                disabled={isUpdating || !editTitle.trim()}
+              >
                 {t("save")}
               </Button>
             </div>

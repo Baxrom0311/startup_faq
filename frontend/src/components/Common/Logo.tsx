@@ -29,7 +29,9 @@ export function Logo({
         <span className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
           <Network className="size-4" />
         </span>
-        {variant === "full" && <span className="font-semibold">SolutionLab</span>}
+        {variant === "full" && (
+          <span className="font-semibold">SolutionLab</span>
+        )}
       </div>
     )
 

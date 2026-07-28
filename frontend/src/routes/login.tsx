@@ -45,7 +45,9 @@ declare global {
 }
 
 const API_BASE = import.meta.env.VITE_API_URL
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as
+  | string
+  | undefined
 const MAX_POLL_RETRIES = 60 // 60 × 2s = 2 daqiqa
 
 export const Route = createFileRoute("/login")({
@@ -62,7 +64,12 @@ export const Route = createFileRoute("/login")({
 
 function GoogleIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
         fill="#4285F4"
@@ -151,7 +158,9 @@ function Login() {
             navigate({ to: "/connect-telegram" })
           }
         } catch (error) {
-          toast.error(error instanceof Error ? error.message : t("error_generic"))
+          toast.error(
+            error instanceof Error ? error.message : t("error_generic"),
+          )
         } finally {
           setGoogleLoading(false)
         }
@@ -274,7 +283,9 @@ function Login() {
 
               <div className="relative flex items-center gap-3">
                 <div className="h-px flex-1 bg-border" />
-                <span className="text-xs text-muted-foreground">{t("login_or")}</span>
+                <span className="text-xs text-muted-foreground">
+                  {t("login_or")}
+                </span>
                 <div className="h-px flex-1 bg-border" />
               </div>
             </>
@@ -319,7 +330,9 @@ function Login() {
                 <Send className="size-5 text-primary" />
               </div>
               <p className="text-sm font-medium">{t("login_status_pending")}</p>
-              <p className="text-xs text-muted-foreground">{t("login_tg_instruction")}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("login_tg_instruction")}
+              </p>
               <a
                 href={session.deep_link}
                 target="_blank"

@@ -4,13 +4,15 @@ import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { type Problem, type Project, apiJson, type ProblemsResponse, type ProjectsResponse } from "@/lib/product-api"
+import {
+  apiJson,
+  type Problem,
+  type ProblemsResponse,
+  type Project,
+  type ProjectsResponse,
+} from "@/lib/product-api"
 
 type SearchDialogProps = {
   open: boolean
@@ -28,7 +30,10 @@ type FlatResult =
 
 const LISTBOX_ID = "search-results-listbox"
 
-export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
+export default function SearchDialog({
+  open,
+  onOpenChange,
+}: SearchDialogProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [query, setQuery] = useState("")
@@ -42,11 +47,10 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
     if (open) {
       const id = setTimeout(() => inputRef.current?.focus(), 50)
       return () => clearTimeout(id)
-    } else {
-      setQuery("")
-      setResults(null)
-      setActiveIndex(-1)
     }
+    setQuery("")
+    setResults(null)
+    setActiveIndex(-1)
   }, [open])
 
   useEffect(() => {
@@ -66,8 +70,14 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
     timerRef.current = setTimeout(async () => {
       try {
         const [problemsRes, projectsRes] = await Promise.all([
-          apiJson<ProblemsResponse>(`/problems/?q=${encodeURIComponent(q)}&limit=5`, { signal: controller.signal }),
-          apiJson<ProjectsResponse>(`/projects/projects?q=${encodeURIComponent(q)}&limit=5`, { signal: controller.signal }),
+          apiJson<ProblemsResponse>(
+            `/problems/?q=${encodeURIComponent(q)}&limit=5`,
+            { signal: controller.signal },
+          ),
+          apiJson<ProjectsResponse>(
+            `/projects/projects?q=${encodeURIComponent(q)}&limit=5`,
+            { signal: controller.signal },
+          ),
         ])
         setResults({ problems: problemsRes.data, projects: projectsRes.data })
       } catch (err) {
@@ -120,16 +130,23 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
     }
   }
 
-  const hasResults = results && (results.problems.length > 0 || results.projects.length > 0)
+  const hasResults =
+    results && (results.problems.length > 0 || results.projects.length > 0)
   const problemOffset = 0
   const projectOffset = results?.problems.length ?? 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-0 p-0 sm:max-w-lg" aria-describedby={undefined}>
+      <DialogContent
+        className="gap-0 p-0 sm:max-w-lg"
+        aria-describedby={undefined}
+      >
         <DialogTitle className="sr-only">{t("layout_search")}</DialogTitle>
         <div className="flex items-center gap-2 border-b px-3 py-3">
-          <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <Search
+            className="size-4 shrink-0 text-muted-foreground"
+            aria-hidden
+          />
           <Input
             ref={inputRef}
             value={query}
@@ -141,9 +158,16 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
             aria-expanded={!!hasResults}
             aria-autocomplete="list"
             aria-controls={hasResults ? LISTBOX_ID : undefined}
-            aria-activedescendant={activeIndex >= 0 ? `search-result-${activeIndex}` : undefined}
+            aria-activedescendant={
+              activeIndex >= 0 ? `search-result-${activeIndex}` : undefined
+            }
           />
-          {loading && <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" aria-hidden />}
+          {loading && (
+            <Loader2
+              className="size-4 shrink-0 animate-spin text-muted-foreground"
+              aria-hidden
+            />
+          )}
         </div>
 
         {!query.trim() && (
@@ -185,10 +209,15 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
                       className={`w-full justify-start gap-3 rounded-none px-3 py-2 h-auto font-normal${
                         activeIndex === idx ? " bg-accent" : ""
                       }`}
-                      onClick={() => goTo("/problems/$problemId", { problemId: p.id })}
+                      onClick={() =>
+                        goTo("/problems/$problemId", { problemId: p.id })
+                      }
                       onMouseEnter={() => setActiveIndex(idx)}
                     >
-                      <FileText className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                      <FileText
+                        className="size-4 shrink-0 text-muted-foreground"
+                        aria-hidden
+                      />
                       <span className="truncate text-sm">
                         {p.title || p.raw_text || t("unnamed_problem")}
                       </span>
@@ -218,10 +247,15 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
                       className={`w-full justify-start gap-3 rounded-none px-3 py-2 h-auto font-normal${
                         activeIndex === idx ? " bg-accent" : ""
                       }`}
-                      onClick={() => goTo("/projects/$projectId", { projectId: proj.id })}
+                      onClick={() =>
+                        goTo("/projects/$projectId", { projectId: proj.id })
+                      }
                       onMouseEnter={() => setActiveIndex(idx)}
                     >
-                      <FolderKanban className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                      <FolderKanban
+                        className="size-4 shrink-0 text-muted-foreground"
+                        aria-hidden
+                      />
                       <span className="truncate text-sm">{proj.title}</span>
                     </Button>
                   )

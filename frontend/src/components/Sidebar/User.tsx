@@ -1,5 +1,10 @@
 import { Link as RouterLink } from "@tanstack/react-router"
-import { ChevronsUpDown, LogOut, Settings, User as UserIcon } from "lucide-react"
+import {
+  ChevronsUpDown,
+  LogOut,
+  Settings,
+  User as UserIcon,
+} from "lucide-react"
 
 import { useTranslation } from "react-i18next"
 
@@ -90,7 +95,11 @@ export function User({ user }: { user: UserPublic | null | undefined }) {
               />
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <RouterLink to="/users/$userId" params={{ userId: user.id }} onClick={handleMenuClick}>
+            <RouterLink
+              to="/users/$userId"
+              params={{ userId: user.id }}
+              onClick={handleMenuClick}
+            >
               <DropdownMenuItem>
                 <UserIcon />
                 {t("nav_profile")}

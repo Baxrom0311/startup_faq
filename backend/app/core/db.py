@@ -2,7 +2,7 @@ from sqlmodel import Session, create_engine, select
 
 from app import crud
 from app.core.config import settings
-from app.models import Region, Sector, User, UserCreate
+from app.models import Agency, Region, Sector, User, UserCreate
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -35,6 +35,27 @@ _SECTORS: list[dict] = [
     {"id": 25, "slug": "gov",         "name_uz": "Davlat xizmatlari",       "name_ru": "Государственные услуги",     "name_en": "Government Services",    "icon": "🏛️"},
     {"id": 26, "slug": "legal",       "name_uz": "Huquq va yuridik xizmat", "name_ru": "Право и юридические услуги","name_en": "Legal Services",         "icon": "⚖️"},
     {"id": 27, "slug": "hr",          "name_uz": "HR va bandlik",           "name_ru": "HR и занятость",             "name_en": "HR & Employment",        "icon": "👥"},
+]
+
+# Government bodies (idora) civic appeals are routed to. slugs match AGENCY_SLUGS
+# in app/modules/ai/providers.py.
+_AGENCIES: list[dict] = [
+    {"id": 1,  "slug": "suv",             "name_uz": "Suv ta'minoti",            "name_ru": "Водоснабжение",          "name_en": "Water supply",        "icon": "💧"},
+    {"id": 2,  "slug": "elektr",          "name_uz": "Elektr tarmoqlari",        "name_ru": "Электросети",            "name_en": "Electricity",         "icon": "⚡"},
+    {"id": 3,  "slug": "gaz",             "name_uz": "Gaz ta'minoti",            "name_ru": "Газоснабжение",          "name_en": "Gas supply",          "icon": "🔥"},
+    {"id": 4,  "slug": "issiqlik",        "name_uz": "Issiqlik ta'minoti",       "name_ru": "Теплоснабжение",         "name_en": "Heating",             "icon": "♨️"},
+    {"id": 5,  "slug": "yol",             "name_uz": "Yo'l xo'jaligi",           "name_ru": "Дорожное хозяйство",     "name_en": "Roads",               "icon": "🛣️"},
+    {"id": 6,  "slug": "kommunal",        "name_uz": "Kommunal xizmat",          "name_ru": "Коммунальные услуги",    "name_en": "Utilities & housing", "icon": "🏢"},
+    {"id": 7,  "slug": "obodonlashtirish","name_uz": "Obodonlashtirish",         "name_ru": "Благоустройство",        "name_en": "Landscaping",         "icon": "🌳"},
+    {"id": 8,  "slug": "transport",       "name_uz": "Jamoat transporti",        "name_ru": "Общественный транспорт", "name_en": "Public transport",    "icon": "🚌"},
+    {"id": 9,  "slug": "mahalla",         "name_uz": "Mahalla",                  "name_ru": "Махалля",                "name_en": "Neighborhood",        "icon": "🏘️"},
+    {"id": 10, "slug": "iib",             "name_uz": "Ichki ishlar (IIB)",       "name_ru": "Органы внутренних дел",  "name_en": "Police & safety",     "icon": "🚔"},
+    {"id": 11, "slug": "soglik",          "name_uz": "Sog'liqni saqlash",        "name_ru": "Здравоохранение",        "name_en": "Health",              "icon": "🏥"},
+    {"id": 12, "slug": "talim",           "name_uz": "Ta'lim",                   "name_ru": "Образование",            "name_en": "Education",           "icon": "📚"},
+    {"id": 13, "slug": "ekologiya",       "name_uz": "Ekologiya",                "name_ru": "Экология",               "name_en": "Environment",         "icon": "🌿"},
+    {"id": 14, "slug": "ijtimoiy",        "name_uz": "Ijtimoiy himoya",          "name_ru": "Социальная защита",      "name_en": "Social protection",   "icon": "🤝"},
+    {"id": 15, "slug": "aloqa",           "name_uz": "Aloqa va internet",        "name_ru": "Связь и интернет",       "name_en": "Telecom & internet",  "icon": "📡"},
+    {"id": 16, "slug": "boshqa",          "name_uz": "Boshqa / Umumiy",          "name_ru": "Прочее / Общее",         "name_en": "Other / General",     "icon": "🗂️"},
 ]
 
 _REGIONS: list[dict] = [
@@ -72,6 +93,18 @@ def _seed_sectors(session: Session) -> None:
     session.commit()
 
 
+def _seed_agencies(session: Session) -> None:
+    for row in _AGENCIES:
+        existing = session.get(Agency, row["id"])
+        if existing:
+            for key, val in row.items():
+                setattr(existing, key, val)
+            session.add(existing)
+        else:
+            session.add(Agency(**row))
+    session.commit()
+
+
 def _seed_regions(session: Session) -> None:
     for row in _REGIONS:
         existing = session.get(Region, row["id"])
@@ -90,6 +123,7 @@ def init_db(session: Session) -> None:
     # SQLModel.metadata.create_all(engine)
 
     _seed_sectors(session)
+    _seed_agencies(session)
     _seed_regions(session)
 
     user = session.exec(

@@ -176,8 +176,10 @@ function Dashboard() {
     (lang === "ru" ? s.name_ru : lang === "en" ? s.name_en : null) ??
     t(`sector_${s.slug}` as any, s.name_uz)
 
-  const activeSectorObj = activeSector != null ? sectorMap.get(activeSector) : null
-  const activeRegionObj = activeRegion != null ? regions.find((r) => r.id === activeRegion) : null
+  const activeSectorObj =
+    activeSector != null ? sectorMap.get(activeSector) : null
+  const activeRegionObj =
+    activeRegion != null ? regions.find((r) => r.id === activeRegion) : null
   const hasActiveFilters = activeSector != null || activeRegion != null
 
   return (
@@ -387,7 +389,10 @@ function Dashboard() {
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={() => { setSort("newest"); setSkip(0) }}
+                  onClick={() => {
+                    setSort("newest")
+                    setSkip(0)
+                  }}
                   className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                     sort === "newest"
                       ? "bg-primary text-primary-foreground border-primary"
@@ -398,7 +403,10 @@ function Dashboard() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setSort("popular"); setSkip(0) }}
+                  onClick={() => {
+                    setSort("popular")
+                    setSkip(0)
+                  }}
                   className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                     sort === "popular"
                       ? "bg-primary text-primary-foreground border-primary"
@@ -494,8 +502,11 @@ function ProblemFeedRow({
     problem.sector_id != null ? sectorMap.get(problem.sector_id) : null
   const lang = i18n.language?.slice(0, 2) as "uz" | "ru" | "en"
   const sectorLabel = sector
-    ? (lang === "ru" ? sector.name_ru : lang === "en" ? sector.name_en : null) ??
-      t(`sector_${sector.slug}` as any, sector.name_uz)
+    ? ((lang === "ru"
+        ? sector.name_ru
+        : lang === "en"
+          ? sector.name_en
+          : null) ?? t(`sector_${sector.slug}` as any, sector.name_uz))
     : null
 
   return (

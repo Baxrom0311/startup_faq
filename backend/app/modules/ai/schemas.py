@@ -16,6 +16,10 @@ class StructuredProblem(BaseModel):
     impact_scope: str | None = None
     suggested_sector: str | None = None
     suggested_region: str | None = None
+    # Civic-appeal routing (government layer): which agency (idora) should
+    # handle this, and whether it is a dangerous/emergency situation. Set by AI.
+    responsible_agency: str | None = None
+    is_emergency: bool = False
     tags: list[str] = Field(default_factory=list)
     duplicate_keywords: list[str] = Field(default_factory=list)
     is_actionable: bool = True

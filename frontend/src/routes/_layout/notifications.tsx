@@ -29,7 +29,9 @@ const PAGE_SIZE = 20
 
 function NotificationsPage() {
   const { t } = useTranslation()
-  const [notifications, setNotifications] = useState<NotificationItem[] | null>(null)
+  const [notifications, setNotifications] = useState<NotificationItem[] | null>(
+    null,
+  )
   const [unreadCount, setUnreadCount] = useState(0)
   const [totalCount, setTotalCount] = useState(0)
   const [unreadOnly, setUnreadOnly] = useState(false)
@@ -105,7 +107,9 @@ function NotificationsPage() {
               type="button"
               onClick={() => setUnreadOnly(false)}
               className={`px-4 py-1.5 font-medium transition-colors ${
-                !unreadOnly ? "bg-primary text-primary-foreground" : "hover:bg-muted/50"
+                !unreadOnly
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted/50"
               }`}
             >
               {t("notif_page_all")}
@@ -114,7 +118,9 @@ function NotificationsPage() {
               type="button"
               onClick={() => setUnreadOnly(true)}
               className={`px-4 py-1.5 font-medium transition-colors ${
-                unreadOnly ? "bg-primary text-primary-foreground" : "hover:bg-muted/50"
+                unreadOnly
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted/50"
               }`}
             >
               {t("notif_page_unread_only")}
@@ -136,7 +142,9 @@ function NotificationsPage() {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             {notifications !== null && (
-              <span>{totalCount} {t("notif_page_title").toLowerCase()}</span>
+              <span>
+                {totalCount} {t("notif_page_title").toLowerCase()}
+              </span>
             )}
           </CardTitle>
         </CardHeader>

@@ -18,7 +18,7 @@ from app.core.config import settings
 from app.modules.ai.schemas import StructuredProblem
 from app.modules.media.service import download_media_object
 
-LLM_PROMPT_VERSION = "problem-structuring-v2"
+LLM_PROMPT_VERSION = "problem-structuring-v3"
 LLM_SCHEMA_KEYS = [
     "title",
     "summary",
@@ -30,12 +30,22 @@ LLM_SCHEMA_KEYS = [
     "impact_scope",
     "suggested_sector",
     "suggested_region",
+    "responsible_agency",
+    "is_emergency",
     "tags",
     "duplicate_keywords",
     "is_actionable",
     "confidence",
     "flags",
     "moderation_reason",
+]
+
+# Government agencies (idora) a civic appeal can be routed to. The AI picks the
+# best-matching slug; unknown/none maps to "boshqa". Keep in sync with db.py seeds.
+AGENCY_SLUGS = [
+    "suv", "elektr", "gaz", "issiqlik", "yol", "kommunal", "obodonlashtirish",
+    "transport", "mahalla", "iib", "soglik", "talim", "ekologiya",
+    "ijtimoiy", "aloqa", "boshqa",
 ]
 logger = logging.getLogger(__name__)
 
@@ -109,7 +119,17 @@ def _structure_prompt(text: str) -> str:
         "- tags and duplicate_keywords: lowercase short terms, max 8 items.\n"
         "- confidence: number from 0 to 1.\n"
         "- flags: boolean map with keys spam, toxic, not_a_problem, unsafe, needs_review.\n"
-        "- moderation_reason: short reason when needs_review/not_a_problem/spam/toxic/unsafe is true; otherwise null.\n\n"
+        "- moderation_reason: short reason when needs_review/not_a_problem/spam/toxic/unsafe is true; otherwise null.\n"
+        "- responsible_agency: which government body (idora) should handle this "
+        f"civic complaint. Choose EXACTLY ONE slug from: {', '.join(AGENCY_SLUGS)}. "
+        "Guide: suv=water, elektr=electricity, gaz=gas, issiqlik=heating, "
+        "yol=roads, kommunal=utilities/housing, obodonlashtirish=landscaping/cleanliness, "
+        "transport=public transport, mahalla=neighborhood affairs, iib=police/safety/crime, "
+        "soglik=health, talim=education, ekologiya=environment, ijtimoiy=social support, "
+        "aloqa=telecom/internet, boshqa=other/unknown. Use boshqa if unsure.\n"
+        "- is_emergency: true ONLY for genuinely dangerous or life-threatening "
+        "situations needing urgent action (gas leak, live wire, collapse, flood, "
+        "fire risk, crime in progress). Otherwise false.\n\n"
         f"Problem:\n{text}"
     )
 
@@ -135,6 +155,15 @@ def _normalize_string(value: object, *, max_length: int | None = None) -> str | 
     if max_length and len(normalized) > max_length:
         return f"{normalized[: max_length - 3].rstrip()}..."
     return normalized
+
+
+def _normalize_agency(value: object) -> str | None:
+    """Coerce the AI's agency guess to a known slug; unknown -> None (caller
+    may default to 'boshqa')."""
+    if value is None:
+        return None
+    slug = re.sub(r"[^\w-]+", "", str(value).strip().casefold())
+    return slug if slug in AGENCY_SLUGS else None
 
 
 def _normalize_tags(value: object) -> list[str]:
@@ -199,6 +228,8 @@ def _clean_structured_data(data: dict[str, Any], text: str, *, has_audio: bool) 
         "impact_scope": _normalize_string(data.get("impact_scope"), max_length=32),
         "suggested_sector": _normalize_string(data.get("suggested_sector"), max_length=80),
         "suggested_region": _normalize_string(data.get("suggested_region"), max_length=120),
+        "responsible_agency": _normalize_agency(data.get("responsible_agency")),
+        "is_emergency": bool(data.get("is_emergency", False)) and has_text,
         "tags": _normalize_tags(data.get("tags")),
         "duplicate_keywords": _normalize_tags(data.get("duplicate_keywords")),
         "is_actionable": bool(data.get("is_actionable", has_text)) and has_text,
