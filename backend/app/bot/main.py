@@ -288,12 +288,16 @@ async def _process_bot_user_message(message: Message, user_id: int, text: str) -
     # If appeal is ready to submit -> submit automatically!
     if data.get("ready_to_submit"):
         collected = data.get("collected_data", {})
+        loc = collected.get("location") or "Ko'rsatilmadi"
+        name = collected.get("citizen_name") or message.from_user.first_name
+        phone = collected.get("phone") or f"Telegram ID: {user_id}"
+        prob = collected.get("problem_description") or ""
         summary = (
             f"[Telegram Bot AI Murojaat]\n"
-            f"Ism: {collected.get('citizen_name') or message.from_user.first_name}\n"
-            f"Tel: {collected.get('phone') or 'Telegram ID: ' + str(user_id)}\n"
-            f"Manzil: {collected.get('location') or 'Ko\'rsatilmadi'}\n\n"
-            f"Muammo:\n{collected.get('problem_description')}"
+            f"Ism: {name}\n"
+            f"Tel: {phone}\n"
+            f"Manzil: {loc}\n\n"
+            f"Muammo:\n{prob}"
         )
         try:
             async with httpx.AsyncClient(
