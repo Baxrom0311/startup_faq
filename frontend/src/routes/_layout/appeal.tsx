@@ -24,12 +24,15 @@ import { Card, CardContent } from "@/components/ui/card"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  speakAppeal,
   submitCivicAppeal,
+  transcribeAppeal,
   uploadProblemAudio,
   uploadProblemPhoto,
   voiceChatAppeal,
   type VoiceChatMessage,
 } from "@/lib/product-api"
+
 
 export const Route = createFileRoute("/_layout/appeal")({
   component: AppealSubmit,
@@ -90,11 +93,15 @@ function AppealSubmit() {
     problem_description?: string
   }>({})
 
-  // Speech Recognition Ref
+  // Speech Recognition & Gemini Audio Ref
   // biome-ignore lint/suspicious/noExplicitAny: Web Speech API ref
   const recognitionRef = useRef<any>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const micStreamRef = useRef<MediaStream | null>(null)
   const liveTranscriptRef = useRef("")
   const chatMessagesRef = useRef<VoiceChatMessage[]>([])
+
 
   useEffect(() => {
     chatMessagesRef.current = chatMessages
@@ -136,8 +143,8 @@ function AppealSubmit() {
     }
   }, [])
 
-  // ── Speech Synthesis (Natural Uzbek TTS) ──────────────────────────────────
-  const speakText = (text: string, onEnd?: () => void) => {
+  // ── Speech Synthesis (Gemini Native Uzbek TTS Audio) ─────────────────────
+  const speakText = async (text: string, onEnd?: () => void) => {
     const lang = i18n.language?.slice(0, 2) ?? "uz"
     setAiState("speaking")
 
@@ -146,18 +153,22 @@ function AppealSubmit() {
       if (onEnd) onEnd()
     }
 
-    // Try Google TTS Audio stream first for 100% natural human Uzbek voice
     try {
-      const ttsLang = lang === "ru" ? "ru" : lang === "en" ? "en" : "uz"
-      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${ttsLang}&client=tw-ob`
-      const audio = new Audio(ttsUrl)
-      audio.onended = finish
+      const audioBlob = await speakAppeal(text)
+      const audioUrl = URL.createObjectURL(audioBlob)
+      const audio = new Audio(audioUrl)
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl)
+        finish()
+      }
       audio.onerror = () => {
+        URL.revokeObjectURL(audioUrl)
         fallbackSpeechSynthesis(text, lang, finish)
       }
       const playPromise = audio.play()
       if (playPromise !== undefined) {
         playPromise.catch(() => {
+          URL.revokeObjectURL(audioUrl)
           fallbackSpeechSynthesis(text, lang, finish)
         })
       }
@@ -171,96 +182,139 @@ function AppealSubmit() {
     lang: string,
     finish: () => void,
   ) => {
-    if (!("speechSynthesis" in window)) {
+    try {
+      const ttsLang = lang === "ru" ? "ru" : lang === "en" ? "en" : "uz"
+      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${ttsLang}&client=tw-ob`
+      const audio = new Audio(ttsUrl)
+      audio.onended = finish
+      audio.onerror = () => {
+        if ("speechSynthesis" in window) {
+          window.speechSynthesis.cancel()
+          const utterance = new SpeechSynthesisUtterance(text)
+          utterance.lang =
+            lang === "ru" ? "ru-RU" : lang === "en" ? "en-US" : "uz-UZ"
+          utterance.onend = finish
+          utterance.onerror = finish
+          window.speechSynthesis.speak(utterance)
+        } else {
+          finish()
+        }
+      }
+      audio.play().catch(finish)
+    } catch {
       finish()
-      return
     }
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = lang === "ru" ? "ru-RU" : lang === "en" ? "en-US" : "uz-UZ"
-    utterance.rate = 0.95
-
-    const voices = window.speechSynthesis.getVoices()
-    const bestVoice = voices.find(
-      (v) =>
-        v.lang.startsWith(lang) ||
-        v.lang.includes("uz") ||
-        v.lang.includes("tr"),
-    )
-    if (bestVoice) utterance.voice = bestVoice
-
-    utterance.onend = finish
-    utterance.onerror = finish
-    window.speechSynthesis.speak(utterance)
   }
 
 
-  // ── Speech Recognition (STT) ──────────────────────────────────────────────
-  const startListening = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition
+  // ── Speech Recognition & Gemini Audio Transcribe (STT) ───────────────────
+  const startListening = async () => {
 
-    if (!SpeechRecognition) {
-      toast.info(
-        "Brauzeringiz ovoz tanishni qo'llab-quvvatlamaydi. Iltimos matn shaklida yozing yoki tugmalardan foydalaning.",
-      )
-      return
-    }
+    setLiveTranscript("")
+    liveTranscriptRef.current = ""
+    audioChunksRef.current = []
 
     try {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop()
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      micStreamRef.current = stream
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : "audio/webm"
+      const recorder = new MediaRecorder(stream, { mimeType })
+      mediaRecorderRef.current = recorder
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data)
       }
 
-      const recognition = new SpeechRecognition()
-      const lang = i18n.language?.slice(0, 2)
-      recognition.lang =
-        lang === "ru" ? "ru-RU" : lang === "en" ? "en-US" : "uz-UZ"
-      recognition.continuous = false
-      recognition.interimResults = true
+      recorder.onstop = async () => {
+        micStreamRef.current?.getTracks().forEach((t) => t.stop())
+        micStreamRef.current = null
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" })
 
-      recognition.onstart = () => {
-        setAiState("listening")
-        setLiveTranscript("")
-        liveTranscriptRef.current = ""
-      }
+        let transcribedText = liveTranscriptRef.current.trim()
 
-      // biome-ignore lint/suspicious/noExplicitAny: Web Speech API event
-      recognition.onresult = (event: any) => {
-        let transcript = ""
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript
+        if (blob.size > 1000) {
+          try {
+            setAiState("processing")
+            const buffer = await blob.arrayBuffer()
+            const base64 = btoa(
+              new Uint8Array(buffer).reduce(
+                (data, byte) => data + String.fromCharCode(byte),
+                "",
+              ),
+            )
+            const geminiText = await transcribeAppeal(base64, "audio/webm")
+            if (geminiText.trim()) {
+              transcribedText = geminiText.trim()
+            }
+          } catch {
+            // Keep web speech transcript fallback
+          }
         }
-        setLiveTranscript(transcript)
-        liveTranscriptRef.current = transcript
-      }
 
-      recognition.onerror = () => {
-        setAiState("idle")
-      }
-
-      recognition.onend = () => {
-        const text = liveTranscriptRef.current.trim()
-        if (text) {
-          handleSendMessage(text)
+        if (transcribedText) {
+          handleSendMessage(transcribedText)
         } else {
           setAiState("idle")
         }
       }
 
-      recognitionRef.current = recognition
-      recognition.start()
+      recorder.start()
+      setAiState("listening")
     } catch {
+      toast.error("Mikrofonga ruxsat berilmadi.")
       setAiState("idle")
+      return
+    }
+
+    // Also start browser Web Speech API for real-time live preview
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition
+    if (SpeechRecognition) {
+      try {
+        if (recognitionRef.current) recognitionRef.current.stop()
+        const recognition = new SpeechRecognition()
+        const lang = i18n.language?.slice(0, 2)
+        recognition.lang =
+          lang === "ru" ? "ru-RU" : lang === "en" ? "en-US" : "uz-UZ"
+        recognition.continuous = false
+        recognition.interimResults = true
+
+        // biome-ignore lint/suspicious/noExplicitAny: Web Speech API event
+        recognition.onresult = (event: any) => {
+          let transcript = ""
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript
+          }
+          setLiveTranscript(transcript)
+          liveTranscriptRef.current = transcript
+        }
+
+        recognitionRef.current = recognition
+        recognition.start()
+      } catch {
+        /* Web speech fallback ignored */
+      }
     }
   }
 
   const stopListening = () => {
+
+
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
+      mediaRecorderRef.current.stop()
+    }
     if (recognitionRef.current) {
       recognitionRef.current.stop()
     }
     setAiState("idle")
   }
+
+
 
   // ── Start Voice AI Assistant Session ──────────────────────────────────────
   const startVoiceAiSession = () => {

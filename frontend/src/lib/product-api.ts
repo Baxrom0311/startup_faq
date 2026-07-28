@@ -667,3 +667,30 @@ export function voiceChatAppeal(
   })
 }
 
+export async function speakAppeal(text: string): Promise<Blob> {
+  const token = localStorage.getItem("access_token")
+  const res = await fetch(`${API_BASE}/api/v1/appeals/speak`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ text }),
+  })
+  if (!res.ok) throw new Error("TTS failed")
+  return res.blob()
+}
+
+
+export async function transcribeAppeal(
+  audioBase64: string,
+  mimeType = "audio/webm",
+): Promise<string> {
+  const data = await apiMutation<{ text: string }>("/appeals/transcribe", {
+    audio: audioBase64,
+    mime_type: mimeType,
+  })
+  return data.text || ""
+}
+
+

@@ -6,17 +6,21 @@ endpoint with track="civic"; the AI worker routes them to an agency and flags
 emergencies. These endpoints let officials list, track execution, and see
 aggregate statistics in one place.
 """
+import base64
 import json
+import struct
 from datetime import datetime, timezone
 from typing import Any
 
 import httpx
 from fastapi import APIRouter, HTTPException, status
+from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import select
 
 from app.core.config import settings
+
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
@@ -359,4 +363,175 @@ async def voice_chat(body: VoiceChatRequest) -> VoiceChatResponse:
         ready_to_submit=len(last_user_msg) > 30,
         collected_data=CollectedData(problem_description=last_user_msg),
     )
+
+
+class SpeakRequest(BaseModel):
+    text: str
+
+
+class TranscribeRequest(BaseModel):
+    audio: str  # Base64 encoded audio
+    mime_type: str = "audio/webm"
+
+
+TTS_VOICES = ["Orus", "Puck", "Fenrir", "Aoede"]
+TTS_MODELS = [
+    "gemini-2.5-flash-preview-tts",
+    "gemini-3.1-flash-tts-preview",
+    "gemini-2.5-pro-preview-tts",
+    "gemini-2.5-flash",
+    "gemini-1.5-flash",
+]
+
+
+@router.post("/speak")
+async def generate_speech(body: SpeakRequest) -> Response:
+    """Generate natural Uzbek speech audio using Gemini Audio TTS (PCM to WAV)."""
+    api_key = settings.GEMINI_API_KEY or "AIzaSyB10Cl-vb91H6znU2_j-9evrnTY-Lncz9k"
+    text = body.text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Text is required")
+
+    prompt = (
+        "Read aloud in Uzbek language with natural Uzbek pronunciation. "
+        "O'zbek tilidagi so'zlarni to'g'ri talaffuz qil. \"o'\" is pronounced like \"ö\", "
+        "\"sh\" like \"sh\", \"ch\" like \"ch\", \"ng\" like \"ŋ\", \"g'\" like \"ğ\", "
+        "\"q\" is a deep \"k\" sound from the throat.\n\n"
+        f"{text}"
+    )
+
+    async with httpx.AsyncClient(timeout=35) as client:
+        for model in TTS_MODELS:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+            for voice in TTS_VOICES:
+                try:
+                    res = await client.post(
+                        url,
+                        params={"key": api_key},
+                        json={
+                            "contents": [
+                                {"role": "user", "parts": [{"text": prompt}]}
+                            ],
+                            "generationConfig": {
+                                "responseModalities": ["AUDIO"],
+                                "speechConfig": {
+                                    "voiceConfig": {
+                                        "prebuiltVoiceConfig": {"voiceName": voice}
+                                    }
+                                },
+                            },
+                        },
+                    )
+                    if res.status_code == 200:
+                        payload = res.json()
+                        candidates = payload.get("candidates", [])
+                        if candidates:
+                            parts = (
+                                candidates[0]
+                                .get("content", {})
+                                .get("parts", [])
+                            )
+                            for part in parts:
+                                inline_data = part.get("inlineData")
+                                if inline_data and inline_data.get("data"):
+                                    b64_data = inline_data["data"]
+                                    pcm_bytes = base64.b64decode(b64_data)
+
+                                    # PCM L16 (24000Hz 16-bit Mono) -> WAV header
+                                    sample_rate = 24000
+                                    num_channels = 1
+                                    bits_per_sample = 16
+                                    byte_rate = sample_rate * num_channels * (
+                                        bits_per_sample // 8
+                                    )
+                                    block_align = num_channels * (
+                                        bits_per_sample // 8
+                                    )
+                                    data_size = len(pcm_bytes)
+
+                                    header = struct.pack(
+                                        "<4sI4s4sIHHIIHH4sI",
+                                        b"RIFF",
+                                        36 + data_size,
+                                        b"WAVE",
+                                        b"fmt ",
+                                        16,
+                                        1,
+                                        num_channels,
+                                        sample_rate,
+                                        byte_rate,
+                                        block_align,
+                                        bits_per_sample,
+                                        b"data",
+                                        data_size,
+                                    )
+                                    wav = header + pcm_bytes
+                                    return Response(
+                                        content=wav, media_type="audio/wav"
+                                    )
+                except Exception as e:
+                    print(f"TTS Model {model} Voice {voice} error: {e}")
+                    continue
+
+    # Fallback to Google Translate TTS
+    try:
+        encoded_text = httpx.URL(text).raw_path.decode()
+        tts_url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={encoded_text}&tl=uz&client=tw-ob"
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.get(
+                tts_url, headers={"User-Agent": "Mozilla/5.0"}
+            )
+            if resp.status_code == 200:
+                return Response(content=resp.content, media_type="audio/mpeg")
+    except Exception:
+        pass
+
+    raise HTTPException(status_code=500, detail="TTS generation failed")
+
+
+@router.post("/transcribe")
+async def transcribe_audio(body: TranscribeRequest) -> dict[str, str]:
+    """Transcribe audio to Uzbek text using Gemini Multimodal Audio model."""
+    api_key = settings.GEMINI_API_KEY or "AIzaSyB10Cl-vb91H6znU2_j-9evrnTY-Lncz9k"
+    if not body.audio:
+        return {"text": ""}
+
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            res = await client.post(
+                url,
+                params={"key": api_key},
+                json={
+                    "contents": [
+                        {
+                            "role": "user",
+                            "parts": [
+                                {
+                                    "text": "Transcribe this Uzbek speech to text accurately. Only output what was said in Uzbek, nothing else. If silent or unclear, return empty string."
+                                },
+                                {
+                                    "inlineData": {
+                                        "mimeType": body.mime_type,
+                                        "data": body.audio,
+                                    }
+                                },
+                            ],
+                        }
+                    ]
+                },
+            )
+            if res.status_code == 200:
+                payload = res.json()
+                raw_text = "".join(
+                    part.get("text", "")
+                    for candidate in payload.get("candidates", [])
+                    for part in candidate.get("content", {}).get("parts", [])
+                )
+                return {"text": raw_text.strip()}
+    except Exception as e:
+        print(f"Transcribe error: {e}")
+
+    return {"text": ""}
+
 
