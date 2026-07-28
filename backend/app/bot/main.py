@@ -201,6 +201,129 @@ async def verify_contact(message: Message) -> None:
     )
 
 
+@router.message(F.voice | F.audio)
+async def handle_voice_appeal(message: Message, bot: Bot) -> None:
+    voice_or_audio = message.voice or message.audio
+    if not voice_or_audio or not message.from_user:
+        return
+
+    status_msg = await message.answer("🎙️ Ovozingiz Gemini AI tomonidan eshitilmoqda...")
+
+    try:
+        file_info = await bot.get_file(voice_or_audio.file_id)
+        file_bytes_io = await bot.download_file(file_info.file_path)
+        file_bytes = file_bytes_io.read()
+
+        audio_b64 = base64.b64encode(file_bytes).decode("utf-8")
+        async with httpx.AsyncClient(
+            base_url=settings.BACKEND_INTERNAL_URL, timeout=30
+        ) as client:
+            tr_res = await client.post(
+                "/appeals/transcribe",
+                json={"audio_base64": audio_b64, "mime_type": "audio/ogg"},
+            )
+            if tr_res.status_code == 200:
+                transcribed_text = tr_res.json().get("text", "").strip()
+            else:
+                transcribed_text = ""
+    except Exception as exc:
+        logger.warning("Bot transcribe error: %s", exc)
+        transcribed_text = ""
+
+    if not transcribed_text:
+        await status_msg.edit_text(
+            "Ovozingizni aniqlab bo'lmadi. Iltimos, qaytadan aniqroq so'zlang yoki matn shaklida yozing."
+        )
+        return
+
+    await status_msg.delete()
+    await _process_bot_user_message(message, message.from_user.id, transcribed_text)
+
+
+@router.message(F.text & ~F.text.startswith("/"))
+async def handle_text_appeal(message: Message) -> None:
+    if not message.from_user or not message.text:
+        return
+    await _process_bot_user_message(message, message.from_user.id, message.text.strip())
+
+
+async def _process_bot_user_message(message: Message, user_id: int, text: str) -> None:
+    r = _get_redis()
+    history_key = f"tg_appeal_chat:{user_id}"
+    try:
+        raw_history = await r.get(history_key)
+        history = json.loads(raw_history) if raw_history else []
+    except Exception:
+        history = []
+
+    history.append({"role": "user", "content": text})
+
+    try:
+        async with httpx.AsyncClient(
+            base_url=settings.BACKEND_INTERNAL_URL, timeout=30
+        ) as client:
+            vc_res = await client.post(
+                "/appeals/voice-chat",
+                json={"messages": history, "language": "uz"},
+            )
+            if vc_res.status_code != 200:
+                await message.answer("Tizimda vaqtinchalik uzilish yuz berdi.")
+                return
+            data = vc_res.json()
+    except Exception as exc:
+        logger.warning("Bot voice-chat error: %s", exc)
+        await message.answer("Tarmoq xatoligi yuz berdi.")
+        return
+
+    reply_text = data.get("reply_text", "")
+    history.append({"role": "assistant", "content": reply_text})
+    try:
+        await r.setex(history_key, 600, json.dumps(history))
+    except Exception:
+        pass
+
+    # Send text reply
+    await message.answer(reply_text)
+
+    # Send native Gemini Uzbek voice note
+    try:
+        async with httpx.AsyncClient(
+            base_url=settings.BACKEND_INTERNAL_URL, timeout=30
+        ) as client:
+            sp_res = await client.post(
+                "/appeals/speak",
+                json={"text": reply_text, "language": "uz"},
+            )
+            if sp_res.status_code == 200:
+                audio_bytes = sp_res.content
+                voice_file = BufferedInputFile(audio_bytes, filename="reply.wav")
+                await message.answer_voice(voice_file)
+    except Exception as exc:
+        logger.warning("Bot speak audio send failed: %s", exc)
+
+    # If appeal is ready to submit -> submit automatically!
+    if data.get("ready_to_submit"):
+        collected = data.get("collected_data", {})
+        summary = (
+            f"[Telegram Bot AI Murojaat]\n"
+            f"Ism: {collected.get('citizen_name') or message.from_user.first_name}\n"
+            f"Tel: {collected.get('phone') or 'Telegram ID: ' + str(user_id)}\n"
+            f"Manzil: {collected.get('location') or 'Ko\'rsatilmadi'}\n\n"
+            f"Muammo:\n{collected.get('problem_description')}"
+        )
+        try:
+            async with httpx.AsyncClient(
+                base_url=settings.BACKEND_INTERNAL_URL, timeout=30
+            ) as client:
+                await client.post(
+                    "/problems/civic",
+                    json={"raw_text": summary},
+                )
+            await r.delete(history_key)
+        except Exception as exc:
+            logger.warning("Bot submit civic appeal failed: %s", exc)
+
+
 @router.message()
 async def default_message_handler(message: Message) -> None:
     frontend = settings.FRONTEND_HOST.rstrip("/")
@@ -221,7 +344,7 @@ async def default_message_handler(message: Message) -> None:
     )
     await message.answer(
         "Assalomu alaykum! Bu <b>SolutionLab</b> rasmiy boti.\n\n"
-        "Murojaat va shikoyatlarni ovozli AI yordamchi orqali yuborish uchun quyidagi tugmani bosing:",
+        "Murojaat va shikoyatlaringizni shu yerda ovozli xabar yuborib yoki matn shaklida yozib yo'llashingiz mumkin!",
         parse_mode="HTML",
         reply_markup=keyboard,
     )
