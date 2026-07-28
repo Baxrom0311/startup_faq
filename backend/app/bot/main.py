@@ -201,7 +201,34 @@ async def verify_contact(message: Message) -> None:
     )
 
 
+@router.message()
+async def default_message_handler(message: Message) -> None:
+    frontend = settings.FRONTEND_HOST.rstrip("/")
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🌐 Platformada murojaat yuborish",
+                    url=f"{frontend}/appeal",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔑 Platformaga kirish", url=f"{frontend}/login"
+                )
+            ],
+        ]
+    )
+    await message.answer(
+        "Assalomu alaykum! Bu <b>SolutionLab</b> rasmiy boti.\n\n"
+        "Murojaat va shikoyatlarni ovozli AI yordamchi orqali yuborish uchun quyidagi tugmani bosing:",
+        parse_mode="HTML",
+        reply_markup=keyboard,
+    )
+
+
 async def _run_placeholder() -> None:
+
     logger.info("TG_BOT_TOKEN is not set; bot is idle")
     while True:
         await asyncio.sleep(3600)

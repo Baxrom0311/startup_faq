@@ -509,10 +509,14 @@ ${res.collected_data.problem_description}`
             setChatMessages([])
             setCollectedData({})
             setAiState("idle")
+            setTimeout(() => {
+              startVoiceAiSession()
+            }, 100)
           }}
         >
           Yangi murojaat yuborish
         </Button>
+
       </div>
     )
   }
