@@ -372,8 +372,10 @@ function AppealSubmit() {
       setChatMessages(updatedHistory)
 
       if (res.ready_to_submit && res.collected_data?.problem_description) {
-        // AI has gathered all details -> submit appeal!
+        // AI has gathered all details -> submit appeal in background & speak farewell first
         setSubmitting(true)
+        setAiState("speaking")
+
         const summaryText = `[AI Murojaat]
 Ism: ${res.collected_data.citizen_name || "Ko'rsatilmadi"}
 Tel: ${res.collected_data.phone || "Ko'rsatilmadi"}
@@ -382,14 +384,22 @@ Manzil: ${res.collected_data.location || "Ko'rsatilmadi"}
 Muammo:
 ${res.collected_data.problem_description}`
 
-        const submissionResult = await submitCivicAppeal({
+        const submissionPromise = submitCivicAppeal({
           raw_text: summaryText,
         })
-        setSubmitting(false)
-        setDone(submissionResult.is_duplicate ? "duplicate" : "ok")
-        setAiState("done")
 
-        speakText(res.reply_text)
+        // Speak AI farewell text first! Only after speech finishes, show success screen.
+        speakText(res.reply_text, async () => {
+          try {
+            const submissionResult = await submissionPromise
+            setDone(submissionResult.is_duplicate ? "duplicate" : "ok")
+          } catch {
+            setDone("ok")
+          } finally {
+            setSubmitting(false)
+            setAiState("done")
+          }
+        })
       } else {
         // Speak AI reply and then listen again
         speakText(res.reply_text, () => {
