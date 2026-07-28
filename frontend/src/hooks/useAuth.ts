@@ -1,22 +1,34 @@
 import { useQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
+import { useEffect } from "react"
 
 import { type UserPublic, UsersService } from "@/client"
 
 const API_BASE = import.meta.env.VITE_API_URL as string
 
 const isLoggedIn = () => {
-  return localStorage.getItem("access_token") !== null
+  const token = localStorage.getItem("access_token")
+  return !!token && token.trim().length > 0
 }
 
 const useAuth = () => {
   const navigate = useNavigate()
 
-  const { data: user } = useQuery<UserPublic | null, Error>({
+  const { data: user, isError } = useQuery<UserPublic | null, Error>({
     queryKey: ["currentUser"],
     queryFn: UsersService.readUserMe,
     enabled: isLoggedIn(),
+    retry: false,
   })
+
+  useEffect(() => {
+    if (isLoggedIn() && isError) {
+      localStorage.removeItem("access_token")
+      localStorage.removeItem("refresh_token")
+      localStorage.removeItem("needs_telegram_link")
+      navigate({ to: "/login" })
+    }
+  }, [isError, navigate])
 
   const logout = async () => {
     const refreshToken = localStorage.getItem("refresh_token")
@@ -29,6 +41,7 @@ const useAuth = () => {
     }
     localStorage.removeItem("access_token")
     localStorage.removeItem("refresh_token")
+    localStorage.removeItem("needs_telegram_link")
     navigate({ to: "/login" })
   }
 
@@ -40,3 +53,4 @@ const useAuth = () => {
 
 export { isLoggedIn }
 export default useAuth
+
