@@ -285,22 +285,6 @@ async def _process_bot_user_message(message: Message, user_id: int, text: str) -
     # Send text reply
     await message.answer(reply_text)
 
-    # Send native Gemini Uzbek voice note
-    try:
-        async with httpx.AsyncClient(
-            base_url=settings.BACKEND_INTERNAL_URL, timeout=30
-        ) as client:
-            sp_res = await client.post(
-                "/appeals/speak",
-                json={"text": reply_text, "language": "uz"},
-            )
-            if sp_res.status_code == 200:
-                audio_bytes = sp_res.content
-                voice_file = BufferedInputFile(audio_bytes, filename="reply.wav")
-                await message.answer_voice(voice_file)
-    except Exception as exc:
-        logger.warning("Bot speak audio send failed: %s", exc)
-
     # If appeal is ready to submit -> submit automatically!
     if data.get("ready_to_submit"):
         collected = data.get("collected_data", {})
