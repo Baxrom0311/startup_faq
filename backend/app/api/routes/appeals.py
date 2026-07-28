@@ -296,8 +296,10 @@ HAR DOIM FAQAT shunday yagona JSON obyekt qaytar:
 @router.post("/voice-chat", response_model=VoiceChatResponse)
 async def voice_chat(body: VoiceChatRequest) -> VoiceChatResponse:
     """Interactive Gemini Voice AI assistant endpoint for civic appeals."""
-    api_key = settings.GEMINI_API_KEY or "AIzaSyB10Cl-vb91H6znU2_j-9evrnTY-Lncz9k"
-    model_name = "gemini-1.5-flash"
+    api_key = settings.GEMINI_API_KEY
+    model_name = "gemini-3.6-flash"
+
+
 
     contents = [{"role": "user", "parts": [{"text": VOICE_SYSTEM_PROMPT}]}]
     for msg in body.messages:
@@ -320,9 +322,9 @@ async def voice_chat(body: VoiceChatRequest) -> VoiceChatResponse:
                 },
             )
 
-            # Fallback model check if 2.5-flash returns 404 or error
+            # Fallback model check if gemini-3.6-flash fails
             if res.status_code != 200:
-                fallback_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+                fallback_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
                 res = await client.post(
                     fallback_url,
                     params={"key": api_key},
@@ -334,6 +336,7 @@ async def voice_chat(body: VoiceChatRequest) -> VoiceChatResponse:
                         },
                     },
                 )
+
 
             if res.status_code == 200:
                 payload = res.json()
@@ -376,18 +379,18 @@ class TranscribeRequest(BaseModel):
 
 TTS_VOICES = ["Orus", "Puck", "Fenrir", "Aoede"]
 TTS_MODELS = [
-    "gemini-2.5-flash-preview-tts",
     "gemini-3.1-flash-tts-preview",
+    "gemini-2.5-flash-preview-tts",
     "gemini-2.5-pro-preview-tts",
-    "gemini-2.5-flash",
-    "gemini-1.5-flash",
 ]
 
 
 @router.post("/speak")
 async def generate_speech(body: SpeakRequest) -> Response:
     """Generate natural Uzbek speech audio using Gemini Audio TTS (PCM to WAV)."""
-    api_key = settings.GEMINI_API_KEY or "AIzaSyB10Cl-vb91H6znU2_j-9evrnTY-Lncz9k"
+    api_key = settings.GEMINI_API_KEY
+
+
     text = body.text.strip()
     if not text:
         raise HTTPException(status_code=400, detail="Text is required")
@@ -492,11 +495,13 @@ async def generate_speech(body: SpeakRequest) -> Response:
 @router.post("/transcribe")
 async def transcribe_audio(body: TranscribeRequest) -> dict[str, str]:
     """Transcribe audio to Uzbek text using Gemini Multimodal Audio model."""
-    api_key = settings.GEMINI_API_KEY or "AIzaSyB10Cl-vb91H6znU2_j-9evrnTY-Lncz9k"
+    api_key = settings.GEMINI_API_KEY
+
     if not body.audio:
         return {"text": ""}
 
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
+
     try:
         async with httpx.AsyncClient(timeout=30) as client:
             res = await client.post(
