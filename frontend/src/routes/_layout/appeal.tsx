@@ -182,29 +182,34 @@ function AppealSubmit() {
     lang: string,
     finish: () => void,
   ) => {
+    if (!("speechSynthesis" in window)) {
+      finish()
+      return
+    }
     try {
-      const ttsLang = lang === "ru" ? "ru" : lang === "en" ? "en" : "uz"
-      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${ttsLang}&client=tw-ob`
-      const audio = new Audio(ttsUrl)
-      audio.onended = finish
-      audio.onerror = () => {
-        if ("speechSynthesis" in window) {
-          window.speechSynthesis.cancel()
-          const utterance = new SpeechSynthesisUtterance(text)
-          utterance.lang =
-            lang === "ru" ? "ru-RU" : lang === "en" ? "en-US" : "uz-UZ"
-          utterance.onend = finish
-          utterance.onerror = finish
-          window.speechSynthesis.speak(utterance)
-        } else {
-          finish()
-        }
-      }
-      audio.play().catch(finish)
+      window.speechSynthesis.cancel()
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang =
+        lang === "ru" ? "ru-RU" : lang === "en" ? "en-US" : "uz-UZ"
+      utterance.rate = 0.95
+      utterance.onend = finish
+      utterance.onerror = finish
+
+      const voices = window.speechSynthesis.getVoices()
+      const bestVoice = voices.find(
+        (v) =>
+          v.lang.startsWith(lang) ||
+          v.lang.includes("uz") ||
+          v.lang.includes("tr"),
+      )
+      if (bestVoice) utterance.voice = bestVoice
+
+      window.speechSynthesis.speak(utterance)
     } catch {
       finish()
     }
   }
+
 
 
   // ── Speech Recognition & Gemini Audio Transcribe (STT) ───────────────────

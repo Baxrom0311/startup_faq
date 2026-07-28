@@ -265,17 +265,17 @@ class VoiceChatResponse(BaseModel):
 VOICE_SYSTEM_PROMPT = """Sen "SolutionLab Ovozli AI Yordamchisi"san. Vazifang — fuqarolardan murojaat va shikoyatlarni ovozli muloqot orqali qabul qilish va ularga ko'maklashish.
 
 Muloqot va javob berish qoidalari:
-1. Har doim fuqaroning tilida (o'zbek tilida: "uz", rus tilida: "ru", ingliz tilida: "en") xushmuomalalik va hurmat bilan javob ber ("Assalomu aleykum hurmatli fuqaro!...").
-2. Fuqaro murojaatining mazmunini (muammosini) tahlil qil va tushunib ol.
+1. Har doim fuqaroning tilida (o'zbek tilida: "uz", rus tilida: "ru", ingliz tilida: "en") xushmuomalalik va hurmat bilan javob ber ("Assalomu aleykum hurmatli fuqaro!").
+2. Fuqaro hali murojaat mazmunini aytmagan bo'lsa, avval uning muammosini so'ra. Hali murojaat mazmuni va aloqa ma'lumotlari aytilmagan bo'lsa, HECH KACHON "ready_to_submit": true QILMA!
 3. Murojaatni to'liq shakllantirish uchun fuqarodan quyidagi ma'lumotlar borligini tekshir:
    - Muammo tavsifi (nimadan shikoyat qilmoqda)
    - Fuqaroning ismi (Ism-familiya)
    - Telefon raqami
    - Manzili (Tuman, shahar yoki mahalla)
-4. Agar ism, telefon raqami yoki manzil hali aytilmagan bo'lsa, fuqarodan bularni qisqa va aniq so'ra (masalan: "Muammoingiz tushunarli. Iltimos, ismingiz, telefon raqamingiz va manzilingizni ham aytib o'tsangiz, murojaatingizni rasmiylashtiramiz...").
+4. Agar ism, telefon raqami yoki manzil hali aytilmagan bo'lsa, fuqarodan bularni qisqa va aniq so'ra ("Muammoingiz tushunarli. Iltimos, ismingiz, telefon raqamingiz va manzilingizni ham aytib o'tsangiz...").
 5. Tizim idoralarini quyidagi sluglardan biriga mosla: "suv", "elektr", "gaz", "issiqlik", "yol", "kommunal", "obodonlashtirish", "transport", "mahalla", "iib", "soglik", "talim", "ekologiya", "ijtimoiy", "aloqa", "boshqa".
 6. Shoshilinch xavf (gaz sizib chiqishi, sim uzilishi, suv toshishi, inson hayotiga xavf) bo'lsa: "is_emergency": true qil.
-7. Ma'lumotlar yetarli bo'lgach (muammo va fuqaro aloqa ma'lumotlari bo'lsa), fuqaroga murojaat qabul qilinganini ayt va "ready_to_submit": true deb o'rnat.
+7. Ma'lumotlar yetarli bo'lgach (muammo tavsifi va fuqaro ismi/telefoni bor bo'lgandagina), fuqaroga murojaat qabul qilinganini ayt va "ready_to_submit": true deb o'rnat.
 
 HAR DOIM FAQAT shunday yagona JSON obyekt qaytar:
 {
@@ -298,7 +298,6 @@ async def voice_chat(body: VoiceChatRequest) -> VoiceChatResponse:
     """Interactive Gemini Voice AI assistant endpoint for civic appeals."""
     api_key = settings.GEMINI_API_KEY or "AIzaSyB10Cl-vb91H6znU2_j-9evrnTY-Lncz9k"
     model_name = "gemini-1.5-flash"
-
 
     contents = [{"role": "user", "parts": [{"text": VOICE_SYSTEM_PROMPT}]}]
     for msg in body.messages:
@@ -359,10 +358,11 @@ async def voice_chat(body: VoiceChatRequest) -> VoiceChatResponse:
 
     last_user_msg = body.messages[-1].content if body.messages else ""
     return VoiceChatResponse(
-        reply_text="Assalomu aleykum hurmatli fuqaro! Murojaatingizni va shaxsiy ma'lumotlaringizni (ism, telefon, manzil) yozib yoki so'zlab bering, biz uni tegishli idoraga yuboramiz.",
-        ready_to_submit=len(last_user_msg) > 30,
-        collected_data=CollectedData(problem_description=last_user_msg),
+        reply_text="Assalomu aleykum hurmatli fuqaro! Murojaatingiz va muammoingiz haqida gapirib bering, biz uni tegishli idoraga yuboramiz.",
+        ready_to_submit=False,
+        collected_data=CollectedData(problem_description=last_user_msg if len(last_user_msg) > 10 else None),
     )
+
 
 
 class SpeakRequest(BaseModel):
