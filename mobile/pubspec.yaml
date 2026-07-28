@@ -1,0 +1,46 @@
+name: solutionlab
+description: "SolutionLab — civic problem to startup-solution platform for Uzbekistan."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management (no codegen)
+  flutter_riverpod: ^2.6.1
+
+  # Navigation
+  go_router: ^14.6.2
+
+  # Networking
+  dio: ^5.7.0
+
+  # Secure token storage
+  flutter_secure_storage: ^9.2.2
+
+  # Images
+  cached_network_image: ^3.4.1
+
+  # Audio record + playback
+  record: ^5.2.0
+  just_audio: ^0.9.42
+
+  # Photo picking
+  image_picker: ^1.1.2
+
+  # Telegram deep link / external URLs
+  url_launcher: ^6.3.1
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
