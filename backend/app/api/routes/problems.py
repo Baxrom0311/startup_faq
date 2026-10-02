@@ -175,6 +175,25 @@ async def create_problem(
     problem_in: ProblemCreate,
     background_tasks: BackgroundTasks,
 ) -> Any:
+    return await create_problem_for_user(
+        session=session,
+        current_user=current_user,
+        problem_in=problem_in,
+        background_tasks=background_tasks,
+    )
+
+
+async def create_problem_for_user(
+    *,
+    session: SessionDep,
+    current_user: User,
+    problem_in: ProblemCreate,
+    background_tasks: BackgroundTasks,
+) -> Any:
+    """Shared problem-creation core, reused by the authenticated web/app route
+    above and by internal callers (e.g. the Telegram bot's civic-appeal
+    auto-submit) that authenticate a different way but still need the same
+    dedup/moderation/publish pipeline."""
     # Validate sector if provided
     sector: Sector | None = None
     if problem_in.sector_id is not None:

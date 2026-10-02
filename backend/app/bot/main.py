@@ -1,4 +1,6 @@
 import asyncio
+import base64
+import json
 import logging
 
 import httpx
@@ -220,7 +222,7 @@ async def handle_voice_appeal(message: Message, bot: Bot) -> None:
         ) as client:
             tr_res = await client.post(
                 "/appeals/transcribe",
-                json={"audio_base64": audio_b64, "mime_type": "audio/ogg"},
+                json={"audio": audio_b64, "mime_type": "audio/ogg"},
             )
             if tr_res.status_code == 200:
                 transcribed_text = tr_res.json().get("text", "").strip()
@@ -299,17 +301,39 @@ async def _process_bot_user_message(message: Message, user_id: int, text: str) -
             f"Manzil: {loc}\n\n"
             f"Muammo:\n{prob}"
         )
+        headers = {}
+        if settings.TG_WEBHOOK_SECRET:
+            headers["X-Telegram-Webhook-Secret"] = settings.TG_WEBHOOK_SECRET
         try:
             async with httpx.AsyncClient(
                 base_url=settings.BACKEND_INTERNAL_URL, timeout=30
             ) as client:
-                await client.post(
-                    "/problems/civic",
-                    json={"raw_text": summary},
+                submit_res = await client.post(
+                    "/appeals/bot-submit",
+                    json={
+                        "telegram_id": user_id,
+                        "first_name": message.from_user.first_name,
+                        "last_name": message.from_user.last_name,
+                        "raw_text": summary,
+                    },
+                    headers=headers,
                 )
+            if submit_res.status_code >= 400:
+                logger.warning(
+                    "Bot submit civic appeal rejected: %s %s",
+                    submit_res.status_code,
+                    submit_res.text,
+                )
+                await message.answer(
+                    "Murojaatni yuborishda xatolik yuz berdi. Iltimos, birozdan so'ng qaytadan urinib ko'ring."
+                )
+                return
             await r.delete(history_key)
         except Exception as exc:
             logger.warning("Bot submit civic appeal failed: %s", exc)
+            await message.answer(
+                "Tarmoq xatoligi tufayli murojaat yuborilmadi. Iltimos, qaytadan urinib ko'ring."
+            )
 
 
 @router.message()

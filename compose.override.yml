@@ -137,6 +137,51 @@ services:
         - VITE_API_URL=http://localhost:8001
         - NODE_ENV=production
 
+  # --- Telephony PoC (docs/TELEPHONY_VOICE_AI.md, Faza 1) — local-only demo,
+  # never included in the production deploy (deploy.yml only builds/starts
+  # backend frontend bot worker prestart by name). Not started by default;
+  # bring up explicitly with: docker compose up -d asterisk telephony
+  asterisk:
+    image: andrius/asterisk:19
+    restart: "no"
+    ports:
+      - "5060:5060/udp"
+      - "10000-10100:10000-10100/udp"
+    volumes:
+      - ./infra/asterisk/pjsip.conf:/etc/asterisk/pjsip.conf:ro
+      - ./infra/asterisk/extensions.conf:/etc/asterisk/extensions.conf:ro
+      - telephony-media:/media/appeal
+    depends_on:
+      - telephony
+
+  telephony:
+    restart: "no"
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: python -m app.telephony.main
+    depends_on:
+      - backend
+      - redis
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - REDIS_URL=${REDIS_URL?Variable not set}
+      - TG_WEBHOOK_SECRET=${TG_WEBHOOK_SECRET}
+      - BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL}
+      - SENTRY_DSN=${SENTRY_DSN}
+    volumes:
+      - telephony-media:/media/appeal
+
   playwright:
     build:
       context: .
@@ -161,6 +206,9 @@ services:
       - ./frontend/test-results:/app/frontend/test-results
     ports:
       - 9323:9323
+
+volumes:
+  telephony-media:
 
 networks:
   traefik-public:

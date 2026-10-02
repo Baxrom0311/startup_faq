@@ -8,21 +8,22 @@ aggregate statistics in one place.
 """
 import base64
 import json
+import secrets as _secrets
 import struct
 from datetime import datetime, timezone
 from typing import Any
 
 import httpx
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, status
 from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlmodel import select
 
-from app.core.config import settings
-
-
 from app.api.deps import CurrentUser, SessionDep
+from app.api.routes.problems import create_problem_for_user
+from app.core import security
+from app.core.config import settings
 from app.models import (
     Agency,
     AgencyPublic,
@@ -32,12 +33,30 @@ from app.models import (
     AppealRouteUpdate,
     AppealStatusUpdate,
     Problem,
+    ProblemCreate,
     ProblemPublic,
     ProblemsPublic,
     User,
 )
 
 router = APIRouter(prefix="/appeals", tags=["appeals"])
+
+
+def _require_bot_secret(provided: str | None) -> None:
+    """Validate the bot -> backend shared secret (same contract as
+    app.api.routes.telegram_auth._require_bot_secret). Fails closed: an unset
+    server secret rejects every request instead of skipping the check."""
+    configured = settings.TG_WEBHOOK_SECRET
+    if not configured:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Telegram webhook secret is not configured",
+        )
+    if not provided or not _secrets.compare_digest(provided, configured):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Invalid bot secret"
+        )
+
 
 _OFFICIAL_ROLES = {"official", "gov", "moderator"}
 
@@ -235,6 +254,105 @@ def reroute_appeal(
     session.commit()
     session.refresh(problem)
     return _appeal_public(problem, None)
+
+
+class BotAppealSubmit(BaseModel):
+    telegram_id: int
+    first_name: str | None = None
+    last_name: str | None = None
+    raw_text: str
+
+
+@router.post("/bot-submit", response_model=ProblemPublic, status_code=201)
+async def bot_submit_appeal(
+    *,
+    session: SessionDep,
+    body: BotAppealSubmit,
+    background_tasks: BackgroundTasks,
+    x_telegram_webhook_secret: str | None = Header(default=None),
+) -> Any:
+    """Internal-only: lets the Telegram bot file a civic appeal on behalf of a
+    citizen who is chatting with the bot directly and has no web login / JWT.
+    Authenticated via the bot shared secret (like telegram_auth endpoints),
+    not a user session. Auto-provisions a minimal user keyed by telegram_id
+    on first contact, matching the upsert used by /auth/telegram/verify-contact."""
+    _require_bot_secret(x_telegram_webhook_secret)
+
+    user = session.exec(
+        select(User).where(User.telegram_id == body.telegram_id)
+    ).first()
+    if not user:
+        full_name = " ".join(
+            part for part in [body.first_name, body.last_name] if part
+        ).strip()
+        user = User(
+            email=f"tg{body.telegram_id}@telegram.platforma.example.com",
+            hashed_password=security.get_password_hash(_secrets.token_urlsafe(32)),
+            full_name=full_name or f"Telegram {body.telegram_id}",
+            telegram_id=body.telegram_id,
+            roles=["problem_owner"],
+        )
+        session.add(user)
+        session.flush()
+
+    problem_in = ProblemCreate(raw_text=body.raw_text, track="civic")
+    return await create_problem_for_user(
+        session=session,
+        current_user=user,
+        problem_in=problem_in,
+        background_tasks=background_tasks,
+    )
+
+
+class CallAppealSubmit(BaseModel):
+    call_id: str
+    caller_id: str | None = None
+    raw_text: str
+
+
+@router.post("/call-submit", response_model=ProblemPublic, status_code=201)
+async def call_submit_appeal(
+    *,
+    session: SessionDep,
+    body: CallAppealSubmit,
+    background_tasks: BackgroundTasks,
+    x_telegram_webhook_secret: str | None = Header(default=None),
+) -> Any:
+    """Internal-only: lets the telephony AGI worker (docs/TELEPHONY_VOICE_AI.md)
+    file a civic appeal on behalf of a caller who has no web login / JWT.
+    Same shared-secret auth contract as /bot-submit. Caller ID is often absent
+    or unreliable (softphones, withheld numbers), so the pseudo-user is keyed
+    by the Asterisk call ID, not the phone number."""
+    _require_bot_secret(x_telegram_webhook_secret)
+
+    # Prefer matching an existing user by real caller ID (repeat callers from
+    # the same number should reuse one identity, and User.phone is unique).
+    # Caller ID is frequently absent/unreliable (softphones, withheld
+    # numbers), so fall back to a call-ID-keyed pseudo-user per call.
+    user = None
+    if body.caller_id:
+        user = session.exec(select(User).where(User.phone == body.caller_id)).first()
+    email = f"call{body.call_id}@telephony.platforma.example.com"
+    if not user:
+        user = session.exec(select(User).where(User.email == email)).first()
+    if not user:
+        user = User(
+            email=email,
+            hashed_password=security.get_password_hash(_secrets.token_urlsafe(32)),
+            full_name=body.caller_id or f"Qo'ng'iroq {body.call_id}",
+            phone=body.caller_id or None,
+            roles=["problem_owner"],
+        )
+        session.add(user)
+        session.flush()
+
+    problem_in = ProblemCreate(raw_text=body.raw_text, track="civic")
+    return await create_problem_for_user(
+        session=session,
+        current_user=user,
+        problem_in=problem_in,
+        background_tasks=background_tasks,
+    )
 
 
 class VoiceChatMessage(BaseModel):

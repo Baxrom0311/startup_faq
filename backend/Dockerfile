@@ -2,6 +2,11 @@ FROM python:3.10
 
 ENV PYTHONUNBUFFERED=1
 
+# ffmpeg: used by app.telephony to downsample Gemini TTS audio (24kHz) to the
+# 8kHz mono PCM WAV Asterisk playback expects.
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install uv
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
 COPY --from=ghcr.io/astral-sh/uv:0.9.26 /uv /uvx /bin/

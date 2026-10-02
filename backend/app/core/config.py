@@ -108,6 +108,13 @@ class Settings(BaseSettings):
     TG_WEBHOOK_SECRET: str = ""
     BACKEND_INTERNAL_URL: str = "http://backend:8000/api/v1"
     GOOGLE_CLIENT_ID: str = ""
+
+    # Telephony PoC (docs/TELEPHONY_VOICE_AI.md) — FastAGI server that bridges
+    # Asterisk calls to the existing Gemini voice-appeal endpoints.
+    TELEPHONY_AGI_HOST: str = "0.0.0.0"
+    TELEPHONY_AGI_PORT: int = 4573
+    TELEPHONY_MEDIA_DIR: str = "/media/appeal"
+    TELEPHONY_MAX_TURNS: int = 8
     # Number of trusted reverse proxies in front of the app. Used to pick the
     # real client IP from X-Forwarded-For (rightmost-N) for rate limiting.
     TRUSTED_PROXY_COUNT: int = 1
