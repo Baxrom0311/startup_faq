@@ -142,7 +142,7 @@ services:
   # backend frontend bot worker prestart by name). Not started by default;
   # bring up explicitly with: docker compose up -d asterisk telephony
   asterisk:
-    image: andrius/asterisk:19
+    image: andrius/asterisk:22
     restart: "no"
     ports:
       - "5060:5060/udp"
